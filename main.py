@@ -15,6 +15,9 @@ class read:
     def read_csv(self):
         self.data = pd.read_csv('DATA.csv')
 
+    def npz_load(self):
+        self.npz = np.load('data/temp/np_save.npy')
+
     def graph(self):
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
