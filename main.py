@@ -3,6 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -16,7 +17,9 @@ class read:
         self.data = pd.read_csv('DATA.csv')
 
     def npz_load(self):
-        self.npz = np.load('data/temp/np_save.npy')
+        self.npz = np.load('ExpData.npz')
+        print(self.npz["time"])
+        print(self.npz["wm"])
 
     def graph(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -49,18 +52,22 @@ class read:
         plt.figure(figsize=(20, 10), dpi=100)
 
         # plt.scatter(self.data['Time'], self.data['wm'])
-        plt.plot(self.data['Time'], self.data['wm'])
-        plt.xlim(2, 3)  # x軸の範囲
+        plt.scatter(self.npz['time'], self.npz['wm'])
+        plt.plot(self.npz['time'], self.npz['wm'])
+        # plt.plot(self.data['Time'], self.data['wm'])
+        plt.xlim(2.475, 2.56)  # x軸の範囲
         plt.xlabel('Time[sec]')
         plt.ylabel('Velocity[rad/s]')
-        plt.show()
+        # plt.show()
+        plt.savefig("step_response.png", format="png", dpi=300)
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     rd = read()
     # rd.print_hi('PyCharm')
-    rd.read_csv()
+    # rd.read_csv()
+    rd.npz_load()
     rd.graph()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
