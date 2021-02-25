@@ -18,7 +18,11 @@ class read:
 
     def npz_load(self):
         # self.npz = np.load('doutei.npz')
-        self.npz = np.load('doutei2.npz')
+        # self.npz = np.load('doutei2.npz')
+        # self.npz = np.load('doutei_n8.npz')
+        # self.npz = np.load('doutei_n8_v2.npz')
+        self.npz = np.load('doutei_n10.npz')
+        # self.npz = np.load('pre_doutei.npz')
         # self.npz = np.load('ExpData.npz')
         print(self.npz["time"])
         print(self.npz["wm"])
@@ -54,14 +58,16 @@ class read:
         plt.figure(figsize=(20, 10), dpi=100)
 
         # plt.scatter(self.data['Time'], self.data['wm'])
-        plt.scatter(self.npz['time'], self.npz['wm'])
-        plt.plot(self.npz['time'], self.npz['wm'])
+        # plt.scatter(self.npz['time'], self.npz['wm'])
+        # plt.plot(self.npz['time'], self.npz['wm'])
+        plt.plot(self.npz['time'], self.npz['iq'])
         # plt.plot(self.data['Time'], self.data['wm'])
-        # plt.xlim(2.475, 2.56)  # x軸の範囲
+        # plt.xticks(np.arange(2.4, 2.6, 0.005))
+        plt.xlim(2.5, 2.6)  # x軸の範囲
         plt.xlabel('Time[sec]')
         plt.ylabel('Velocity[rad/s]')
         plt.show()
-        # plt.savefig("step_response.png", format="png", dpi=300)
+        # plt.savefig("step_response2.png", format="png", dpi=300)
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -93,24 +99,27 @@ class read:
 
         fig, (top, mid, bot) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
 
-        plt.xlim([0, 0.3])  # x軸の範囲
+        plt.xlim([0, 1.530])  # x軸の範囲
+        # plt.xlim([0.28, 0.89])  # x軸の範囲
+        plt.xlabel("Time[sec]")
 
         top.plot(self.npz['time'], self.npz['iq'])
-        top.set_ylabel('iq')
+        top.set_ylabel('Current[%]')
         top.set_yticks(np.arange(-2, 2, 0.5))
         top.set_ylim([-1.5, 1.5])  # y軸の範囲
 
         mid.plot(self.npz['time'], self.npz['thm'])
-        mid.set_ylabel('iq')
-        mid.set_yticks(np.arange(-400, -100, 50))
-        mid.set_ylim([-300.0, -200.0])  # y軸の範囲
+        mid.set_ylabel('Position[rad]')
+        # mid.set_yticks(np.arange(-400, -100, 50))
+        # mid.set_ylim([-300.0, -200.0])  # y軸の範囲
 
         bot.plot(self.npz['time'], self.npz['wm'])
-        bot.set_ylabel('iq')
-        bot.set_yticks(np.arange(-2, 2, 0.5))
-        bot.set_ylim([-150.0, 150.0])  # y軸の範囲
+        bot.set_ylabel('Velocity[rad/s]')
+        # bot.set_yticks(np.arange(-200, 200, 50))
+        # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
+        # plt.savefig("doutei_enl.png")
         plt.show()
 
 # Press the green button in the gutter to run the script.
