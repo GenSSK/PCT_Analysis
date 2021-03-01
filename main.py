@@ -5,6 +5,7 @@
 
 import numpy as np
 import pandas as pd
+from scipy import signal
 import matplotlib.pyplot as plt
 
 
@@ -24,8 +25,12 @@ class read:
         self.npz = np.load('doutei_n10.npz')
         # self.npz = np.load('pre_doutei.npz')
         # self.npz = np.load('ExpData.npz')
-        print(self.npz["time"])
-        print(self.npz["wm"])
+        # print(self.npz["time"])
+        # print(self.npz["wm"])
+        self.thm_dtre = signal.detrend(self.npz["thm"], type = 'constant')
+        self.thm_dtre = signal.detrend(self.thm_dtre, type = 'linear')
+        self.wm_dtre = signal.detrend(self.npz["wm"], type='constant')
+        self.wm_dtre = signal.detrend(self.wm_dtre, type='linear')
 
     def graph(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -108,13 +113,19 @@ class read:
         top.set_yticks(np.arange(-2, 2, 0.5))
         top.set_ylim([-1.5, 1.5])  # y軸の範囲
 
-        mid.plot(self.npz['time'], self.npz['thm'])
+        mid.plot(self.npz['time'], self.npz['thm'], label = 'Raw')
+        mid.plot(self.npz['time'], self.thm_dtre, label = 'Fix')
+        mid.plot(self.npz['time'], self.npz['thm'] - self.thm_dtre, label = 'Bias & Trend')
         mid.set_ylabel('Position[rad]')
+        mid.legend()
         # mid.set_yticks(np.arange(-400, -100, 50))
         # mid.set_ylim([-300.0, -200.0])  # y軸の範囲
 
-        bot.plot(self.npz['time'], self.npz['wm'])
+        bot.plot(self.npz['time'], self.npz['wm'], label = 'Raw')
+        bot.plot(self.npz['time'], self.wm_dtre, label = 'Fix')
+        bot.plot(self.npz['time'], self.npz['wm'] - self.wm_dtre, label = 'Bias & Trend')
         bot.set_ylabel('Velocity[rad/s]')
+        bot.legend()
         # bot.set_yticks(np.arange(-200, 200, 50))
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
