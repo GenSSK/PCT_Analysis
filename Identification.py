@@ -41,15 +41,12 @@ class Iden:
 
 
     def StateSpace(self):
-        A = np.zeros((2, 2))
-        B = np.zeros((2, 2))
-        C = np.zeros(2)
-        D = np.zeros((2, 2))
+        J = 1
+        A = [[0, 1], [0, 0]] # 行列
+        B = [[0], [1/J]] # 行ベクトル
+        C = [1, 1] #　列ベクトル
 
-        ss = control.ss(A, B, B, D)
-        print(A)
-        print(B)
-        print(C)
+        ss = control.ss(A, B, C, 0)
         print(ss)
 
     # def TransferFunction(self):
