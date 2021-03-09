@@ -6,6 +6,7 @@
 import numpy as np
 import control
 import matplotlib as plt
+import pandas as pd
 from scipy import signal
 import matplotlib.pyplot as plt
 
@@ -108,6 +109,16 @@ class Iden:
 
     # def TransferFunction(self):
 
+    def CsvOut(self):
+        df = pd.DataFrame({
+            'time': self.IdenData[0],
+            'iq': self.IdenData[1],
+            'wm': self.IdenData[2],
+            'thm': self.IdenData[3]
+        })
+
+        df.to_csv("out.csv")
+
 
 
 
@@ -118,4 +129,5 @@ if __name__ == '__main__':
     ID.Arrangement()
     # ID.StateSpace()
     # ID.AutoCorrelation()
-    ID.CorrelationAnalysis()
+    # ID.CorrelationAnalysis()
+    ID.CsvOut()
