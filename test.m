@@ -31,6 +31,6 @@ bodeplot(m,GS)
 ax = axis; axis([0.1 10 ax(3:4)])
 
 % 簡単な伝達関数の推定
-mtf = tfest(ze, 2, 2) % transfer function with 2 zeros and 2 poles
+ mtf = tfest(ze, 2, 2) % transfer function with 2 zeros and 2 poles
 mx = arx(ze,[2 2 1])
 compare(zv,m,mtf,mx)

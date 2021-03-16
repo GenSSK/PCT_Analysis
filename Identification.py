@@ -132,6 +132,7 @@ class Iden:
         print(ss)
 
     def AutoCorrelation(self):
+        
         n1 = 50
         n2 = 30050
         Decimation = 50
@@ -157,9 +158,10 @@ class Iden:
             r[i] = r[i] / y
 
         plt.plot(np.arange(N), r)
-        # plt.xlabel('Time [sec]')
-        # plt.ylabel('MSL')
-        plt.show()
+        plt.xlabel('Rag')
+        plt.ylabel('Auto Correlation')
+        plt.savefig("AC.png")
+        # plt.show()
 
     def CorrelationAnalysis(self):
         var_u = 0
@@ -217,6 +219,6 @@ if __name__ == '__main__':
     ID.Arrangement()
     # ID.graph_sub()
     # ID.StateSpace()
-    # ID.AutoCorrelation()
-    ID.CorrelationAnalysis()
+    ID.AutoCorrelation()
+    # ID.CorrelationAnalysis()
     # ID.CsvOut()
