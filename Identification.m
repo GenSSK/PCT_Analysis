@@ -5,8 +5,8 @@
 y1 = A.data(:,5);
 u1 = A.data(:,3);
 
-y2 = A.data(:,5);
-u2 = A.data(:,3);
+y2 = B.data(1:240,5);
+u2 = B.data(1:240,3);
 
 Ts = 0.005
 data = iddata(y1,u2,Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
@@ -37,9 +37,13 @@ m = ssest(data)
 % figure();
 % compare(data, m1)
 
-figure(2)
+figure();
 mtf = tfest(test, 2, 2) % transfer function with 2 zeros and 2 poles
-mx = arx(test,[2 2 1])
+mx = arx(test,[1 1 1])
+m2 = tf(mx)
+m3 = d2c(m2)
+h = bodeplot(m3)
+figure();
 compare(test,m,mtf,mx,1)
 
 % md1 = tfest(data,2,2,'Ts',Ts)  % two poles and 2 zeros (counted as roots of polynomials in z^-1)
