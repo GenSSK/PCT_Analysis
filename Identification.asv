@@ -1,2 +1,0 @@
-data = importdata('out.csv');
-data['time''

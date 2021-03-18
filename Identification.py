@@ -17,7 +17,8 @@ class Iden:
         # self.npz = np.load('doutei2.npz')
         # self.npz = np.load('doutei_n8.npz')
         # self.npz = np.load('doutei_n8_v2.npz')
-        self.npz = np.load('doutei_n10.npz')
+        # self.npz = np.load('doutei_n10.npz')
+        self.npz = np.load('new_rec_test.npz')
         # self.npz = np.load('pre_doutei.npz')
         # self.npz = np.load('ExpData.npz')
         # print(self.npz["time"])
@@ -26,6 +27,7 @@ class Iden:
         # self.thm_dtre = signal.detrend(self.thm_dtre, type='linear')
         # self.wm_dtre = signal.detrend(self.npz["wm"], type='constant')
         # self.wm_dtre = signal.detrend(self.wm_dtre, type='linear')
+
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -90,8 +92,8 @@ class Iden:
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        plt.savefig("detrend_ok.png")
-        # plt.show()
+        # plt.savefig("detrend_ok.png")
+        plt.show()
 
     def Arrangement(self):
         Ta = 0.0001             # データのサンプリング時間
@@ -101,25 +103,31 @@ class Iden:
         Decimation = int(Ts/Ta) # 間引きの数
 
         ExtractData = np.array([self.npz['time'],
-                                 self.npz['iq'],
-                                 self.npz['wm'],
-                                 self.npz['thm']])  # 同定に必要なデータの抽出
+                                self.npz['p_iq'],
+                                self.npz['p_am'],
+                                self.npz['p_wm'],
+                                self.npz['p_thm'],
+                                self.npz['r_iq'],
+                                self.npz['r_am'],
+                                self.npz['r_wm'],
+                                self.npz['r_thm']
+                                ])  # 同定に必要なデータの抽出
 
         self.IdenData = ExtractData[:, 0:No:Decimation]  # 同定用データの作成
-        self.IdenData = np.append(self.IdenData, np.array([self.IdenData[2],
-                                                           self.IdenData[3]]), axis=0)
-        self.IdenData[4] = signal.detrend(self.IdenData[4], type='constant')
-        self.IdenData[4] = signal.detrend(self.IdenData[4], type='linear')
-        self.IdenData[5] = signal.detrend(self.IdenData[5], type='constant')
-        self.IdenData[5] = signal.detrend(self.IdenData[5], type='linear')
+        # self.IdenData = np.append(self.IdenData, np.array([self.IdenData[2],
+        #                                                    self.IdenData[3]]), axis=0)
+        # self.IdenData[4] = signal.detrend(self.IdenData[4], type='constant')
+        # self.IdenData[4] = signal.detrend(self.IdenData[4], type='linear')
+        # self.IdenData[5] = signal.detrend(self.IdenData[5], type='constant')
+        # self.IdenData[5] = signal.detrend(self.IdenData[5], type='linear')
 
         self.TestData = ExtractData[:, No::Decimation]  # 同定用データの作成
-        self.TestData = np.append(self.TestData, np.array([self.TestData[2],
-                                                           self.TestData[3]]), axis=0)
-        self.TestData[4] = signal.detrend(self.TestData[4], type='constant')
-        self.TestData[4] = signal.detrend(self.TestData[4], type='linear')
-        self.TestData[5] = signal.detrend(self.TestData[5], type='constant')
-        self.TestData[5] = signal.detrend(self.TestData[5], type='linear')
+        # self.TestData = np.append(self.TestData, np.array([self.TestData[2],
+        #                                                    self.TestData[3]]), axis=0)
+        # self.TestData[4] = signal.detrend(self.TestData[4], type='constant')
+        # self.TestData[4] = signal.detrend(self.TestData[4], type='linear')
+        # self.TestData[5] = signal.detrend(self.TestData[5], type='constant')
+        # self.TestData[5] = signal.detrend(self.TestData[5], type='linear')
 
 
     def StateSpace(self):
@@ -194,20 +202,30 @@ class Iden:
     def CsvOut(self):
         df1 = pd.DataFrame({
             'time': self.IdenData[0],
-            'iq': self.IdenData[1],
-            'wm': self.IdenData[4],
-            'thm': self.IdenData[5]
+            'p_iq': self.IdenData[1],
+            'p_am': self.IdenData[2],
+            'p_wm': self.IdenData[3],
+            'p_thm': self.IdenData[4],
+            'r_iq': self.IdenData[5],
+            'r_am': self.IdenData[6],
+            'r_wm': self.IdenData[7],
+            'r_thm': self.IdenData[8]
         })
 
         df2 = pd.DataFrame({
-            'time': self.TestData[0],
-            'iq': self.TestData[1],
-            'wm': self.TestData[4],
-            'thm': self.TestData[5]
+            'time': self.IdenData[0],
+            'p_iq': self.IdenData[1],
+            'p_am': self.IdenData[2],
+            'p_wm': self.IdenData[3],
+            'p_thm': self.IdenData[4],
+            'r_iq': self.IdenData[5],
+            'r_am': self.IdenData[6],
+            'r_wm': self.IdenData[7],
+            'r_thm': self.IdenData[8]
         })
 
-        df1.to_csv("data.csv")
-        df2.to_csv("test.csv")
+        df1.to_csv("new_data.csv", index=False)
+        df2.to_csv("new_test.csv", index=False)
 
 
 
@@ -219,6 +237,6 @@ if __name__ == '__main__':
     ID.Arrangement()
     # ID.graph_sub()
     # ID.StateSpace()
-    ID.AutoCorrelation()
+    # ID.AutoCorrelation()
     # ID.CorrelationAnalysis()
-    # ID.CsvOut()
+    ID.CsvOut()

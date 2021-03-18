@@ -5,8 +5,8 @@
 y1 = A.data(:,5);
 u1 = A.data(:,3);
 
-y2 = B.data(1:240,5);
-u2 = B.data(1:240,3);
+y2 = detrend(B.data(1:240, 5));
+u2 = detrend(B.data(1:240, 3));
 
 Ts = 0.005
 data = iddata(y1,u2,Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
