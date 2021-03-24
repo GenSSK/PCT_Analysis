@@ -1,5 +1,6 @@
 [A,delimiterOut] = importdata('data.csv')
 [B,delimiterOut] = importdata('test.csv')
+
 % disp(A.data(:,2));
 
 y1 = A.data(:,5);
@@ -38,8 +39,8 @@ m = ssest(data)
 % compare(data, m1)
 
 figure();
-mtf = tfest(test, 2, 2) % transfer function with 2 zeros and 2 poles
-mx = arx(test,[1 1 1])
+mtf = tfest(data, 2, 2) % transfer function with 2 zeros and 2 poles
+mx = arx(data,[1 1 1])
 m2 = tf(mx)
 m3 = d2c(m2)
 h = bodeplot(m3)

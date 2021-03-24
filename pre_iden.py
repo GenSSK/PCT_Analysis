@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 
 class PreIden:
     def npz_load(self):
-        self.npz = np.load('new_pitch_step.npz')
+        self.npz = np.load('balanced_roll_step.npz')
+        self.pitch = np.load('balanced_pitch_step.npz')
         # self.npz = np.load('new_roll_step.npz')
 
     def graph(self):
@@ -43,19 +44,28 @@ class PreIden:
 
         plt.figure(figsize=(20, 10), dpi=100)
 
-        plt.plot(self.npz['time'], self.npz['r_wm'])
+        plt.plot(self.npz['time'], self.npz['r_wm'], label = 'roll')
+        plt.plot(self.pitch['time'], self.pitch['p_wm'], label = 'pitch')
         # plt.plot(self.npz['time'], self.npz['iq'])
         # plt.plot(self.data['Time'], self.data['wm'])
         # plt.xticks(np.arange(2.4, 2.6, 0.005))
-        plt.xlim(5, 5.8)  # x軸の範囲
+        plt.xlim(0, 7)  # x軸の範囲
+        plt.ylim(0, 100)  # x軸の範囲
         plt.xlabel('Time[sec]')
         plt.ylabel('Velocity[rad/s]')
+        plt.legend()
         plt.show()
-        # plt.savefig("step_response2.png", format="png", dpi=300)
+        # plt.savefig("balanced_step.png", format="png", dpi=300)
 
+    def pf(self):
+        a, b = np.polyfit(self.npz['time'][0:10000], self.npz['r_wm'][0:10000], 1)
+        print(a, b)
+        a, b = np.polyfit(self.pitch['time'][0:10000], self.pitch['p_wm'][0:10000], 1)
+        print(a, b)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     ID = PreIden()
     ID.npz_load()
-    ID.graph()
+    # ID.graph()
+    ID.pf()

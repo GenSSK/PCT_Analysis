@@ -18,7 +18,8 @@ class Iden:
         # self.npz = np.load('doutei_n8.npz')
         # self.npz = np.load('doutei_n8_v2.npz')
         # self.npz = np.load('doutei_n10.npz')
-        self.npz = np.load('new_rec_test.npz')
+        # self.npz = np.load('new_rec_test.npz')
+        self.npz = np.load('n8_10ms_10percent_2_iden.npz')
         # self.npz = np.load('pre_doutei.npz')
         # self.npz = np.load('ExpData.npz')
         # print(self.npz["time"])
@@ -97,8 +98,8 @@ class Iden:
 
     def Arrangement(self):
         Ta = 0.0001             # データのサンプリング時間
-        Ts = 0.005               # 同定用のサンプリング時間
-        Texp = 1.2              # 同定に必要な時間
+        Ts = 0.01               # 同定用のサンプリング時間
+        Texp = 5.12              # 同定に必要な時間
         No = int(Texp/Ta)       # 同定に必要なデータの個数
         Decimation = int(Ts/Ta) # 間引きの数
 
@@ -213,19 +214,19 @@ class Iden:
         })
 
         df2 = pd.DataFrame({
-            'time': self.IdenData[0],
-            'p_iq': self.IdenData[1],
-            'p_am': self.IdenData[2],
-            'p_wm': self.IdenData[3],
-            'p_thm': self.IdenData[4],
-            'r_iq': self.IdenData[5],
-            'r_am': self.IdenData[6],
-            'r_wm': self.IdenData[7],
-            'r_thm': self.IdenData[8]
+            'time': self.TestData[0],
+            'p_iq': self.TestData[1],
+            'p_am': self.TestData[2],
+            'p_wm': self.TestData[3],
+            'p_thm': self.TestData[4],
+            'r_iq': self.TestData[5],
+            'r_am': self.TestData[6],
+            'r_wm': self.TestData[7],
+            'r_thm': self.TestData[8]
         })
 
-        df1.to_csv("new_data.csv", index=False)
-        df2.to_csv("new_test.csv", index=False)
+        df1.to_csv("balanced_data.csv", index=False)
+        df2.to_csv("balanced_test.csv", index=False)
 
 
 
