@@ -1,19 +1,28 @@
-[A,delimiterOut] = importdata('balanced_data.csv')
-[B,delimiterOut] = importdata('balanced_test.csv')
+[A,delimiterOut] = importdata('balanced_pitch_data.csv')
+[B,delimiterOut] = importdata('balanced_roll_data.csv')
+[C,delimiterOut] = importdata('balanced_test.csv')
 
 p_thm = detrend(A.data(:, 5));
+p_wm = detrend(A.data(:, 4));
+p_am = detrend(A.data(:, 3));
 p_iq = detrend(A.data(:, 2));
 
-r_thm = detrend(A.data(:, 9));
-r_iq = detrend(A.data(:, 6));
+r_thm = detrend(B.data(:, 9));
+r_wm = detrend(B.data(:, 8));
+r_am = detrend(B.data(:, 7));
+r_iq = detrend(B.data(:, 6));
 
-t_p_thm = detrend(B.data(1:512, 5));
-t_p_iq = detrend(B.data(1:512, 2));
+t_p_thm = C.data(1:2000, 5);
+t_p_wm = C.data(1:2000, 4);
+t_p_am = C.data(1:2000, 3);
+t_p_iq = C.data(1:2000, 2);
 
-t_r_thm = detrend(B.data(1:512, 9));
-t_r_iq = detrend(B.data(1:512, 6));
+t_r_thm = C.data(1:2000, 9);
+t_r_wm = C.data(1:2000, 8);
+t_r_am = C.data(1:2000, 7);
+t_r_iq = C.data(1:2000, 6);
 
-Ts = 0.01
+Ts = 0.035
 
 data = iddata(p_thm, p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 test = iddata(t_p_thm, t_p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
@@ -24,8 +33,8 @@ test = iddata(t_p_thm, t_p_iq, Ts) % iddata オブジェクトの生成% y:出�
 %plot(test);
 
 %identification
-m = ssest(data, 1)
-%m = ssest(data, 1, 'DisturbanceModel','none')
+%m = ssest(data, 2)
+%m_d = ssest(data, 2, 'DisturbanceModel','none')
 %mtf = tfest(data, 2, 2) % transfer function with 2 zeros and 2 poles
 
 
@@ -36,10 +45,13 @@ m = ssest(data, 1)
 %a = [1 -0.01282];
 %[A,B,C,D] = tf2ss(b,a)
 
-figure();
+%tfx = tfestimate(p_thm, p_iq)
+sysTF = tfest(data,1,0,nan)
+%figure();
 %h = bodeplot(m3)
 %compare(test,m,mtf,mx,1)
-compare(test, m, 1)
+%compare(test, m, m_d, 1)
+compare(data, sysTF)
 
 
 % only kt and inertia
