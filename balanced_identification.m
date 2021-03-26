@@ -1,6 +1,8 @@
-[A,delimiterOut] = importdata('balanced_pitch_data.csv')
-[B,delimiterOut] = importdata('balanced_roll_data.csv')
-[C,delimiterOut] = importdata('balanced_test.csv')
+[A,delimiterOut] = importdata('balanced_pitch_lpf.csv')
+[B,delimiterOut] = importdata('balanced_roll_lpf.csv')
+%[A,delimiterOut] = importdata('balanced_pitch_fix_data.csv')
+%[B,delimiterOut] = importdata('balanced_roll_fix_data.csv')
+[C,delimiterOut] = importdata('balanced_test_fix.csv')
 
 p_thm = detrend(A.data(:, 5));
 p_wm = detrend(A.data(:, 4));
@@ -12,28 +14,28 @@ r_wm = detrend(B.data(:, 8));
 r_am = detrend(B.data(:, 7));
 r_iq = detrend(B.data(:, 6));
 
-t_p_thm = C.data(1:2000, 5);
-t_p_wm = C.data(1:2000, 4);
-t_p_am = C.data(1:2000, 3);
-t_p_iq = C.data(1:2000, 2);
+t_p_thm = C.data(1:572, 5);
+t_p_wm = C.data(1:572, 4);
+t_p_am = C.data(1:572, 3);
+t_p_iq = C.data(1:572, 2);
 
-t_r_thm = C.data(1:2000, 9);
-t_r_wm = C.data(1:2000, 8);
-t_r_am = C.data(1:2000, 7);
-t_r_iq = C.data(1:2000, 6);
+t_r_thm = C.data(1:572, 9);
+t_r_wm = C.data(1:572, 8);
+t_r_am = C.data(1:572, 7);
+t_r_iq = C.data(1:572, 6);
 
-Ts = 0.035
+Ts = 0.4
 
 data = iddata(p_thm, p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 test = iddata(t_p_thm, t_p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 
-%figure();
-%plot(data);
-%figure();
-%plot(test);
+figure();
+plot(data);
+figure();
+plot(test);
 
 %identification
-%m = ssest(data, 2)
+%m = ssest(data, 1)
 %m_d = ssest(data, 2, 'DisturbanceModel','none')
 %mtf = tfest(data, 2, 2) % transfer function with 2 zeros and 2 poles
 
@@ -46,31 +48,31 @@ test = iddata(t_p_thm, t_p_iq, Ts) % iddata オブジェクトの生成% y:出�
 %[A,B,C,D] = tf2ss(b,a)
 
 %tfx = tfestimate(p_thm, p_iq)
-sysTF = tfest(data,1,0,nan)
+%sysTF = tfest(data,1,0,nan)
 %figure();
 %h = bodeplot(m3)
 %compare(test,m,mtf,mx,1)
-%compare(test, m, m_d, 1)
-compare(data, sysTF)
+%compare(data, m, m_d, 1)
+%compare(data, sysTF)
 
 
 % only kt and inertia
-%As = [0 1; 0 0];
-%Bs = [0; NaN];
-%Cs = [1 0];
-%Ds = [0];
-%Ks = [0; 0];
-%X0s =[0; 0];
-%
-%A = [0 1; 0 0];
-%B = [0 ; 1];
-%C = [1 0];
-%D = [0];
-%
-%ms = idss(A, B, C, D);
-%
-%setstruc(ms, As, Bs, Cs, Ds, Ks, X0s)
-%set(ms,'Ts', 0)
+As = [0 1; 0 0];
+Bs = [0; NaN];
+Cs = [1 0];
+Ds = [0];
+Ks = [0; 0];
+X0s =[0; 0];
+
+A = [0 1; 0 0];
+B = [0 ; 0.28];
+C = [1 0];
+D = [0];
+
+ms = idss(A, B, C, D);
+
+setstruc(ms, As, Bs, Cs, Ds, Ks, X0s)
+set(ms,'Ts', 0)
 
 % opt = ssestOptions('EnforceStability', true)
 
@@ -79,8 +81,8 @@ compare(data, sysTF)
 %opt.OutputWeight = trace;
 %opt.Display = on;
 %SPMSM = pem(data, ms)
-%SPMSM = pem(data, ms, 'trace', 'on')
+SPMSM = pem(data, ms, 'trace', 'on')
 
 
-%figure();
-%compare(test, SPMSM, 1);
+figure();
+compare(data, SPMSM, 1);
