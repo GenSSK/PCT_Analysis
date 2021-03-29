@@ -6,4 +6,4 @@ class readCSV:
 
     def csv_read(self):
         # CSV読み込むよ！
-        self.data = pd.read_csv('DATA.csv')
+        self.data = pd.read_csv('csv/DATA.csv')

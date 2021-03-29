@@ -13,13 +13,13 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.pitch = np.load('10percent_balanced_pitch_lpf.npz')
-        self.roll = np.load('10percent_balanced_roll_mls10.npz')
-        self.test = np.load('10percent_balanced_test_fix.npz')
+        self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz')
+        self.roll = np.load('roll_mls12_cnt30_lpf1000.npz')
+        self.test = np.load('old_idenfile/10percent_balanced_test_fix.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
-        Ts = 0.03  # 同定用のサンプリング時間[sec]
+        Ts = 0.01  # 同定用のサンプリング時間[sec]
         Tstr = 10 # 同定を開始する時間[sec]
         Texp = 40  # 同定に必要な時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
@@ -83,7 +83,7 @@ class Iden:
 
         plt.scatter(u1, y1)
         # plt.xlim(-100, 100)
-        plt.ylim(-500, 500)
+        # plt.ylim(-100, 100)
         plt.xlabel('Current')
         plt.ylabel('Accel')
         plt.show()
@@ -158,15 +158,12 @@ class Iden:
 
     def AutoCorrelation(self, num):
 
-        n1 = 0
-        n2 = 100000
-        Decimation = 100
-        time = self.IdenData[num][0]
-        data = self.IdenData[num][1]
-        plt.plot(time, data)
-        plt.xlabel('Time [sec]')
-        plt.ylabel('MSL')
-        plt.show()
+        time = self.IdenData[num][1]
+        data = self.IdenData[num][2]
+        # plt.plot(time, data)
+        # plt.xlabel('Time [sec]')
+        # plt.ylabel('Input')
+        # plt.show()
 
         N = int(len(self.IdenData[num][0]) / 2)
 
@@ -222,7 +219,7 @@ if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
     ID.Arrangement()
-    ID.graph_sub(1)
-    # ID.AutoCorrelation(1)
+    # ID.graph_sub(0)
+    # ID.AutoCorrelation(0)
     # ID.CsvOut()
-    # ID.fit(1)
+    ID.fit(0)

@@ -15,7 +15,7 @@ class read:
         print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
     def read_csv(self):
-        self.data = pd.read_csv('DATA.csv')
+        self.data = pd.read_csv('csv/DATA.csv')
 
     def npz_load(self):
         # self.npz = np.load('doutei.npz')
