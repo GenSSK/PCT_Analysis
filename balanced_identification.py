@@ -14,14 +14,14 @@ import matplotlib.pyplot as plt
 class Iden:
     def npz_load(self):
         self.pitch = np.load('10percent_balanced_pitch_lpf.npz')
-        self.roll = np.load('10percent_balanced_roll_lpf.npz')
+        self.roll = np.load('10percent_balanced_roll_mls10.npz')
         self.test = np.load('10percent_balanced_test_fix.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
-        Ts = 0.01  # 同定用のサンプリング時間[sec]
+        Ts = 0.03  # 同定用のサンプリング時間[sec]
+        Tstr = 10 # 同定を開始する時間[sec]
         Texp = 40  # 同定に必要な時間[sec]
-        Tstr = 20 # 同定を開始する時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
         Decimation = int(Ts / Ta)  # 間引きの数
         str = int(Tstr / Ts)
@@ -51,11 +51,11 @@ class Iden:
                                      self.test['r_thm']
                                      ])  # 同定に必要なデータの抽出
 
-        DecimData_pitch = ExtractData_pitch[:, str:No:Decimation]  # 同定用データの作成
-        DecimData_roll = ExtractData_roll[:, str:No:Decimation]  # 同定用データの作成
+        DecimData_pitch = ExtractData_pitch[:, str:No+str:Decimation]  # 同定用データの作成
+        DecimData_roll = ExtractData_roll[:, str:No+str:Decimation]  # 同定用データの作成
 
         self.IdenData = np.stack(((DecimData_pitch, DecimData_roll)))
-        self.TestData = ExtractData_test[:, str:No:Decimation]  # 同定用データの作成
+        self.TestData = ExtractData_test[:, str:No+str:Decimation]  # 同定用データの作成
 
         self.IdenData_detr = np.zeros(((2, 5, len(self.IdenData[0][0]))))
         self.IdenData_detr[0][0] = self.IdenData[0][0]
@@ -83,7 +83,7 @@ class Iden:
 
         plt.scatter(u1, y1)
         # plt.xlim(-100, 100)
-        plt.ylim(-100, 100)
+        plt.ylim(-500, 500)
         plt.xlabel('Current')
         plt.ylabel('Accel')
         plt.show()
@@ -156,19 +156,19 @@ class Iden:
         # plt.savefig("detrend_ok.png")
         plt.show()
 
-    def AutoCorrelation(self):
+    def AutoCorrelation(self, num):
 
         n1 = 0
         n2 = 100000
         Decimation = 100
-        time = self.pitch["time"][n1:n2:Decimation]
-        data = self.roll["p_iq"][n1:n2:Decimation]
+        time = self.IdenData[num][0]
+        data = self.IdenData[num][1]
         plt.plot(time, data)
         plt.xlabel('Time [sec]')
         plt.ylabel('MSL')
         plt.show()
 
-        N = int((n2 - n1) / Decimation / 2)
+        N = int(len(self.IdenData[num][0]) / 2)
 
         r = np.zeros(N)
 
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
     ID.Arrangement()
-    # ID.graph_sub(1)
-    # ID.AutoCorrelation()
+    ID.graph_sub(1)
+    # ID.AutoCorrelation(1)
     # ID.CsvOut()
-    ID.fit(1)
+    # ID.fit(1)
