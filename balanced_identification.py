@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz')
+        self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz') # OK
+        # self.pitch = np.load('pitch_mls15_cnt1_lpf3.npz') # NG
         self.roll = np.load('roll_mls12_cnt30_lpf1000.npz')
         self.test = np.load('old_idenfile/10percent_balanced_test_fix.npz')
 
@@ -83,11 +84,11 @@ class Iden:
 
         plt.scatter(u1, y1)
         # plt.xlim(-100, 100)
-        # plt.ylim(-100, 100)
+        plt.ylim(-50, 50)
         plt.xlabel('Current')
         plt.ylabel('Accel')
         plt.show()
-        # plt.savefig("pitch_iden.png")
+        # plt.savefig("png/pitch_iden_fit_NG.png")
 
 
     def graph_sub(self, num):
@@ -133,7 +134,7 @@ class Iden:
 
         mid1.plot(self.IdenData[num][0], self.IdenData[num][2], label = 'decimated')
         mid1.plot(self.IdenData_detr[num][0], self.IdenData_detr[num][2], label = 'detrend')
-        mid1.set_ylabel('acceleration[rad/s^2]')
+        mid1.set_ylabel('cceleration[rad/s^2]')
         mid1.legend()
         # mid1.set_yticks(np.arange(-400, -100, 50))
         # mid1.set_ylim([-300.0, -200.0])  # y軸の範囲
@@ -153,8 +154,8 @@ class Iden:
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("detrend_ok.png")
-        plt.show()
+        plt.savefig("png/roll_iden_data_OK.png")
+        # plt.show()
 
     def AutoCorrelation(self, num):
 
@@ -182,8 +183,8 @@ class Iden:
         plt.plot(np.arange(N), r)
         plt.xlabel('Lag')
         plt.ylabel('Auto Correlation')
-        # plt.savefig("AC.png")
-        plt.show()
+        plt.savefig("MLS_lpf_exp.png")
+        # plt.show()
 
     def CsvOut(self):
         df1 = pd.DataFrame({
@@ -219,7 +220,7 @@ if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
     ID.Arrangement()
-    # ID.graph_sub(0)
-    # ID.AutoCorrelation(0)
+    # ID.graph_sub(1)
+    ID.AutoCorrelation(0)
     # ID.CsvOut()
-    ID.fit(0)
+    # ID.fit(0)

@@ -1,8 +1,8 @@
-[A,delimiterOut] = importdata('balanced_pitch_lpf.csv')
-[B,delimiterOut] = importdata('balanced_roll_lpf.csv')
-%[A,delimiterOut] = importdata('balanced_pitch_fix_data.csv')
-%[B,delimiterOut] = importdata('balanced_roll_fix_data.csv')
-[C,delimiterOut] = importdata('balanced_test_fix.csv')
+%[A,delimiterOut] = importdata('csv/balanced_pitch_lpf.csv')
+%[B,delimiterOut] = importdata('csv/balanced_roll_lpf.csv')
+[A,delimiterOut] = importdata('csv/balanced_pitch_fix_data.csv')
+[B,delimiterOut] = importdata('csv/balanced_roll_fix_data.csv')
+[C,delimiterOut] = importdata('csv/balanced_test_fix.csv')
 
 p_thm = detrend(A.data(:, 5));
 p_wm = detrend(A.data(:, 4));
@@ -29,14 +29,14 @@ Ts = 0.4
 data = iddata(p_thm, p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 test = iddata(t_p_thm, t_p_iq, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 
-figure();
-plot(data);
-figure();
-plot(test);
+%figure();
+%plot(data);
+%figure();
+%plot(test);
 
 %identification
 %m = ssest(data, 1)
-%m_d = ssest(data, 2, 'DisturbanceModel','none')
+m_d = ssest(data, 1, 'DisturbanceModel','none')
 %mtf = tfest(data, 2, 2) % transfer function with 2 zeros and 2 poles
 
 
@@ -49,30 +49,30 @@ plot(test);
 
 %tfx = tfestimate(p_thm, p_iq)
 %sysTF = tfest(data,1,0,nan)
-%figure();
+figure();
 %h = bodeplot(m3)
 %compare(test,m,mtf,mx,1)
-%compare(data, m, m_d, 1)
+compare(test, m_d$, 1)
 %compare(data, sysTF)
 
 
 % only kt and inertia
-As = [0 1; 0 0];
-Bs = [0; NaN];
-Cs = [1 0];
-Ds = [0];
-Ks = [0; 0];
-X0s =[0; 0];
-
-A = [0 1; 0 0];
-B = [0 ; 0.28];
-C = [1 0];
-D = [0];
-
-ms = idss(A, B, C, D);
-
-setstruc(ms, As, Bs, Cs, Ds, Ks, X0s)
-set(ms,'Ts', 0)
+%As = [0 1; 0 0];
+%Bs = [0; NaN];
+%Cs = [1 0];
+%Ds = [0];
+%Ks = [0; 0];
+%X0s =[0; 0];
+%
+%A = [0 1; 0 0];
+%B = [0 ; 0.28];
+%C = [1 0];
+%D = [0];
+%
+%ms = idss(A, B, C, D);
+%
+%setstruc(ms, As, Bs, Cs, Ds, Ks, X0s)
+%set(ms,'Ts', 0)
 
 % opt = ssestOptions('EnforceStability', true)
 
@@ -81,8 +81,8 @@ set(ms,'Ts', 0)
 %opt.OutputWeight = trace;
 %opt.Display = on;
 %SPMSM = pem(data, ms)
-SPMSM = pem(data, ms, 'trace', 'on')
+%SPMSM = pem(data, ms, 'trace', 'on')
 
 
-figure();
-compare(data, SPMSM, 1);
+%figure();
+%compare(data, SPMSM, 1);
