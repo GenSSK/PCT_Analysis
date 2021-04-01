@@ -7,15 +7,17 @@ import numpy as np
 import control
 import matplotlib as plt
 import pandas as pd
-from scipy import signal
+from scipy import signal, optimize
 import matplotlib.pyplot as plt
 
 
 class Iden:
     def npz_load(self):
-        self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz') # OK
+        self.pitch = np.load('50%_pitch_mls10_cnt20_lpf1000.npz')
+        self.roll = np.load('50%_roll_mls12_cnt20_lpf1000.npz')
+        # self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz') # OK
         # self.pitch = np.load('pitch_mls15_cnt1_lpf3.npz') # NG
-        self.roll = np.load('roll_mls12_cnt30_lpf1000.npz')
+        # self.roll = np.load('roll_mls12_cnt30_lpf1000.npz')
         self.test = np.load('old_idenfile/10percent_balanced_test_fix.npz')
 
     def Arrangement(self):
@@ -68,6 +70,20 @@ class Iden:
                 b = signal.detrend(a, type='linear')
                 self.IdenData_detr[i][j + 1] = b
 
+    # 回帰直線のパラメータを求める関数
+    def fitting(self, x, y):
+        n = len(x)
+        a = ((1 / n) * sum(x * y) - np.mean(x) * np.mean(y)) / ((1 / n) * sum(x ** 2) - (np.mean(x)) ** 2)
+        b = np.mean(y) - a * np.mean(x)
+        return a, b
+
+    # Least squares method with scipy.optimize
+    def fit_func(self, parameter, x, y):
+        a = parameter[0]
+        b = parameter[1]
+        residual = y - (a * x + b)
+        return residual
+
     def fit(self, num):
         y1 = self.IdenData_detr[num][2]
         u1 = self.IdenData_detr[num][1]
@@ -75,16 +91,25 @@ class Iden:
         # y1 = self.IdenData[num][2]
         # u1 = self.IdenData[num][1]
 
-        a, b = np.polyfit(u1, y1, 1)
+        # a, b = np.polyfit(y1, u1, 1)
+        # a, b = ID.fitting(y1, u1)
+
+        parameter0 = [0., 0.]
+        result = optimize.leastsq(ID.fit_func, parameter0, args=(y1, u1))
+        print(result)
+        a = result[0][0]
+        b = result[0][1]
+
+
         print(a, b)
 
-        x = np.arange(-1, 1, 0.1)
+        x = np.arange(-200, 200, 0.1)
         y = a * x + b
         plt.plot(x, y)
 
-        plt.scatter(u1, y1)
-        # plt.xlim(-100, 100)
-        plt.ylim(-50, 50)
+        plt.scatter(y1, u1)
+        plt.xlim(-200, 200)
+        # plt.ylim(-50, 50)
         plt.xlabel('Current')
         plt.ylabel('Accel')
         plt.show()
@@ -154,8 +179,8 @@ class Iden:
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        plt.savefig("png/roll_iden_data_OK.png")
-        # plt.show()
+        # plt.savefig("png/roll_iden_data_OK.png")
+        plt.show()
 
     def AutoCorrelation(self, num):
 
@@ -220,7 +245,7 @@ if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
     ID.Arrangement()
-    # ID.graph_sub(1)
-    ID.AutoCorrelation(0)
+    # ID.graph_sub(0)
+    # ID.AutoCorrelation(0)
     # ID.CsvOut()
-    # ID.fit(0)
+    ID.fit(1)
