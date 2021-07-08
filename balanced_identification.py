@@ -13,16 +13,11 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.pitch = np.load('50%_pitch_mls10_cnt20_lpf1000.npz')
-        self.roll = np.load('50%_roll_mls12_cnt20_lpf1000.npz')
-        # self.pitch = np.load('pitch_mls10_cnt25_lpf1000.npz') # OK
-        # self.pitch = np.load('pitch_mls15_cnt1_lpf3.npz') # NG
-        # self.roll = np.load('roll_mls12_cnt30_lpf1000.npz')
-        self.test = np.load('old_idenfile/10percent_balanced_test_fix.npz')
+        self.pitch = np.load('50%_pitch_mls12_cnt3_lpf300.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
-        Ts = 0.01  # 同定用のサンプリング時間[sec]
+        Ts = 0.03456  # 同定用のサンプリング時間[sec]
         Tstr = 10 # 同定を開始する時間[sec]
         Texp = 40  # 同定に必要な時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
@@ -100,20 +95,25 @@ class Iden:
         a = result[0][0]
         b = result[0][1]
 
+        # a = 0.01
+        a = 0.06
+
 
         print(a, b)
+
 
         x = np.arange(-200, 200, 0.1)
         y = a * x + b
         plt.plot(x, y)
 
         plt.scatter(y1, u1)
-        plt.xlim(-200, 200)
-        # plt.ylim(-50, 50)
-        plt.xlabel('Current')
-        plt.ylabel('Accel')
-        plt.show()
-        # plt.savefig("png/pitch_iden_fit_NG.png")
+        xlim = 200
+        plt.xlim(-xlim, xlim)
+        plt.ylim(-1.8, 1.8)
+        plt.ylabel('tau')
+        plt.xlabel('Accel')
+        # plt.show()
+        plt.savefig("png/50%_roll_mls12_cnt10_lpf300_pitch.png")
 
 
     def graph_sub(self, num):
@@ -248,4 +248,4 @@ if __name__ == '__main__':
     # ID.graph_sub(0)
     # ID.AutoCorrelation(0)
     # ID.CsvOut()
-    ID.fit(1)
+    ID.fit(0)
