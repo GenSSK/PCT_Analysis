@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 class DOB:
     def npz_load(self):
         # self.data = np.load('w_filter_w_dob_mass.npz')
-        self.data = np.load('w_filter_wo_dob_mass.npz')
+        self.data = np.load('50%_roll_test_if2.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
         Ts = 0.0001  # 同定用のサンプリング時間[sec]
-        Tstr = 0 # 同定を開始する時間[sec]
-        Texp = 60  # 同定に必要な時間[sec]
+        Tstr = 10 # 同定を開始する時間[sec]
+        Texp = 30  # 同定に必要な時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
         Decimation = int(Ts / Ta)  # 間引きの数
         str = int(Tstr / Ts)

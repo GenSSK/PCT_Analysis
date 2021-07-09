@@ -13,18 +13,18 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.pitch = np.load('50%_pitch_sin_cos_1_if2.npz')
-        # self.pitch = np.load('50%_pitch_sin_cos_2_if2.npz')
+        # self.pitch = np.load('50%_pitch_sin_cos_3_if2.npz') # OK!!!!!
+        self.pitch = np.load('50%_pitch_mls12_cnt1_lpf50_tim10_if2.npz')
 
-        self.roll = np.load('50%_roll_sin_cos_1_if2.npz')
+        self.roll = np.load('50%_roll_sin_cos_1_if2.npz') # OK!!!!!
         # self.roll = np.load('50%_roll_mls24_cnt1_lpf0.5_tim10_if1.npz')
         # self.roll = np.load('50%_roll_mls12_cnt50_lpf300_if1.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
-        Ts = 0.02  # 同定用のサンプリング時間[sec]
-        Tstr = 40 # 同定を開始する時間[sec]
-        Texp = 20  # 同定に必要な時間[sec]
+        Ts = 0.05  # 同定用のサンプリング時間[sec]
+        Tstr = 10 # 同定を開始する時間[sec]
+        Texp = 30  # 同定に必要な時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
         Decimation = int(Ts / Ta)  # 間引きの数
         str = int(Tstr / Ts)
@@ -90,8 +90,8 @@ class Iden:
         b = result[0][1]
 
         # a = 100
-        a = 0.035
-        # a = 0.1
+        # a = 0.035
+        a = 0.14
 
 
         print(a, b)
@@ -102,14 +102,14 @@ class Iden:
         plt.plot(x, y)
 
         plt.scatter(y1, u1)
-        xlim = 40
-        ylim = 3
+        xlim = 50
+        ylim = 4
         plt.xlim(-xlim, xlim)
         plt.ylim(-ylim, ylim)
         plt.ylabel('tau')
         plt.xlabel('Accel')
-        # plt.show()
-        plt.savefig("50%_roll_sin_cos_1_if2=0.035.png")
+        plt.show()
+        # plt.savefig("50%_pitch_sin_cos_3_if2=0.14.png")
 
 
     def graph_sub(self, num):
@@ -175,8 +175,8 @@ class Iden:
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        plt.savefig("50%_roll_sin_cos_1_if2_data.png")
-        # plt.show()
+        # plt.savefig("50%_pitch_sin_cos_3_if2_data.png")
+        plt.show()
 
     def AutoCorrelation(self, num):
 
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
     ID.Arrangement()
-    # ID.graph_sub(1)
+    # ID.graph_sub(0)
     # ID.AutoCorrelation(0)
     # ID.CsvOut()
-    ID.fit(1)
+    ID.fit(0)
