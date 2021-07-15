@@ -14,13 +14,13 @@ import matplotlib.pyplot as plt
 class DOB:
     def npz_load(self):
         # self.data = np.load('w_filter_w_dob_mass.npz')
-        self.data = np.load('50%_roll_test_if2.npz')
+        self.data = np.load('50%_test_w_DOB_if2.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
         Ts = 0.0001  # 同定用のサンプリング時間[sec]
         Tstr = 10 # 同定を開始する時間[sec]
-        Texp = 30  # 同定に必要な時間[sec]
+        Texp = 10  # 同定に必要な時間[sec]
         No = int(Texp / Ta)  # 同定に必要なデータの個数
         Decimation = int(Ts / Ta)  # 間引きの数
         str = int(Tstr / Ts)
@@ -85,29 +85,29 @@ class DOB:
         plt.xlabel("Time[sec]")
 
         top.plot(self.TestData[num][0], self.TestData[num][3], label = 'res')
-        top.plot(self.TestData[num][0], self.TestData[num][4], label = 'ref')
+        top.plot(self.TestData[num][0], self.TestData[num][2], label = 'ref')
         top.set_ylabel('Acceleration(rad/s^2)')
         top.legend()
         # top.set_yticks(np.arange(-2, 2, 0.5))
-        top.set_ylim([-100, 100])  # y軸の範囲
+        top.set_ylim([-10, 10])  # y軸の範囲
 
         mid.plot(self.TestData[num][0], self.TestData[num][5], label = 'res')
-        mid.plot(self.TestData[num][0], self.TestData[num][6], label = 'ref')
+        mid.plot(self.TestData[num][0], self.TestData[num][4], label = 'ref')
         mid.set_ylabel('Velocity(rad/s)')
         mid.legend()
         # mid.set_yticks(np.arange(-400, -100, 50))
         mid.set_ylim([-2.0, 2.0])  # y軸の範囲
 
-        bot.plot(self.TestData[num][0], self.TestData[num][6], label = 'res')
-        bot.plot(self.TestData[num][0], self.TestData[num][7], label = 'ref')
+        bot.plot(self.TestData[num][0], self.TestData[num][7], label = 'res')
+        bot.plot(self.TestData[num][0], self.TestData[num][6], label = 'ref')
         bot.set_ylabel('Position(rad)')
         bot.legend()
         # bot.set_yticks(np.arange(-200, 200, 50))
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("w_filter_w_dob_mass_r.png")
-        plt.show()
+        plt.savefig("50%_test_w_DOB_if2.png")
+        # plt.show()
 
 
 # Press the green button in the gutter to run the script.
@@ -115,4 +115,4 @@ if __name__ == '__main__':
     DB = DOB()
     DB.npz_load()
     DB.Arrangement()
-    DB.graph_sub(1)
+    DB.graph_sub(0)

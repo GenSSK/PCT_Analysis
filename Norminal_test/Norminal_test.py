@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.data = np.load('50%_test_if2.npz')
+        self.data = np.load('50%_test_3_if2.npz')
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -45,27 +45,27 @@ class Iden:
 
         fig, (top, bot) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
-        plt.xlim([5, 25])  # x軸の範囲
+        plt.xlim([2, 12])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
         top.plot(self.data['time'], self.data['p_tdis'], label = 'Estimation')
         top.plot(self.data['time'], self.data['p_iq'], label = 'Actuality')
-        top.set_ylabel('Torque[Nm]')
+        top.set_ylabel('Pitch Torque[Nm]')
         top.legend()
-        # top.set_yticks(np.arange(-2, 2, 0.5))
-        top.set_ylim([-20, 20])  # y軸の範囲
+        top.set_yticks(np.arange(-10, 10, 0.5))
+        top.set_ylim([-2, 2])  # y軸の範囲
 
         bot.plot(self.data['time'], self.data['r_tdis'], label='Estimation')
         bot.plot(self.data['time'], self.data['r_iq'], label='Actuality')
-        bot.set_ylabel('Torque[Nm]')
+        bot.set_ylabel('Roll Torque[Nm]')
         bot.legend()
         bot.set_yticks(np.arange(-3, 3, 0.5))
-        bot.set_ylim([-0.5, 0.5])  # y軸の範囲
+        bot.set_ylim([-1, 1])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("50%_roll_test_if2.png")
-        plt.show()
+        plt.savefig("50%_test_if2.png")
+        # plt.show()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
