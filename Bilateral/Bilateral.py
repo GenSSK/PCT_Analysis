@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.data = np.load('50%_test_RTOB_if2.npz')
+        self.data = np.load('Bilate2.npz')
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -40,30 +40,36 @@ class Iden:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
-        fig, (top, bot) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+        fig, (top, midle, bot) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
 
-        plt.xlim([10, 20])  # x軸の範囲
+        plt.xlim([5, 25])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
-        top.plot(self.data['time'], self.data['p_thmref'], label = 'Estimation')
-        top.plot(self.data['time'], self.data['p_thm'], label = 'Actuality')
-        top.plot(self.data['time'], self.data['r_thm'], label = 'Actuality')
+        top.plot(self.data['time'], self.data['p_thm'], label = 'Interface1')
+        top.plot(self.data['time'], self.data['r_thm'], label = 'Interface2')
         top.set_ylabel('Position [rad]')
         top.legend()
         top.set_yticks(np.arange(-10, 10, 0.5))
         top.set_ylim([-1, 1])  # y軸の範囲
 
-        bot.plot(self.data['time'], self.data['r_tdish'], label='Estimation')
-        bot.plot(self.data['time'], self.data['p_tdish'], label='Actuality')
+        midle.plot(self.data['time'], self.data['p_am'], label='Interface1')
+        midle.plot(self.data['time'], self.data['r_am'], label='Interface2')
+        midle.set_ylabel(r'Acceleration [rad/s$^2$]')
+        midle.legend()
+        # midle.set_yticks(np.arange(-10, 10, 0.5))
+        midle.set_ylim([-50, 50])  # y軸の範囲
+
+        bot.plot(self.data['time'], self.data['r_tdish'], label='Interface1')
+        bot.plot(self.data['time'], self.data['p_tdish'], label='Interface2')
         bot.set_ylabel('Reaction torque[Nm]')
         bot.legend()
         bot.set_yticks(np.arange(-10, 10, 1))
         bot.set_ylim([-3, 3])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("50%_test_RTOB_if2.png")
-        plt.show()
+        plt.savefig("Bilate.png")
+        # plt.show()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':

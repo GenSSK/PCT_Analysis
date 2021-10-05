@@ -4,17 +4,14 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import numpy as np
-import control
 import matplotlib as plt
-import pandas as pd
-from scipy import signal, optimize
 import matplotlib.pyplot as plt
 
 
 class DOB:
     def npz_load(self):
         # self.data = np.load('w_filter_w_dob_mass.npz')
-        self.data = np.load('50%_test_w_DOB_if2.npz')
+        self.data = np.load('DOB-test.npz')
 
     def Arrangement(self):
         Ta = 0.0001  # データのサンプリング時間[sec]
@@ -89,7 +86,7 @@ class DOB:
         top.set_ylabel('Acceleration(rad/s^2)')
         top.legend()
         # top.set_yticks(np.arange(-2, 2, 0.5))
-        top.set_ylim([-10, 10])  # y軸の範囲
+        top.set_ylim([-20, 20])  # y軸の範囲
 
         mid.plot(self.TestData[num][0], self.TestData[num][5], label = 'res')
         mid.plot(self.TestData[num][0], self.TestData[num][4], label = 'ref')
@@ -106,8 +103,8 @@ class DOB:
         # bot.set_ylim([-150.0, 150.0])  # y軸の範囲
 
         plt.tight_layout()
-        plt.savefig("50%_test_w_DOB_if2.png")
-        # plt.show()
+        # plt.savefig("50%_test_w_DOB_if2.png")
+        plt.show()
 
 
 # Press the green button in the gutter to run the script.
@@ -115,4 +112,4 @@ if __name__ == '__main__':
     DB = DOB()
     DB.npz_load()
     DB.Arrangement()
-    DB.graph_sub(0)
+    DB.graph_sub(1)
