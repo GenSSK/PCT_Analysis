@@ -1,20 +1,35 @@
-[A,delimiterOut] = importdata('pitch.csv')
-[B,delimiterOut] = importdata('pitch_test.csv')
-%[A,delimiterOut] = importdata('roll.csv')
-%[B,delimiterOut] = importdata('roll_test.csv')
+p_filename = "pitch.csv"
+r_filename = "roll.csv"
+%t_p_filename = "pitch_test.csv"
+%t_r_filename = "roll_test.csv"
+t_p_filename = "cpr4000000_am500_sinwave.csv"
+t_r_filename = "cpr4000000_am500_sinwave.csv"
+
+dir = "J:\マイドライブ\program\ARCS-PCT\data\doutei_npz_to_csv\\"
+
+p_dir = fullfile(dir, p_filename)
+t_p_dir = fullfile(dir, t_p_filename)
+r_dir = fullfile(dir, r_filename)
+t_r_dir = fullfile(dir, t_r_filename)
+
+
+%[A,delimiterOut] = importdata(p_dir)
+%[B,delimiterOut] = importdata(t_p_dir)
+[A,delimiterOut] = importdata(r_dir)
+[B,delimiterOut] = importdata(t_r_dir)
 
 Ts = 0.01
 dec = Ts / 0.0001
 
-thm = decimate(detrend(A.data(10000:50000, 5)), dec);
-wm = decimate(detrend(A.data(10000:50000, 4)), dec);
-am = decimate(detrend(A.data(10000:50000, 3)), dec);
-tad = decimate(detrend(A.data(10000:50000, 2)), dec);
+thm = decimate(detrend(A.data(10000:100000, 5)), dec);
+wm = decimate(detrend(A.data(10000:100000, 4)), dec);
+am = decimate(detrend(A.data(10000:100000, 3)), dec);
+tad = decimate(detrend(A.data(10000:100000, 2)), dec);
 
-t_thm = decimate(detrend(B.data(10000:50000, 5)), dec);
-t_wm = decimate(detrend(B.data(10000:50000, 4)), dec);
-t_am = decimate(detrend(B.data(10000:50000, 3)), dec);
-t_tad = decimate(detrend(B.data(10000:50000, 2)), dec);
+t_thm = decimate(detrend(B.data(10000:100000, 5)), dec);
+t_wm = decimate(detrend(B.data(10000:100000, 4)), dec);
+t_am = decimate(detrend(B.data(10000:100000, 3)), dec);
+t_tad = decimate(detrend(B.data(10000:100000, 2)), dec);
 
 data = iddata(wm, tad, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示
 test = iddata(t_wm, t_tad, Ts) % iddata オブジェクトの生成% y:出力，u:入力，Ts:サンプリング周期 % 入出力データの表示

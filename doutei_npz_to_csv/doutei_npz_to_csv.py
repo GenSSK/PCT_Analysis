@@ -13,7 +13,9 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.data = np.load('mls_n8_smp100_roll.npz')
+        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\doutei_npz_to_csv\\"
+        # self.data = np.load(self.dir + 'mls_n8_smp100_roll.npz')
+        self.data = np.load(self.dir + 'cpr4000000_am500_sinwave.npz')
 
     def CsvOut(self):
         df1 = pd.DataFrame({
@@ -32,10 +34,9 @@ class Iden:
             'thm': self.data["i1_r_thm"],
         })
 
-        df2.to_csv("roll.csv", index=False)
+        df2.to_csv(self.dir + "cpr4000000_am500_sinwave.csv", index=False)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     ID = Iden()
     ID.npz_load()
-    ID.CsvOut()

@@ -4,14 +4,18 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 import numpy as np
+import control
 import matplotlib as plt
+import pandas as pd
+from scipy import signal, optimize
 import matplotlib.pyplot as plt
 
-plt.switch_backend('Qt5Agg')
 
 class Iden:
     def npz_load(self):
-        self.data = np.load('nominal_test_new.npz')
+        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\doutei_npz_to_csv\\"
+        # self.data = np.load(self.dir + 'mls_n8_smp100_roll.npz')
+        self.data = np.load(self.dir + 'cpr4000000_am100_sinwave.npz')
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -47,23 +51,30 @@ class Iden:
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
-        top.plot(self.data['time'], self.data['i1_p_inm'], label = 'Estimation')
-        top.plot(self.data['time'], self.data['i1_p_iad'], label = 'Actuality')
+        # top.plot(self.data['time'], self.data['i1_p_am'] * 0.14, label='Estimation_before')
+        top.plot(self.data['time'], self.data['i1_p_am'] * 0.1043 + self.data['i1_p_wm'] * 0.10865, label='Estimation')
+        top.plot(self.data['time'], self.data['i1_p_am'] * 0.1043, label='Estimation')
+
+        top.plot(self.data['time'], self.data['i1_p_iad'], label='Actuality')
         top.set_ylabel('Pitch Torque[Nm]')
         top.legend()
         top.set_yticks(np.arange(-10, 10, 0.5))
-        top.set_ylim([-3, 3])  # y軸の範囲
+        top.set_ylim([-1, 1])  # y軸の範囲
 
-        bot.plot(self.data['time'], self.data['i1_r_inm'], label='Estimation')
+        # bot.plot(self.data['time'], self.data['i1_r_am'] * 0.035, label='Estimation_before')
+        bot.plot(self.data['time'], self.data['i1_r_am'] * 0.05882 + self.data['i1_r_wm'] * 0.0575, label='Estimation')
+        bot.plot(self.data['time'], self.data['i1_r_am'] * 0.05882, label='Estimation')
+
         bot.plot(self.data['time'], self.data['i1_r_iad'], label='Actuality')
         bot.set_ylabel('Roll Torque[Nm]')
         bot.legend()
         bot.set_yticks(np.arange(-3, 3, 0.5))
-        bot.set_ylim([-2, 2])  # y軸の範囲
+        bot.set_ylim([-1, 1])  # y軸の範囲
 
         plt.tight_layout()
         # plt.savefig("2021-10-18_nominal_test_new.png")
         plt.show()
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
