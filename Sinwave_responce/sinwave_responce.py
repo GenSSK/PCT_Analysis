@@ -15,7 +15,10 @@ class Iden:
         # self.data = np.load('cpr2000_dob500_sin.npz')
         # self.data = np.load('cpr10000_dob500_sin_diff.npz')
         # self.data = np.load('cpr4000000_dob1000_sin_diff.npz')
-        self.data = np.load(self.dir + 'cpr4000000_stop.npz')
+        # self.data = np.load(self.dir + 'cpr4000000_stop.npz')
+        # self.data = np.load(self.dir + '2021-10-20_reidentificationDOB.npz')
+        # self.data = np.load(self.dir + '2021-10-20_reidentification_woDOB.npz')
+        self.data = np.load(self.dir + '2021-10-20_reidentification_wDOB.npz')
         # self.data = np.load('cpr4000000_dob1000_sin_smethod.npz')
         # self.data = np.load('normal_sin.npz')
 
@@ -49,9 +52,9 @@ class Iden:
 
         # print(self.data['i1_dob_gain'])
 
-        fig, (thr, cnt) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+        fig, (thr, am) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
 
-        plt.xlim([3, 4])  # x軸の範囲
+        # plt.xlim([3, 4])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
@@ -69,12 +72,13 @@ class Iden:
         # wm.set_yticks(np.arange(-10, 10, 1))
         # wm.set_ylim([-5, 5])  # y軸の範囲
         #
-        # am.plot(self.data['time'], self.data['i1_p_amref'], label='Target')
-        # am.plot(self.data['time'], self.data['i2_p_am'], label='Actual')
-        # am.set_ylabel(r'Acceleration [rad/s$^2$]')
-        # am.legend()
-        # am.set_yticks(np.arange(-1000, 1000, 10))
-        # am.set_ylim([-10, 10])  # y軸の範囲
+        am.plot(self.data['time'], self.data['i1_p_am'], label='Actual')
+        am.plot(self.data['time'], self.data['i1_p_amref'], label='Target')
+
+        am.set_ylabel(r'Acceleration [rad/s$^2$]')
+        am.legend()
+        am.set_yticks(np.arange(-1000, 1000, 10))
+        am.set_ylim([-10, 10])  # y軸の範囲
 
         # text.plot(self.data['time'], self.data['i1_p_text'])
         # text.set_ylabel('Reaction torque[Nm]')
@@ -93,12 +97,12 @@ class Iden:
         # ccnt.set_yticks(np.arange(-10, 20, 2))
         # ccnt.set_ylim([0, 10])  # ycnt
 
-        cnt.stem(self.data['time'], self.data['i1_p_count'], label='Interface1', linefmt="b-", basefmt="None", markerfmt="b,")
-        cnt.stem(self.data['time'], self.data['i2_p_count'], label='Interface2', linefmt="r-", basefmt="None", markerfmt="r,")
-        cnt.set_ylabel('Deviation count')
-        cnt.legend()
-        cnt.set_yticks(np.arange(-1000, 1000, 1))
-        cnt.set_ylim([-5, 5])  # ycnt
+        # cnt.stem(self.data['time'], self.data['i1_p_count'], label='Interface1', linefmt="b-", basefmt="None", markerfmt="b,")
+        # cnt.stem(self.data['time'], self.data['i2_p_count'], label='Interface2', linefmt="r-", basefmt="None", markerfmt="r,")
+        # cnt.set_ylabel('Deviation count')
+        # cnt.legend()
+        # cnt.set_yticks(np.arange(-1000, 1000, 1))
+        # cnt.set_ylim([-5, 5])  # ycnt
 
         # wm_sm.plot(self.data['time'], self.data['i1_p_add_data1'], label='Interface1')
         # wm_sm.plot(self.data['time'], self.data['i2_p_add_data1'], label='Interface2')
@@ -109,8 +113,8 @@ class Iden:
         # wm_sm.set_ylim([-10, 10])  # y軸の範囲
 
         plt.tight_layout()
-        plt.savefig(self.dir + "cpr4000000_stop.png")
-        # plt.show()
+        # plt.savefig(self.dir + "cpr4000000_stop.png")
+        plt.show()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
