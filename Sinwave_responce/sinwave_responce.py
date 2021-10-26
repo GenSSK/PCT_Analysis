@@ -6,11 +6,12 @@
 import numpy as np
 import matplotlib as plt
 import matplotlib.pyplot as plt
-plt.switch_backend('Qt5Agg')
+# plt.switch_backend('Qt5Agg')
 
 class Iden:
     def npz_load(self):
-        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\Sinwave_responce\\"
+        # self.dir = "J:\マイドライブ\program\ARCS-PCT\data\Sinwave_responce\\" # win
+        self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/" # mac
         # self.data = np.load('cpr2000_dob200_sin.npz')
         # self.data = np.load('cpr2000_dob500_sin.npz')
         # self.data = np.load('cpr10000_dob500_sin_diff.npz')
@@ -19,6 +20,7 @@ class Iden:
         # self.data = np.load(self.dir + '2021-10-20_reidentificationDOB.npz')
         # self.data = np.load(self.dir + '2021-10-20_reidentification_woDOB.npz')
         self.data = np.load(self.dir + '2021-10-20_reidentification_wDOB.npz')
+        # self.data = np.load(self.dir + 'hogehoge.npz')
         # self.data = np.load('cpr4000000_dob1000_sin_smethod.npz')
         # self.data = np.load('normal_sin.npz')
 
@@ -52,28 +54,30 @@ class Iden:
 
         # print(self.data['i1_dob_gain'])
 
-        fig, (thr, am) = plt.subplots(2, 1, figsize=(10, 10), sharex=True)
+        fig, (thr, wm, am) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
 
         # plt.xlim([3, 4])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
-        plt.xlabel("Time[sec]")
+        # plt.xlabel("Time[sec]")
 
-        thr.plot(self.data['time'], self.data['i1_p_thmref'], label = 'Target')
-        thr.plot(self.data['time'], self.data['i1_p_thm'], label = 'Actual')
+        # print(self.data['i1_p_thm'])
+
+        thr.plot(self.data['time'], self.data['i1_r_thmref'], label = 'Target')
+        thr.plot(self.data['time'], self.data['i1_r_thm'], label = 'Actual')
         thr.set_ylabel('Position [rad]')
         thr.legend()
         thr.set_yticks(np.arange(-10, 10, 0.5))
         thr.set_ylim([-1, 1])  # y軸の範囲
 
-        # wm.plot(self.data['time'], self.data['i1_p_wmref'], label='Target')
-        # wm.plot(self.data['time'], self.data['i1_p_wm'], label='Actual')
-        # wm.set_ylabel(r'Velocity [rad/s]')
-        # wm.legend()
-        # wm.set_yticks(np.arange(-10, 10, 1))
-        # wm.set_ylim([-5, 5])  # y軸の範囲
-        #
-        am.plot(self.data['time'], self.data['i1_p_am'], label='Actual')
-        am.plot(self.data['time'], self.data['i1_p_amref'], label='Target')
+        wm.plot(self.data['time'], self.data['i1_r_wmref'], label='Target')
+        wm.plot(self.data['time'], self.data['i1_r_wm'], label='Actual')
+        wm.set_ylabel(r'Velocity [rad/s]')
+        wm.legend()
+        wm.set_yticks(np.arange(-10, 10, 1))
+        wm.set_ylim([-5, 5])  # y軸の範囲
+
+        am.plot(self.data['time'], self.data['i1_r_am'], label='Actual')
+        am.plot(self.data['time'], self.data['i1_r_amref'], label='Target')
 
         am.set_ylabel(r'Acceleration [rad/s$^2$]')
         am.legend()
@@ -113,8 +117,8 @@ class Iden:
         # wm_sm.set_ylim([-10, 10])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig(self.dir + "cpr4000000_stop.png")
-        plt.show()
+        plt.savefig(self.dir + "reiden_wDOB.png")
+        # plt.show()
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
