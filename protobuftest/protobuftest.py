@@ -6,15 +6,13 @@
 import numpy as np
 import matplotlib as plt
 import matplotlib.pyplot as plt
-
-
 # plt.switch_backend('Qt5Agg')
 
 class Iden:
     def npz_load(self):
-        self.dir = "J:\\マイドライブ\\program\\ARCS-PCT\\data\\New_Bilateral\\"  # win
-        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/"  # mac
-        self.data = np.load(self.dir + '2021-10-27_BilateralTest.npz')
+        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\protobuftest\\" # win
+        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/" # mac
+        self.data = np.load(self.dir + 'hogehoge.npz')
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -46,43 +44,48 @@ class Iden:
 
         # print(self.data['i1_dob_gain'])
 
-        fig, (thr, wm, text) = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
+        fig, (thr) = plt.subplots(1, 1, figsize=(10, 10), sharex=True)
 
-        # plt.xlim([20, 20.01])  # x軸の範囲
+        # plt.xlim([3, 4])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
-        plt.xlabel("Time[sec]")
+        # plt.xlabel("Time[sec]")
 
-        # thr.plot(self.data['time'], self.data['i1_p_thmref'], label = 'Target')
-        # thr.plot(self.data['time'], self.data['i1_p_thm'], label = 'Actual')
-        thr.plot(self.data['time'], self.data['i1_p_thm'], label='Interface1')
-        thr.plot(self.data['time'], self.data['i2_p_thm'], label='Interface2')
+        # print(self.data['i1_p_thm'])
+
+        print(self.data['join'])
+        print(self.data['i1_p_Jm'])
+
+        thr.plot(self.data['time'], self.data['i2_p_thmref'], label = 'Target')
+        thr.plot(self.data['time'], self.data['i2_p_thm'], label = 'Actual')
         thr.set_ylabel('Position [rad]')
         thr.legend()
         thr.set_yticks(np.arange(-10, 10, 0.5))
         thr.set_ylim([-1, 1])  # y軸の範囲
 
-        # wm.plot(self.data['time'], self.data['i1_p_wmref'], label='Target')
-        # wm.plot(self.data['time'], self.data['i1_p_wm'], label='Actual')
-        wm.plot(self.data['time'], self.data['i1_p_wm'], label='Interface1')
-        wm.plot(self.data['time'], self.data['i2_p_wm'], label='Interface2')
-        wm.set_ylabel(r'Velocity [rad/s]')
-        wm.legend()
-        wm.set_yticks(np.arange(-10, 10, 1))
-        wm.set_ylim([-5, 5])  # y軸の範囲
-
-        # am.plot(self.data['time'], self.data['i1_r_am'], label='Interface1')
-        # am.plot(self.data['time'], self.data['i2_r_am'], label='Interface2')
+        # wm.plot(self.data['time'], self.data['i1_r_wmref'], label='Target')
+        # wm.plot(self.data['time'], self.data['i1_r_wm'], label='Actual')
+        # wm.set_ylabel(r'Velocity [rad/s]')
+        # wm.legend()
+        # wm.set_yticks(np.arange(-10, 10, 1))
+        # wm.set_ylim([-5, 5])  # y軸の範囲
+        #
+        # am.plot(self.data['time'], self.data['i1_r_am'], label='Actual')
+        # am.plot(self.data['time'], self.data['i1_r_amref'], label='Target')
+        #
         # am.set_ylabel(r'Acceleration [rad/s$^2$]')
         # am.legend()
         # am.set_yticks(np.arange(-1000, 1000, 10))
         # am.set_ylim([-10, 10])  # y軸の範囲
 
-        text.plot(self.data['time'], self.data['i1_p_tdish'], label='Interface1')
-        text.plot(self.data['time'], self.data['i2_p_tdish'], label='Interface2')
-        text.set_ylabel('Reaction torque[Nm]')
-        text.legend()
-        text.set_yticks(np.arange(-100, 100, 5))
-        text.set_ylim([-10, 10])  # y軸の範囲
+        # text.plot(self.data['time'], self.data['i1_p_text'])
+        # text.set_ylabel('Reaction torque[Nm]')
+        # text.set_yticks(np.arange(-100, 100, 5))
+        # text.set_ylim([-10, 10])  # y軸の範囲
+
+        # tdish.plot(self.data['time'], self.data['i1_p_tdish'])
+        # tdish.set_ylabel('Disturbance torque[Nm]')
+        # tdish.set_yticks(np.arange(-100, 100, 5))
+        # tdish.set_ylim([-10, 10])  # y軸の範囲
 
         # ccnt.plot(self.data['time'], self.data['i1_check_count'], label='Interface1')
         # ccnt.plot(self.data['time'], self.data['i2_check_count'], label='Interface2')
@@ -96,7 +99,7 @@ class Iden:
         # cnt.set_ylabel('Deviation count')
         # cnt.legend()
         # cnt.set_yticks(np.arange(-1000, 1000, 1))
-        # cnt.set_ylim([-2, 2])  # ycnt
+        # cnt.set_ylim([-5, 5])  # ycnt
 
         # wm_sm.plot(self.data['time'], self.data['i1_p_add_data1'], label='Interface1')
         # wm_sm.plot(self.data['time'], self.data['i2_p_add_data1'], label='Interface2')
@@ -107,9 +110,8 @@ class Iden:
         # wm_sm.set_ylim([-10, 10])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("smethod_sin.png")
+        # plt.savefig(self.dir + "reiden_wDOB.png")
         plt.show()
-
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
