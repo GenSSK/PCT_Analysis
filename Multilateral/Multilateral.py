@@ -60,7 +60,7 @@ class Iden:
         thm.set_yticks(np.arange(-10, 10, 0.5))
         thm.set_ylim([-1, 1])  # y軸の範囲
 
-        wm.plot(self.data['time'], self.data['i1_p_wm'], label='Interface1')
+        wm.plot(self.data['time'], self.data['i1_p_wm'], label='Interface1')u
         wm.plot(self.data['time'], self.data['i2_p_wm'], label='Interface2')
         wm.set_ylabel(r'Velocity [rad/s]')
         wm.legend()
