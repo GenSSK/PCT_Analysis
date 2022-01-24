@@ -4,14 +4,8 @@ import matplotlib.pyplot as plt
 import math
 
 class PCT:
-    def npz_load(self):
-        self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\PCT\\"  # win
-        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/"  # mac
-        # self.data = np.load(self.dir + '2021-10-27_BilateralTest.npz')
-        # self.data = np.load(self.dir + '2022-01-20_sixth_test.npz')
-        # self.data = np.load(self.dir + '2022-01-20_FourPeople_test.npz')
-        self.data = np.load(self.dir + '2022-01-22_Eleventh_test.npz')  #pitchのみ　非対面
-        # self.data = np.load(self.dir + '2022-01-22_Twelfth_test.npz')  #pitchのみ　対面
+    def __init__(self, data):
+        self.data = data;
 
     def graph_sub(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -163,10 +157,3 @@ class PCT:
         plt.tight_layout()
         # plt.savefig("First_time_target_movement.png")
         plt.show()
-
-    # def performance_calc(self):
-    #     self.error = np.sqrt((self.data['targetx'] - self.data['ballx']) ** 2 + (self.data['targety'] - self.data['bally']) ** 2)
-    #     plt.plot(self.data['time'], self.error)
-    #     plt.show()
-    def performance(self):
-        calc.performance_calc(self.data)
