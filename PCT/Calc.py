@@ -58,9 +58,9 @@ class Calculation:
             print("joining people does not much")
             exit(-1)
 
-        for i in range(self.data['join']):
-            name1 = 'j' + str(i) + '_'
-            if self.data
+        # for i in range(self.data['join']):
+        #     name1 = 'j' + str(i) + '_'
+        #     if self.data
 
 
         self.nn = nn_data

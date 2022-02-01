@@ -16,16 +16,19 @@ plt.switch_backend('Qt5Agg')
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    data = npz.single_load('2022-01-20_FourPeople_test.npz')
+    # data = npz.single_load('2022-01-22_Eleventh_test.npz')
+    # data = npz.single_load('2022-01-22_Twelfth_test.npz')
+    data = npz.single_load('2022-01-25_nofront_test.npz')
+    # data = npz.single_load('2022-01-20_FourPeople_test.npz')
     # data = npz.all_load()
 
-    calc = Calc.Calculation(data)
-    calc.period_performance()
+    # calc = Calc.Calculation(data)
+    # calc.period_performance()
 
-    # pct = PCT.PCT()
+    pct = PCT.PCT()
 
     # pct.npz_load()
-    # pct.graph_sub()
+    pct.graph_sub(data)
     # PCT.task_show()
     # PCT.performance_calc()
     # PCT.performance()
