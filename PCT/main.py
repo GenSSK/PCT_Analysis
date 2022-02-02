@@ -18,7 +18,9 @@ if __name__ == '__main__':
     npz = Npz.NPZ()
     # data = npz.single_load('2022-01-22_Eleventh_test.npz')
     # data = npz.single_load('2022-01-22_Twelfth_test.npz')
-    data = npz.single_load('2022-01-25_nofront_test.npz')
+    # data = npz.single_load('2022-01-25_nofront_test.npz')
+    data = npz.single_load('2022-02-01_nonfront_test.npz')
+    # data = npz.single_load('2022-02-01_front_test.npz')
     # data = npz.single_load('2022-01-20_FourPeople_test.npz')
     # data = npz.all_load()
 

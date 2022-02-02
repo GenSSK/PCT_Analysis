@@ -40,8 +40,9 @@ class PCT:
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
-        thm.plot(data['time'], data['i2_r_thm'], label='Interface2')
-        thm.plot(data['time'], data['i1_r_thm'], label='Interface1')
+        thm.plot(data['time'], data['i2_p_thm'], label='Interface2')
+        thm.plot(data['time'], data['i1_p_thm'], label='Interface1')
+        thm.plot(data['time'], data['i1_p_thm'] - data['i2_p_thm'], label='1 - 2')
 
         # thm.plot(self.data['time'], self.data['i3_p_thm'], label='Interface3')
         # thm.plot(self.data['time'], self.data['i4_p_thm'], label='Interface4')
@@ -50,8 +51,8 @@ class PCT:
         thm.set_yticks(np.arange(-10, 10, 0.5))
         thm.set_ylim([-1.5, 1.5])  # y軸の範囲
 
-        wm.plot(data['time'], data['i2_r_wm'], label='Interface2')
-        wm.plot(data['time'], data['i1_r_wm'], label='Interface1')
+        wm.plot(data['time'], data['i2_p_wm'], label='Interface2')
+        wm.plot(data['time'], data['i1_p_wm'], label='Interface1')
         # wm.plot(self.data['time'], self.data['i3_p_wm'], label='Interface3')
         # wm.plot(self.data['time'], self.data['i4_p_wm'], label='Interface4')
         wm.set_ylabel(r'Velocity [rad/s]')
@@ -59,16 +60,16 @@ class PCT:
         wm.set_yticks(np.arange(-10, 10, 1))
         wm.set_ylim([-5, 5])  # y軸の範囲
 
-        am.plot(data['time'], data['i2_r_am'], label='Interface2')
-        am.plot(data['time'], data['i1_r_am'], label='Interface1')
+        am.plot(data['time'], data['i2_p_am'], label='Interface2')
+        am.plot(data['time'], data['i1_p_am'], label='Interface1')
 
         am.set_ylabel(r'Acceleration [rad/s$^2$]')
         am.legend()
         am.set_yticks(np.arange(-1000, 1000, 250))
         am.set_ylim([-500, 500])  # y軸の範囲
 
-        iad.plot(data['time'], data['i2_r_iad'], label='Interface2')
-        iad.plot(data['time'], data['i1_r_iad'], label='Interface1')
+        iad.plot(data['time'], data['i2_p_iad'], label='Interface2')
+        iad.plot(data['time'], data['i1_p_iad'], label='Interface1')
         # iad.plot(self.data['time'], self.data['i3_p_iad'], label='Interface3')
         # iad.plot(self.data['time'], self.data['i4_p_iad'], label='Interface4')
         iad.set_ylabel('Current [A]')
@@ -78,7 +79,8 @@ class PCT:
 
         text.plot(data['time'], data['i2_r_text'], label='Interface2')
         text.plot(data['time'], data['i1_r_text'], label='Interface1')
-        # text.plot(self.data['time'], self.data['i3_p_text'], label='Interface3')
+        text.plot(data['time'], data['i1_r_text'] + data['i2_r_text'], label='1 + 2')
+        # text.plot(self.data['time'], self.data['i3_p_text'], labelr='Interface3')
         # text.plot(self.data['time'], self.data['i4_p_text'], label='Interface4')
         text.set_ylabel('Reaction torque[Nm]')
         text.legend()
