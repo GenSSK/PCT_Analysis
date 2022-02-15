@@ -7,7 +7,7 @@ class NPZ:
         os = platform.system()
         if os == "Windows":
             self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\PCT\\"  # win
-        elif os == "Mac":
+        elif os == "Darwin":
             self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/"  # mac
 
     def single_load(self, filename):

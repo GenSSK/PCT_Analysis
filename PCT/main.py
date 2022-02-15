@@ -10,6 +10,7 @@ import math
 import Calc
 import Npz
 import PCT
+import Analyze
 
 plt.switch_backend('Qt5Agg')
 
@@ -19,7 +20,9 @@ if __name__ == '__main__':
     # data = npz.single_load('2022-01-22_Eleventh_test.npz')
     # data = npz.single_load('2022-01-22_Twelfth_test.npz')
     # data = npz.single_load('2022-01-25_nofront_test.npz')
-    data = npz.single_load('2022-02-01_nonfront_test.npz')
+    # data = npz.single_load('2022-02-01_nonfront_test.npz')
+    # data = npz.single_load('2022-02-10_macromicro_ratio_normalize.npz')
+    data = npz.single_load('2022-02-10_macromicro.npz')
     # data = npz.single_load('2022-02-01_front_test.npz')
     # data = npz.single_load('2022-01-20_FourPeople_test.npz')
     # data = npz.all_load()
@@ -34,3 +37,6 @@ if __name__ == '__main__':
     # PCT.task_show()
     # PCT.performance_calc()
     # PCT.performance()
+
+    # anz = Analyze.Analyze()
+    # anz.fit(data['i1_p_iq'][60000:130000:100], data['i1_p_am'][60000:130000:100])
