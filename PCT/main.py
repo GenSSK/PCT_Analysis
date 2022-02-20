@@ -22,9 +22,13 @@ if __name__ == '__main__':
     # data = npz.single_load('2022-01-25_nofront_test.npz')
     # data = npz.single_load('2022-02-01_nonfront_test.npz')
     # data = npz.single_load('2022-02-10_macromicro_ratio_normalize.npz')
-    data = npz.single_load('2022-02-10_macromicro.npz')
+    # data = npz.single_load('2022-02-10_macromicro.npz')
+    # data = npz.single_load('2022-02-15_amref=text.npz')
     # data = npz.single_load('2022-02-01_front_test.npz')
     # data = npz.single_load('2022-01-20_FourPeople_test.npz')
+    data1 = npz.single_load('2022-02-17_test.npz')
+    # data2 = npz.single_load('2022-02-17_test2.npz')
+    # data3 = npz.single_load('2022-02-17_test3.npz')
     # data = npz.all_load()
 
     # calc = Calc.Calculation(data)
@@ -33,8 +37,11 @@ if __name__ == '__main__':
     pct = PCT.PCT()
 
     # pct.npz_load()
-    pct.graph_sub(data)
-    # PCT.task_show()
+    pct.graph_sub(data1)
+    # pct.task_show(data1)
+    # pct.task_show(data2)
+    # pct.task_show(data3)
+    # pct.task_show_sub(data)
     # PCT.performance_calc()
     # PCT.performance()
 
