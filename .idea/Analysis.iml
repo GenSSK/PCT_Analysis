@@ -7,7 +7,7 @@
       <excludeFolder url="file://$MODULE_DIR$/mbpvenv" />
       <excludeFolder url="file://$MODULE_DIR$/mbpvenv3.9.9" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.8 (Analysis)" jdkType="Python SDK" />
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>

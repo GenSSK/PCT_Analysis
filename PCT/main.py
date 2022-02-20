@@ -26,10 +26,10 @@ if __name__ == '__main__':
     # data = npz.single_load('2022-02-15_amref=text.npz')
     # data = npz.single_load('2022-02-01_front_test.npz')
     # data = npz.single_load('2022-01-20_FourPeople_test.npz')
-    data1 = npz.single_load('2022-02-17_test.npz')
+    # data1 = npz.single_load('2022-02-17_test.npz')
     # data2 = npz.single_load('2022-02-17_test2.npz')
     # data3 = npz.single_load('2022-02-17_test3.npz')
-    # data = npz.all_load()
+    data = npz.all_load()
 
     # calc = Calc.Calculation(data)
     # calc.period_performance()
