@@ -24,7 +24,7 @@ class Calculation:
         # plt.plot(self.data['time'][self.start_num:self.end_num], error)
         # plt.show()
 
-        spent = numpy.where(error < 0.05, 1, 0)
+        spent = numpy.where(error < self.data['targetsize'], 1, 0)
         # spent = numpy.where(error < self.data['targetsize'], 1, 0)
 
         # plt.plot(self.data['time'][self.start_num:self.end_num], spent)
@@ -44,8 +44,8 @@ class Calculation:
         spent_period = np.sum(spent_reshape, axis=1)
         spent_period = spent_period * self.smp
 
-        # plt.plot(np.arange(self.period) + 1, spent_period)
-        # plt.show()
+        plt.plot(np.arange(self.period) + 1, spent_period)
+        plt.show()
 
         return error_period, spent_period
 
