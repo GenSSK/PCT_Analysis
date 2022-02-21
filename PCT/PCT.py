@@ -84,10 +84,10 @@ class PCT:
         iad.set_ylim([-4.8, 4.8])  # y軸の範囲
 
         text.plot(data['time'][::10], np.zeros(len(data['time'][::10])), color='black', lw=0.5)
-        text.plot(data['time'][::10], data['i4_r_text'][::10], label='Interface4')
-        text.plot(data['time'][::10], data['i3_r_text'][::10], label='Interface3')
-        text.plot(data['time'][::10], data['i2_r_text'][::10], label='Interface2')
-        text.plot(data['time'][::10], data['i1_r_text'][::10], label='Interface1')
+        text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
+        text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
+        text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
+        text.plot(data['time'][::10], data['i1_p_text'][::10], label='Interface1')
         # text.plot(data['time'][::10], data['i1_r_text'][::10] + data['i2_r_text'][::10], label='1 + 2')
         text.set_ylabel('Reaction torque[Nm]')
         text.legend()
