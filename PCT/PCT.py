@@ -17,12 +17,17 @@ class PCT:
         plt.rcParams['font.size'] = 12  # フォントの大きさ
         plt.rcParams['axes.linewidth'] = 1.0  # 軸の線幅edge linewidth。囲みの太さ
 
+
         plt.rcParams["legend.fancybox"] = False  # 丸角
-        plt.rcParams["legend.framealpha"] = 0  # 透明度の指定、0で塗りつぶしなし
-        plt.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
+        plt.rcParams["legend.framealpha"] = 1.0  # 透明度の指定、0で塗りつぶしなし
+        # plt.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
         plt.rcParams["legend.handlelength"] = 2  # 凡例の線の長さを調節
         plt.rcParams["legend.labelspacing"] = 0.1  # 垂直方向（縦）の距離の各凡例の距離
         plt.rcParams["legend.handletextpad"] = .4  # 凡例の線と文字の距離の長さ
+        plt.rcParams["legend.frameon"] = False
+        plt.rcParams["legend.facecolor"]  = 'white'
+
+
 
         plt.rcParams["legend.markerscale"] = 2  # 点がある場合のmarker scale
         plt.rcParams['axes.xmargin'] = '0'  # '.05'
@@ -48,7 +53,7 @@ class PCT:
         # thm.plot(data['time'][::10], data['i1_p_thm'][::10] - data['i2_p_thm'][::10], label='1 - 2')
 
         thm.set_ylabel('Position [rad]')
-        thm.legend()
+        thm.legend(ncol=2, columnspacing=1, loc='upper left')
         thm.set_yticks(np.arange(-10, 10, 0.5))
         thm.set_ylim([-1.5, 1.5])  # y軸の範囲
 
@@ -58,7 +63,7 @@ class PCT:
         wm.plot(data['time'][::10], data['i2_p_wm'][::10], label='Interface2')
         wm.plot(data['time'][::10], data['i1_p_wm'][::10], label='Interface1')
         wm.set_ylabel(r'Velocity [rad/s]')
-        wm.legend()
+        wm.legend(ncol=2, columnspacing=1, loc='upper left')
         wm.set_yticks(np.arange(-10, 10, 1))
         wm.set_ylim([-5, 5])  # y軸の範囲
 
@@ -69,7 +74,7 @@ class PCT:
         am.plot(data['time'][::10], data['i1_p_am'][::10], label='Interface1')
 
         am.set_ylabel(r'Acceleration [rad/s$^2$]')
-        am.legend()
+        am.legend(ncol=2, columnspacing=1, loc='upper left')
         am.set_yticks(np.arange(-1000, 1000, 20))
         am.set_ylim([-60, 60])  # y軸の範囲
 
@@ -79,7 +84,7 @@ class PCT:
         iad.plot(data['time'][::10], data['i2_p_iad'][::10], label='Interface2')
         iad.plot(data['time'][::10], data['i1_p_iad'][::10], label='Interface1')
         iad.set_ylabel('Current [A]')
-        iad.legend()
+        iad.legend(ncol=2, columnspacing=1, loc='upper left')
         iad.set_yticks(np.arange(-100, 100, 1.6))
         iad.set_ylim([-4.8, 4.8])  # y軸の範囲
 
@@ -90,7 +95,7 @@ class PCT:
         text.plot(data['time'][::10], data['i1_p_text'][::10], label='Interface1')
         # text.plot(data['time'][::10], data['i1_r_text'][::10] + data['i2_r_text'][::10], label='1 + 2')
         text.set_ylabel('Reaction torque[Nm]')
-        text.legend()
+        text.legend(ncol=2, columnspacing=1, loc='upper left')
         text.set_yticks(np.arange(-6.0, 6.0, 2.0))
         text.set_ylim([-4.0, 4.0])  # y軸の範囲
 
@@ -117,8 +122,8 @@ class PCT:
         # wm_sm.set_ylim([-10, 10])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("2022-02-10_macromicro.png")
-        plt.show()
+        plt.savefig("2022-02-22_normal.png")
+        # plt.show()
 
     def task_show(self, data):
         plt.rcParams['font.family'] = 'Times New Roman'

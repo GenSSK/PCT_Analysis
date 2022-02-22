@@ -26,16 +26,15 @@ if __name__ == '__main__':
     nothing = npz.type_load('nothing')
 
     far = ForceAnalysisRobomech.ForceAnalysis(normal, alone, nothing)
-    far.compare_individual(0)
+    far.compare_individual(1)
 
 
     # calc = Calc.Calculation(data)
     # calc.period_performance()
 
-    # pct = PCT.PCT()
+    pct = PCT.PCT()
 
-    # pct.npz_load()
-    # pct.graph_sub(data)
+    # pct.graph_sub(normal[0])
     # pct.task_show(data)
     # pct.task_show(data2)
     # pct.task_show(data3)
