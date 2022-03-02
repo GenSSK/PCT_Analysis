@@ -25,16 +25,22 @@ if __name__ == '__main__':
     alone = npz.type_load('alone')
     nothing = npz.type_load('nothing')
 
-    far = ForceAnalysisRobomech.ForceAnalysis(normal, alone, nothing)
-    far.compare_individual(1)
+    # print(normal[0]['j1_seat'])
+    # print(normal[0]['j1_height'][0])
+    # print(normal[0]['j1_subject'][0])
 
+    print(normal[0][0]['ballsize'])
 
-    # calc = Calc.Calculation(data)
+    # far = ForceAnalysisRobomech.ForceAnalysis(normal, alone, nothing)
+    # far.compare_individual(0)
+    # far.diff_force()
+
+    # calc = Calc.Calculation(normal[0])
     # calc.period_performance()
 
     pct = PCT.PCT()
 
-    # pct.graph_sub(normal[0])
+    # pct.graph_sub(normal[1])
     # pct.task_show(data)
     # pct.task_show(data2)
     # pct.task_show(data3)
