@@ -12,8 +12,8 @@ plt.switch_backend('Qt5Agg')
 
 class Iden:
     def npz_load(self):
-        self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\Multilateral\\"  # win
-        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/"  # mac
+        self.dir = "G:\\マイドライブ\\program\\ARCS-Robomech\\data\\Multilateral\\"  # win
+        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-Robomech/data/Sinwave_responce/"  # mac
         # self.data = np.load(self.dir + '2021-10-27_BilateralTest.npz')
         self.data = np.load(self.dir + '2021-11-08_bilateral_q.npz')
 

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        # self.dir = "J:\マイドライブ\program\ARCS-PCT\data\Sinwave_responce\\" # win
+        # self.dir = "J:\マイドライブ\program\ARCS-Robomech\data\Sinwave_responce\\" # win
         self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/" # mac
         # self.data = np.load('cpr2000_dob200_sin.npz')
         # self.data = np.load('cpr2000_dob500_sin.npz')

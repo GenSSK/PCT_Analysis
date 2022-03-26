@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\protobuftest\\" # win
-        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/" # mac
+        self.dir = "J:\マイドライブ\program\ARCS-Robomech\data\protobuftest\\" # win
+        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-Robomech/data/Sinwave_responce/" # mac
         self.data = np.load(self.dir + 'hogehoge.npz')
 
     def graph_sub(self):

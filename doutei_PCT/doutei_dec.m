@@ -3,7 +3,7 @@ r_filename = "2021-12-09_doutei_dec_r.csv"  %roll同定用データ
 t_p_filename = "2021-12-09_test_dec_p.csv"  %pitchテスト用データ
 t_r_filename = "2021-12-09_test_dec_r.csv"  %rollテスト用データ
 
-%dir = "J:\マイドライブ\program\ARCS-PCT\data\doutei_PCT\\"    %ファイルの置き場所
+%dir = "J:\マイドライブ\program\ARCS-Robomech\data\doutei_PCT\\"    %ファイルの置き場所
 dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/doutei_PCT/"    %ファイルの置き場所
 
 p_dir = fullfile(dir, p_filename);       %pitch同定用データのディレクトリ取得

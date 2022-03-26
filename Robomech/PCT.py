@@ -7,6 +7,7 @@ class PCT:
     def graph_sub(self, data):
         self.data = data
 
+        print(self.data['tasktime'])
 
         self.smp = 0.0001  # サンプリング時間
         self.time = self.data['duringtime']  # ターゲットの移動時間
@@ -51,26 +52,23 @@ class PCT:
 
         # print(self.data['i1_dob_gain'])
 
-        fig, (thm, text) = plt.subplots(2, 1, figsize=(5, 10), dpi=150, sharex=True)
+        fig, (thm, text) = plt.subplots(2, 1, figsize=(3.4380, 4), dpi=300, sharex=True)
 
-        plt.xlim([10, 60])  # x軸の範囲
+        plt.xlim([0, 30])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
         # thm.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        thm.plot(data['time'][::10], data['i1_p_thm'][::10], label='Interface1')
-        thm.plot(data['time'][::10], data['i2_p_thm'][::10], label='Interface2')
-        thm.plot(data['time'][::10], data['i3_p_thm'][::10], label='Interface3')
-        thm.plot(data['time'][::10], data['i4_p_thm'][::10], label='Interface4')
+        thm.plot(data['time'][:self.end_num - self.start_num:10], data['i1_p_thm'][self.start_num:self.end_num:10], label='Interface1')
+        thm.plot(data['time'][:self.end_num - self.start_num:10], data['i2_p_thm'][self.start_num:self.end_num:10], label='Interface2')
+        thm.plot(data['time'][:self.end_num - self.start_num:10], data['i3_p_thm'][self.start_num:self.end_num:10], label='Interface3')
+        thm.plot(data['time'][:self.end_num - self.start_num:10], data['i4_p_thm'][self.start_num:self.end_num:10], label='Interface4')
         # thm.plot(data['time'][::10], data['i1_p_thm'][::10] - data['i2_p_thm'][::10], label='1 - 2')
-
-        thm.axvspan(20, 30, color="gainsboro")
-        thm.axvspan(40, 50, color="gainsboro")
 
         thm.set_ylabel('Position [rad]')
         thm.legend(ncol=2, columnspacing=1, loc='upper left')
         thm.set_yticks(np.arange(-10, 10, 0.5))
-        thm.set_ylim([-1.5, 1.5])  # y軸の範囲
+        thm.set_ylim([-1.0, 1.0])  # y軸の範囲
 
         # wm.plot(data['time'][::10], np.zeros(len(data['time'][::10])), color='black', lw=0.5)
         # wm.plot(data['time'][::10], data['i1_p_wm'][::10], label='Interface1')
@@ -104,18 +102,14 @@ class PCT:
         # iad.set_ylim([-4.8, 4.8])  # y軸の範囲
 
         # text.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        text.plot(data['time'][::10], data['i1_p_text'][::10], label='Interface1')
-        text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
-        text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
-        text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
-
-        text.axvspan(20, 30, color="gainsboro")
-        text.axvspan(40, 50, color="gainsboro")
-
-        text.plot(data['time'][::10], data['i1_p_text'][::10]
-                                +data['i2_p_text'][::10]
-                                +data['i3_p_text'][::10]
-                                +data['i4_p_text'][::10], label='1 + 2 + 3 + 4')
+        text.plot(data['time'][:self.end_num - self.start_num:10], data['i1_p_text'][self.start_num:self.end_num:10], label='Interface1')
+        text.plot(data['time'][:self.end_num - self.start_num:10], data['i2_p_text'][self.start_num:self.end_num:10], label='Interface2')
+        text.plot(data['time'][:self.end_num - self.start_num:10], data['i3_p_text'][self.start_num:self.end_num:10], label='Interface3')
+        text.plot(data['time'][:self.end_num - self.start_num:10], data['i4_p_text'][self.start_num:self.end_num:10], label='Interface4')
+        # text.plot(data['time'][self.start_num:self.end_num:10], data['i1_p_text'][self.start_num:self.end_num:10]
+        #                         +data['i2_p_text'][self.start_num:self.end_num:10]
+        #                         +data['i3_p_text'][self.start_num:self.end_num:10]
+        #                         +data['i4_p_text'][self.start_num:self.end_num:10], label='1 + 2 + 3 + 4')
         text.set_ylabel('Reaction torque[Nm]')
         text.legend(ncol=2, columnspacing=1, loc='upper left')
         text.set_yticks(np.arange(-8.0, 8.0, 2.0))
@@ -144,7 +138,7 @@ class PCT:
         # wm_sm.set_ylim([-10, 10])  # y軸の範囲
 
         plt.tight_layout()
-        # plt.savefig("response.png")
+        plt.savefig("response.pdf")
         plt.show()
 
     def task_show(self, data):

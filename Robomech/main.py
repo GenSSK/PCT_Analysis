@@ -11,23 +11,25 @@ import Calc
 import Npz
 import PCT
 import Analyze
+import ForceAnalysisRobomech
 
 plt.switch_backend('Qt5Agg')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    data = npz.single_load('2022-03-14_imptest.npz')
+    data = npz.single_load('2022-02-21_watanabe-inoue-kobayashi-tozuka_normal.npz')
 
     # calc = Calc.Calculation(normal[0])
     # calc.period_performance()
 
     pct = PCT.PCT()
 
-    pct.graph_sub(data)
+    # pct.graph_sub(normal[1])
     # pct.task_show(data)
     # pct.task_show(data2)
     # pct.task_show(data3)
     # pct.task_show_sub(data)
 
     # anz = Analyze.Analyze()
+    # anz.fit(data['i1_p_iq'][60000:130000:100], data['i1_p_am'][60000:130000:100])

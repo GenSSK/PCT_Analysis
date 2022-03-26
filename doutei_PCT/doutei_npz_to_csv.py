@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.dir = "J:\マイドライブ\program\ARCS-PCT\data\doutei_PCT\\"
+        self.dir = "J:\マイドライブ\program\ARCS-Robomech\data\doutei_PCT\\"
         # self.data = np.load(self.dir + '2021-12-09_doutei_p.npz')
         # self.data = np.load(self.dir + '2021-12-09_doutei_r.npz')
         # self.data = np.load(self.dir + '2021-12-09_test_p.npz')

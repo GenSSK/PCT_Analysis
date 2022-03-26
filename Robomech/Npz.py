@@ -6,9 +6,9 @@ class NPZ:
     def __init__(self):
         os = platform.system()
         if os == "Windows":
-            self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\PCT\\"  # win
+            self.dir = "G:\\マイドライブ\\program\\ARCS-Robomech\\data\\Robomech\\Robomech\\"  # win
         elif os == "Darwin":
-            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/"  # mac
+            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/Robomech/npz/"  # mac
 
     def single_load(self, filename):
 

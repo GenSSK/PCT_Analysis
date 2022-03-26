@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 class Iden:
     def npz_load(self):
-        self.dir = "J:\\マイドライブ\\program\\ARCS-PCT\\data\\New_Bilateral\\"  # win
-        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/Sinwave_responce/"  # mac
+        self.dir = "J:\\マイドライブ\\program\\ARCS-Robomech\\data\\New_Bilateral\\"  # win
+        # self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-Robomech/data/Sinwave_responce/"  # mac
         # self.data = np.load(self.dir + '2021-10-27_BilateralTest.npz')
         self.data = np.load(self.dir + '2021-10-28_stop.npz')
 
