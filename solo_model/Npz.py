@@ -6,9 +6,9 @@ class NPZ:
     def __init__(self):
         os = platform.system()
         if os == "Windows":
-            self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\PCT\\solo\\"  # win
+            self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\solo_model\\"  # win
         elif os == "Darwin":
-            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/"  # mac
+            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/solo_model/"  # mac
 
     def single_load(self, filename):
 
@@ -24,18 +24,6 @@ class NPZ:
 
     def all_load(self):
         filename = glob.glob(self.dir + '*.npz')  # パスのnpzを全部読み込んじゃう
-
-        if len(filename) == 0:
-            print("Cannot detect the file")
-
-        numpy_vars = {}
-        for i in range(len(filename)):
-            numpy_vars[i] = np.load(filename[i], mmap_mode='r')
-
-        return numpy_vars
-
-    def type_load(self, type):
-        filename = glob.glob(self.dir + '*_' + type + '.npz')  # パスのnpzを全部読み込んじゃう
 
         if len(filename) == 0:
             print("Cannot detect the file")

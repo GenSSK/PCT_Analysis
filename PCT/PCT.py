@@ -51,9 +51,9 @@ class PCT:
 
         # print(self.data['i1_dob_gain'])
 
-        fig, (thm, text) = plt.subplots(2, 1, figsize=(5, 10), dpi=150, sharex=True)
+        fig, (thm, text) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-        plt.xlim([10, 60])  # x軸の範囲
+        # plt.xlim([10, 60])  # x軸の範囲
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
