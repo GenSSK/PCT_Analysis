@@ -33,7 +33,6 @@ class SoloModel:
         return p, f
 
     def analyze(self):
-        lorps = ["label", "predict"]
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
                            'type': ['0'],
@@ -56,34 +55,57 @@ class SoloModel:
             data = value.flatten()
         )
 
+        print(df_val)
+
         # 時間だけのデータフレーム
         pre_t = self.data['pre_time'].copy()
         for i in range(7):
             pre_t = np.hstack((pre_t, self.data['pre_time']))
 
-        print(pre_t)
+        df_time = pd.DataFrame(
+            columns=['time'],
+            data = pre_t
+        )
 
-        # df_time = pd.DataFrame(
-        #     columns=['time'],
-        #     data =
-        # )
+        print(df_time)
 
+        types = ["thm", "text"]
+        type1 = []
+        for j in range(2):
+            for i in types:
+                for k in range(2):
+                    type1.append([i] *  self.data['pre_time'].size)
 
+        type1 = list(itertools.chain.from_iterable(type1))
+        print(len(type1))
+        df_types = pd.DataFrame(
+            columns=["type"],
+            data = type1
+        )
 
-        # types = ["thm", "text"]
-        # type1 = []
-        # for i in types:
-        #     type1.append([i] * len(self.data[0]))
-        # type1 = list(itertools.chain.from_iterable(type1))
-        # # print(type1)
-        # type = pd.DataFrame(
-        #     columns=["Types"],
-        #     data=type1
-        # )
-        #
-        #
-        #
+        lorps = ["label", "predict"]
+        type2 = []
+        for i in lorps:
+            for k in range(4):
+                type2.append([i] * self.data['pre_time'].size)
 
+        type2 = list(itertools.chain.from_iterable(type2))
+        print(len(type2))
+        df_lorp = pd.DataFrame(
+            columns=["lorp"],
+            data=type2
+        )
+
+        df = pd.concat([df_time, df_val, df_types, df_lorp], axis=1)
+
+        print(df)
+
+        sns.relplot(data=df, kind='type', x='time', y='val')
+
+        # plt.tight_layout()
+        # plt.legend()
+        # plt.savefig('text_compare.pdf')
+        plt.show()
 
 
 
@@ -174,7 +196,7 @@ class SoloModel:
         # print(text_df)
 
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
-        # sns.lmplot(x="Time", y="text", hue='Types', data=text_df, scatter=False)
+        # sns.lmplot(x="Time", y="text", hue='Types', data=text_df, scatter=False)e'
         # sns.lmplot(x="Time", y="text", row='Types', data=text_df, scatter=True, order=15,  height=3, aspect= 5 / 3.438)
         # plt.ylim(0, 3)
         # plt.xlim(0, 3)
