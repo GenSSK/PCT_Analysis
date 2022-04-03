@@ -5,11 +5,15 @@ import glob
 class NPZ:
     def __init__(self):
         os = platform.system()
+        print(os)
         if os == "Windows":
             self.dir = "D:\\Program\\ez_libtorch\\data\\"  # win
             # self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\solo_model\\"  # win
         elif os == "Darwin":
             self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/solo_model/"  # mac
+        else:
+            self.dir = "/home/genki/tmp/ez_libtorch/data/"  # linux
+
 
     def single_load(self, filename):
 
