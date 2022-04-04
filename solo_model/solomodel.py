@@ -33,20 +33,21 @@ class SoloModel:
         return p, f
 
     def analyze(self):
+        dec = 100
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
                            'type': ['0'],
                            'lorp':['0']})
 
         value = np.array([
-            self.data['pre_thm_r'],
-            self.data['pre_thm_p'],
-            self.data['pre_text_r'],
-            self.data['pre_text_p'],
-            self.data['label_thm_r'],
-            self.data['label_thm_p'],
-            self.data['label_text_r'],
-            self.data['label_text_p']
+            self.data['pre_thm_r'][::dec],
+            self.data['pre_thm_p'][::dec],
+            self.data['pre_text_r'][::dec],
+            self.data['pre_text_p'][::dec],
+            self.data['label_thm_r'][::dec],
+            self.data['label_thm_p'][::dec],
+            self.data['label_text_r'][::dec],
+            self.data['label_text_p'][::dec]
         ])
 
         # 値だけのデータフレーム
@@ -58,9 +59,9 @@ class SoloModel:
         # print(df_val)
 
         # 時間だけのデータフレーム
-        pre_t = self.data['pre_time'].copy()
+        pre_t = self.data['pre_time'][::dec].copy()
         for i in range(7):
-            pre_t = np.hstack((pre_t, self.data['pre_time']))
+            pre_t = np.hstack((pre_t, self.data['pre_time'][::dec]))
 
         df_time = pd.DataFrame(
             columns=['time'],
@@ -73,7 +74,7 @@ class SoloModel:
         type1 = []
         for j in range(2):
             for i in types:
-                type1.append([i] * self.data['pre_time'].size)
+                type1.append([i] * self.data['pre_time'][::dec].size)
 
         type1 = list(itertools.chain.from_iterable(type1))
         # print(len(type1))
@@ -86,7 +87,7 @@ class SoloModel:
         type2 = []
         for i in lorps:
             for k in range(4):
-                type2.append([i] * self.data['pre_time'].size)
+                type2.append([i] * self.data['pre_time'][::dec].size)
 
         type2 = list(itertools.chain.from_iterable(type2))
         # print(len(type2))

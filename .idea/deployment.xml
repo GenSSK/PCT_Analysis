@@ -5,7 +5,14 @@
       <paths name="CRL-SSK-i9">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_411" local="$PROJECT_DIR$" />
+            <mapping deploy="/tmp/pycharm_project_995" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="yuki@192.168.2.165:22 password">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
