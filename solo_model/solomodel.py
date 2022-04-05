@@ -41,14 +41,15 @@ class SoloModel:
                            'lorp':['0']})
 
         value = np.array([
-            self.data['pre_thm_r'][::self.dec],
-            self.data['pre_thm_p'][::self.dec],
-            self.data['pre_text_r'][::self.dec],
-            self.data['pre_text_p'][::self.dec],
             self.data['label_thm_r'][::self.dec],
             self.data['label_thm_p'][::self.dec],
             self.data['label_text_r'][::self.dec],
-            self.data['label_text_p'][::self.dec]
+            self.data['label_text_p'][::self.dec],
+            self.data['pre_thm_r'][::self.dec],
+            self.data['pre_thm_p'][::self.dec],
+            self.data['pre_text_r'][::self.dec],
+            self.data['pre_text_p'][::self.dec]
+
         ])
 
         # 値だけのデータフレーム
@@ -84,7 +85,7 @@ class SoloModel:
             data = type1
         )
 
-        lorps = ["label", "predict"]
+        lorps = ["Label", "Prediction"]
         type2 = []
         for i in lorps:
             for k in range(4):
@@ -103,12 +104,12 @@ class SoloModel:
 
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
         sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
-        plt.ylim(-2, 2)
-        # plt.xlim(0, 3)
+        plt.ylim(-1.5, 1.5)
+        # plt.xlim(95, 100)
         # plt.tight_layout()
         # plt.legend()
         # plt.savefig('text_compare.pdf')
-        plt.savefig("data.png")
+        # plt.savefig("data.png")
 
         plt.show()
 

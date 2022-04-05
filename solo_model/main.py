@@ -15,10 +15,14 @@ plt.switch_backend('Qt5Agg')
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    data = npz.single_load('test.npz')
+    data = npz.single_load('test_.npz')
 
-    sm = solomodel.SoloModel(data)
-    sm.check_loss()
-    sm.check_ball()
-    sm.analyze()
+    pct = PCT.PCT()
+
+    pct.task_show(data)
+
+    # sm = solomodel.SoloModel(data)
+    # sm.check_loss()
+    # sm.check_ball()
+    # sm.analyze()
 
