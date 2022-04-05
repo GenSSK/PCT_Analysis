@@ -18,5 +18,7 @@ if __name__ == '__main__':
     data = npz.single_load('test.npz')
 
     sm = solomodel.SoloModel(data)
+    sm.check_loss()
+    sm.check_ball()
     sm.analyze()
-    # sm.check_loss()
+

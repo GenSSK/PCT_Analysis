@@ -10,6 +10,8 @@ import itertools
 class SoloModel:
     def __init__(self, data):
         self.data = data
+        self.dec = 100
+
 
     def ttest(self, a, b):
         statistics, pvalue = stats.ttest_rel(a, b)
@@ -33,21 +35,20 @@ class SoloModel:
         return p, f
 
     def analyze(self):
-        dec = 100
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
                            'type': ['0'],
                            'lorp':['0']})
 
         value = np.array([
-            self.data['pre_thm_r'][::dec],
-            self.data['pre_thm_p'][::dec],
-            self.data['pre_text_r'][::dec],
-            self.data['pre_text_p'][::dec],
-            self.data['label_thm_r'][::dec],
-            self.data['label_thm_p'][::dec],
-            self.data['label_text_r'][::dec],
-            self.data['label_text_p'][::dec]
+            self.data['pre_thm_r'][::self.dec],
+            self.data['pre_thm_p'][::self.dec],
+            self.data['pre_text_r'][::self.dec],
+            self.data['pre_text_p'][::self.dec],
+            self.data['label_thm_r'][::self.dec],
+            self.data['label_thm_p'][::self.dec],
+            self.data['label_text_r'][::self.dec],
+            self.data['label_text_p'][::self.dec]
         ])
 
         # 値だけのデータフレーム
@@ -59,9 +60,9 @@ class SoloModel:
         # print(df_val)
 
         # 時間だけのデータフレーム
-        pre_t = self.data['pre_time'][::dec].copy()
+        pre_t = self.data['pre_time'][::self.dec].copy()
         for i in range(7):
-            pre_t = np.hstack((pre_t, self.data['pre_time'][::dec]))
+            pre_t = np.hstack((pre_t, self.data['pre_time'][::self.dec]))
 
         df_time = pd.DataFrame(
             columns=['time'],
@@ -74,7 +75,7 @@ class SoloModel:
         type1 = []
         for j in range(2):
             for i in types:
-                type1.append([i] * self.data['pre_time'][::dec].size)
+                type1.append([i] * self.data['pre_time'][::self.dec].size)
 
         type1 = list(itertools.chain.from_iterable(type1))
         # print(len(type1))
@@ -87,7 +88,7 @@ class SoloModel:
         type2 = []
         for i in lorps:
             for k in range(4):
-                type2.append([i] * self.data['pre_time'][::dec].size)
+                type2.append([i] * self.data['pre_time'][::self.dec].size)
 
         type2 = list(itertools.chain.from_iterable(type2))
         # print(len(type2))
@@ -100,14 +101,83 @@ class SoloModel:
 
         # print(df)
 
+        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
         sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
-
+        plt.ylim(-2, 2)
+        # plt.xlim(0, 3)
         # plt.tight_layout()
         # plt.legend()
         # plt.savefig('text_compare.pdf')
+        plt.savefig("data.png")
+
         plt.show()
 
 
     def check_loss(self):
-        plt.plot(np.arange(self.data['train_loss'].size), self.data['train_loss'])
+        plt.plot(np.arange(self.data['epoch_loss'].size) + 1, self.data['epoch_loss'])
+        plt.xlabel('epoch')
+        plt.ylabel('loss')
+        plt.tight_layout()
+
+        plt.savefig("loss.png")
+
+
+        plt.show()
+
+        # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
+        # plt.show()
+
+    def check_ball(self):
+        plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['mathtext.default'] = 'regular'
+        plt.rcParams['xtick.top'] = 'True'
+        plt.rcParams['ytick.right'] = 'True'
+        # mpl.rcParams['axes.grid'] = 'True'
+        plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        plt.rcParams['xtick.major.width'] = 0.5  # x軸主目盛り線の線幅
+        plt.rcParams['ytick.major.width'] = 0.5  # y軸主目盛り線の線幅
+        plt.rcParams['font.size'] = 6  # フォントの大きさ
+        plt.rcParams['axes.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+        plt.rcParams['lines.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+
+        plt.rcParams["legend.fancybox"] = False  # 丸角
+        plt.rcParams["legend.framealpha"] = 1.0  # 透明度の指定、0で塗りつぶしなし
+        # mpl.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
+        plt.rcParams["legend.handlelength"] = 2  # 凡例の線の長さを調節
+        plt.rcParams["legend.labelspacing"] = 0.1  # 垂直方向（縦）の距離の各凡例の距離
+        plt.rcParams["legend.handletextpad"] = .3  # 凡例の線と文字の距離の長さ
+        # mpl.rcParams["legend.frameon"] = False
+        plt.rcParams["legend.facecolor"] = 'white'
+
+        plt.rcParams["legend.markerscale"] = 2  # 点がある場合のmarker scale
+        plt.rcParams['axes.xmargin'] = '0'  # '.05'
+        plt.rcParams['axes.ymargin'] = '0'
+        plt.rcParams['savefig.facecolor'] = 'None'
+        plt.rcParams['savefig.edgecolor'] = 'None'
+        # mpl.rcParams['savefig.bbox'] = 'tight'
+        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
+
+
+
+        fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
+
+        plt.xlabel("Time[sec]")
+
+        x.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_x'][::self.dec], label='predicted')
+        x.plot(self.data['pre_time'][::self.dec], self.data['label_ball_x'][::self.dec], label='Actuality')
+        x.set_ylabel('x-axis Position (m)')
+        x.legend(ncol=2, columnspacing=1, loc='upper left')
+        x.set_yticks(np.arange(-10, 10, 0.1))
+        x.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+        y.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_y'][::self.dec], label='predicted')
+        y.plot(self.data['pre_time'][::self.dec], self.data['label_ball_y'][::self.dec], label='Actuality')
+        y.set_ylabel('y-axis Position (m)')
+        y.legend(ncol=2, columnspacing=1, loc='upper left')
+        y.set_yticks(np.arange(-10, 10, 0.1))
+        y.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+        plt.savefig("far.png")
+
         plt.show()
