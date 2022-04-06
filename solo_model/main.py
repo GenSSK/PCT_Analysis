@@ -9,20 +9,24 @@ import matplotlib.pyplot as plt
 import Npz
 import PCT
 import solomodel
+import histogram
 
 plt.switch_backend('Qt5Agg')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    data = npz.single_load('test_.npz')
-
+    data = npz.single_load('test.npz')
     pct = PCT.PCT()
+    sm = solomodel.SoloModel(data)
+    hist = histogram.histogram()
 
-    pct.task_show(data)
 
-    # sm = solomodel.SoloModel(data)
+    # pct.task_show(data)
+
     # sm.check_loss()
-    # sm.check_ball()
-    # sm.analyze()
+    sm.check_ball()
+    sm.analyze()
+
+    hist.graph_out(data)
 

@@ -175,18 +175,28 @@ class PCT:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
-        plt.plot(data['pre_time'], data['label_ball_x'], label='ballx')
-        plt.plot(data['pre_time'], data['label_ball_y'], label='bally')
+        fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-        plt.plot(data['pre_time'], data['label_tgt_x'], label='targetx')
-        plt.plot(data['pre_time'], data['label_tgt_y'], label='targety')
+        x.plot(data['pre_time'], data['label_tgt_x'], label='targetx')
+        x.plot(data['pre_time'], data['label_ball_x'], label='ballx')
+        x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
+        x.set_ylabel('x-axis Position (m)')
+        x.legend(ncol=2, columnspacing=1, loc='upper left')
+        x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
 
-        plt.ylabel(r'Position [m]')
-        plt.legend()
-        plt.yticks(np.arange(-4, 4, 0.1))
-        plt.ylim([-0.4, 0.4])  # y軸の範囲
-        plt.xlim([data['starttime'], data['endtime']])  # x軸の範囲
+        y.plot(data['pre_time'], data['label_tgt_y'], label='targety')
+        y.plot(data['pre_time'], data['label_ball_y'], label='bally')
+        y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
+        y.legend(ncol=2, columnspacing=1, loc='upper left')
+        y.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+
+        # plt.ylabel(r'Position [m]')
+        # plt.legend()
+        # plt.yticks(np.arange(-4, 4, 0.1))
+        # plt.ylim([-0.4, 0.4])  # y軸の範囲
+        # plt.xlim([data['starttime'], data['endtime']])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
         plt.tight_layout()
