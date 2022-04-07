@@ -16,7 +16,7 @@ plt.switch_backend('Qt5Agg')
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    data = npz.single_load('test.npz')
+    data = npz.single_load('2022-04-07_5lay_epo1000_1.npz')
     pct = PCT.PCT()
     sm = solomodel.SoloModel(data)
     hist = histogram.histogram()
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     # pct.task_show(data)
 
-    # sm.check_loss()
+    sm.check_loss()
     # sm.recalc_ball_movement()
     sm.check_ball()
     sm.analyze()

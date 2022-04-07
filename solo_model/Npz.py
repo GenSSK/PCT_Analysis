@@ -13,7 +13,7 @@ class NPZ:
             self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/solo_model/"  # mac
         else:
             # self.dir = "/home/genki/tmp/ez_libtorch/data/"  # linux
-            self.dir = "/home/genki/tmp/tmp.OnTcJOYgTR/data/"  # linux
+            self.dir = "/home/genki/tmp/tmp.DCaNlQozen/data/"  # linux
 
 
     def single_load(self, filename):
