@@ -25,8 +25,9 @@ if __name__ == '__main__':
     # pct.task_show(data)
 
     # sm.check_loss()
+    # sm.recalc_ball_movement()
     sm.check_ball()
     sm.analyze()
 
-    hist.graph_out(data)
+    # hist.graph_out(data)
 

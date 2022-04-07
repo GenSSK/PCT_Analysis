@@ -177,16 +177,16 @@ class PCT:
 
         fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-        x.plot(data['pre_time'], data['label_tgt_x'], label='targetx')
-        x.plot(data['pre_time'], data['label_ball_x'], label='ballx')
+        x.plot(data['pre_time'], data['label_pre_tgt_x'], label='targetx')
+        x.plot(data['pre_time'], data['label_pre_ball_x'], label='ballx')
         x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
         x.set_ylabel('x-axis Position (m)')
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
 
-        y.plot(data['pre_time'], data['label_tgt_y'], label='targety')
-        y.plot(data['pre_time'], data['label_ball_y'], label='bally')
+        y.plot(data['pre_time'], data['label_pre_tgt_y'], label='targety')
+        y.plot(data['pre_time'], data['label_pre_ball_y'], label='bally')
         y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
         y.legend(ncol=2, columnspacing=1, loc='upper left')
         y.set_ylim([-0.2, 0.2])  # y軸の範囲

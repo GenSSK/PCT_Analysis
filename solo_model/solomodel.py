@@ -41,10 +41,10 @@ class SoloModel:
                            'lorp':['0']})
 
         value = np.array([
-            self.data['label_thm_r'][::self.dec],
-            self.data['label_thm_p'][::self.dec],
-            self.data['label_text_r'][::self.dec],
-            self.data['label_text_p'][::self.dec],
+            self.data['label_pre_thm_r'][::self.dec],
+            self.data['label_pre_thm_p'][::self.dec],
+            self.data['label_pre_text_r'][::self.dec],
+            self.data['label_pre_text_p'][::self.dec],
             self.data['pre_thm_r'][::self.dec],
             self.data['pre_thm_p'][::self.dec],
             self.data['pre_text_r'][::self.dec],
@@ -166,19 +166,74 @@ class SoloModel:
         plt.xlabel("Time[sec]")
 
         x.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_x'][::self.dec], label='predicted')
-        x.plot(self.data['pre_time'][::self.dec], self.data['label_ball_x'][::self.dec], label='Actuality')
+        x.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_x'][::self.dec], label='Actuality')
         x.set_ylabel('x-axis Position (m)')
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_yticks(np.arange(-10, 10, 0.1))
         x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
         y.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_y'][::self.dec], label='predicted')
-        y.plot(self.data['pre_time'][::self.dec], self.data['label_ball_y'][::self.dec], label='Actuality')
+        y.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_y'][::self.dec], label='Actuality')
         y.set_ylabel('y-axis Position (m)')
         y.legend(ncol=2, columnspacing=1, loc='upper left')
         y.set_yticks(np.arange(-10, 10, 0.1))
         y.set_ylim([-0.2, 0.2])  # y軸の範囲
 
-        plt.savefig("far.png")
+        # plt.savefig("far.png")
+
+        plt.show()
+
+    def recalc_ball_movement(self):
+        plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['mathtext.default'] = 'regular'
+        plt.rcParams['xtick.top'] = 'True'
+        plt.rcParams['ytick.right'] = 'True'
+        # mpl.rcParams['axes.grid'] = 'True'
+        plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+        plt.rcParams['xtick.major.width'] = 0.5  # x軸主目盛り線の線幅
+        plt.rcParams['ytick.major.width'] = 0.5  # y軸主目盛り線の線幅
+        plt.rcParams['font.size'] = 6  # フォントの大きさ
+        plt.rcParams['axes.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+        plt.rcParams['lines.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+
+        plt.rcParams["legend.fancybox"] = False  # 丸角
+        plt.rcParams["legend.framealpha"] = 1.0  # 透明度の指定、0で塗りつぶしなし
+        # mpl.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
+        plt.rcParams["legend.handlelength"] = 2  # 凡例の線の長さを調節
+        plt.rcParams["legend.labelspacing"] = 0.1  # 垂直方向（縦）の距離の各凡例の距離
+        plt.rcParams["legend.handletextpad"] = .3  # 凡例の線と文字の距離の長さ
+        # mpl.rcParams["legend.frameon"] = False
+        plt.rcParams["legend.facecolor"] = 'white'
+
+        plt.rcParams["legend.markerscale"] = 2  # 点がある場合のmarker scale
+        plt.rcParams['axes.xmargin'] = '0'  # '.05'
+        plt.rcParams['axes.ymargin'] = '0'
+        plt.rcParams['savefig.facecolor'] = 'None'
+        plt.rcParams['savefig.edgecolor'] = 'None'
+        # mpl.rcParams['savefig.bbox'] = 'tight'
+        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
+
+
+
+        fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
+
+        plt.xlabel("Time[sec]")
+
+        x.plot(self.data['learn_time'][::self.dec], self.data['label_train_ball_x'][::self.dec], label='Actuality')
+        x.plot(self.data['learn_time'][::self.dec], self.data['train_ball_x_recalc'][::self.dec], label='recalc')
+        x.set_ylabel('x-axis Position (m)')
+        x.legend(ncol=2, columnspacing=1, loc='upper left')
+        x.set_yticks(np.arange(-10, 10, 0.1))
+        x.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+        y.plot(self.data['learn_time'][::self.dec], self.data['label_train_ball_y'][::self.dec], label='Actuality')
+        y.plot(self.data['learn_time'][::self.dec], self.data['train_ball_y_recalc'][::self.dec], label='recalc')
+        y.set_ylabel('y-axis Position (m)')
+        y.legend(ncol=2, columnspacing=1, loc='upper left')
+        y.set_yticks(np.arange(-10, 10, 0.1))
+        y.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+        # plt.savefig("far.png")
 
         plt.show()

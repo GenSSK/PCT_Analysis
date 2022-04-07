@@ -8,7 +8,7 @@ class NPZ:
         if os == "Windows":
             self.dir = "G:\\マイドライブ\\program\\ARCS-PCT\\data\\PCT\\solo\\"  # win
         elif os == "Darwin":
-            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/"  # mac
+            self.dir = "/Volumes/GoogleDrive/My Drive/program/ARCS-PCT/data/PCT/solo/"  # mac
 
     def single_load(self, filename):
 
