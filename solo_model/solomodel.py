@@ -195,13 +195,11 @@ class SoloModel:
         plt.ylabel('loss')
         plt.tight_layout()
 
-        plt.savefig("loss.png")
-
-
+        # plt.savefig("loss.png")
         plt.show()
 
-        # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
-        # plt.show()
+        plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
+        plt.show()
 
     def check_ball(self):
         plt.rcParams['font.family'] = 'Times New Roman'
