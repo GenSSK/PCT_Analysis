@@ -190,15 +190,21 @@ class SoloModel:
 
 
     def check_loss(self):
-        plt.plot(np.arange(self.data['epoch_loss'].size) + 1, self.data['epoch_loss'])
+        plt.plot(np.arange(self.data['train_loss'].size) + 1, self.data['train_loss'])
         plt.xlabel('epoch')
-        plt.ylabel('loss')
+        plt.ylabel('train loss')
         plt.tight_layout()
-
         # plt.savefig("loss.png")
         plt.show()
 
-        plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
+        # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
+        # plt.show()
+
+        plt.plot(np.arange(self.data['validation_loss'].size) + 1, self.data['validation_loss'])
+        plt.xlabel('epoch')
+        plt.ylabel('validation loss')
+        plt.tight_layout()
+        # plt.savefig("loss.png")
         plt.show()
 
     def check_ball(self):
@@ -231,7 +237,6 @@ class SoloModel:
         plt.rcParams['savefig.edgecolor'] = 'None'
         # mpl.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
-
 
 
         fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
