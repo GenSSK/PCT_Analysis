@@ -104,12 +104,15 @@ class SoloModel:
 
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
         sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
+        plt.axvspan(80, 83, color="grey")
+        plt.axvspan(83, 89, color="gainsboro")
         plt.ylim(-1.5, 1.5)
         # plt.xlim(95, 100)
         # plt.tight_layout()
         # plt.legend()
         # plt.savefig('text_compare.pdf')
-        # plt.savefig("data.png")
+        # plt.savefig("nosf.png")
+        plt.savefig("sf.png")
 
         plt.show()
 
@@ -179,11 +182,14 @@ class SoloModel:
 
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
         sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
-        plt.ylim(-1.5, 1.5)
+        plt.ylim(-4, 4)
+        plt.axvspan(80, 83, color="grey")
+        plt.axvspan(83, 104, color="gainsboro")
         # plt.xlim(95, 100)
         # plt.tight_layout()
         # plt.legend()
-        # plt.savefig('text_compare.pdf')
+        # plt.savefig('text_actual.png')
+        plt.savefig('text.png')
         # plt.savefig("data.png")
 
         plt.show()
@@ -194,7 +200,9 @@ class SoloModel:
         plt.xlabel('epoch')
         plt.ylabel('train loss')
         plt.tight_layout()
-        # plt.savefig("loss.png")
+        # plt.savefig("train loss actual.png")
+        # plt.savefig("train loss nosf.png")
+        plt.savefig("train loss.png")
         plt.show()
 
         # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
@@ -204,7 +212,9 @@ class SoloModel:
         plt.xlabel('epoch')
         plt.ylabel('validation loss')
         plt.tight_layout()
-        # plt.savefig("loss.png")
+        # plt.savefig("validation loss actual.png")
+        # plt.savefig("validation loss nosf.png")
+        plt.savefig("validation loss.png")
         plt.show()
 
     def check_ball(self):
@@ -248,16 +258,21 @@ class SoloModel:
         x.set_ylabel('x-axis Position (m)')
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_yticks(np.arange(-10, 10, 0.1))
-        x.set_ylim([-0.2, 0.2])  # y軸の範囲
+        x.set_ylim([-0.3, 0.3])  # y軸の範囲
+        x.axvspan(80, 83, color="grey")
+        x.axvspan(83, 89, color="gainsboro")
 
         y.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_y'][::self.dec], label='predicted')
         y.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_y'][::self.dec], label='Actuality')
         y.set_ylabel('y-axis Position (m)')
         y.legend(ncol=2, columnspacing=1, loc='upper left')
         y.set_yticks(np.arange(-10, 10, 0.1))
-        y.set_ylim([-0.2, 0.2])  # y軸の範囲
+        y.set_ylim([-0.3, 0.3])  # y軸の範囲
+        y.axvspan(80, 83, color="grey")
+        y.axvspan(83, 89, color="gainsboro")
 
-        # plt.savefig("far.png")
+        # plt.savefig("ball nosf.png")
+        plt.savefig("ball.png")
 
         plt.show()
 
