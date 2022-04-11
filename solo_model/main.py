@@ -16,26 +16,32 @@ plt.switch_backend('Qt5Agg')
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     npz = Npz.NPZ()
-    # data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_ACTUAL.npz')
-    data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000.npz')
-    # data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_nosf.npz')
-    data_force = npz.single_load('g.sasaki_ln5_id30_h130_h250_h325_od2_lr0.000010_bn3000_en300_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_force.npz')
-    # data_force = npz.single_load('g.sasaki_ln5_id30_h130_h250_h325_od2_lr0.000010_bn3000_en300_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_force_ACTUAL.npz')
     pct = PCT.PCT()
-    sm = solomodel.SoloModel(data)
     hist = histogram.histogram()
-
-
     # pct.task_show(data)
 
+    # data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_ACTUAL.npz')
+    # data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000.npz')
+    # data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en50_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_nosf.npz')
+    # sm = solomodel.SoloModel(data)
     # sm.check_loss()
     # sm.recalc_ball_movement()
     # sm.check_ball()
     # sm.analyze()
 
+    data_force = npz.single_load('g.sasaki_ln5_id120_h1180_h2240_h3100_od2_lr0.000100_bn3000_en10_dt0.001000_it0.002000_dtt0.001000_itt0.002000_dte0.001000_ite0.002000_tg0.000010_ttg0.200000_teg1.000000_force.npz')
+    # data_force = npz.single_load('g.sasaki_ln5_id30_h130_h250_h325_od2_lr0.000010_bn3000_en300_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_force_ACTUAL.npz')
     sm_force = solomodel.SoloModel(data_force)
     sm_force.check_loss()
     sm_force.analyze_force()
+
+    # data_position = npz.single_load('g.sasaki_ln5_id30_h130_h250_h325_od2_lr0.000010_bn3000_en300_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_force.npz')
+    # sm_position = solomodel.SoloModel(data_position)
+    # sm_position.check_loss()
+    # sm_position.check_ball()
+    # sm_position.analyze_position()
+
+    plt.show()
 
 
     # hist.graph_out(data)

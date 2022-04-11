@@ -116,6 +116,84 @@ class SoloModel:
 
         plt.show()
 
+    def analyze_position(self):
+        df = pd.DataFrame({'time': [0.0],
+                           'val': [0.0],
+                           'type': ['0'],
+                           'lorp':['0']})
+
+        value = np.array([
+            self.data['label_pre_thm_r'][::self.dec],
+            self.data['label_pre_thm_p'][::self.dec],
+            self.data['pre_thm_r'][::self.dec],
+            self.data['pre_thm_p'][::self.dec],
+        ])
+
+        # 値だけのデータフレーム
+        df_val = pd.DataFrame(
+            columns=['val'],
+            data = value.flatten()
+        )
+
+        # print(df_val)
+
+        # 時間だけのデータフレーム
+        pre_t = self.data['pre_time'][::self.dec].copy()
+        for i in range(3):
+            pre_t = np.hstack((pre_t, self.data['pre_time'][::self.dec]))
+
+        df_time = pd.DataFrame(
+            columns=['time'],
+            data = pre_t
+        )
+
+        # print(df_time)
+
+        types = ["thm_r", "thm_p"]
+        type1 = []
+        for j in range(2):
+            for i in types:
+                type1.append([i] * self.data['pre_time'][::self.dec].size)
+
+        type1 = list(itertools.chain.from_iterable(type1))
+        # print(len(type1))
+        df_types = pd.DataFrame(
+            columns=["type"],
+            data = type1
+        )
+
+        lorps = ["Label", "Prediction"]
+        type2 = []
+        for i in lorps:
+            for k in range(2):
+                type2.append([i] * self.data['pre_time'][::self.dec].size)
+
+        type2 = list(itertools.chain.from_iterable(type2))
+        # print(len(type2))
+        df_lorp = pd.DataFrame(
+            columns=["lorp"],
+            data=type2
+        )
+
+        df = pd.concat([df_time, df_val, df_types, df_lorp], axis=1)
+
+        # print(df)
+
+        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
+        sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
+        plt.ylim(-1.5, 1.5)
+        plt.axvspan(80, 83, color="grey")
+        plt.axvspan(83, 89, color="gainsboro")
+        # plt.xlim(95, 100)
+        # plt.tight_layout()
+        # plt.legend()
+        # plt.savefig('text_actual.png')
+        # plt.savefig('text.png')
+        # plt.savefig("data.png")
+
+        plt.show()
+
+
     def analyze_force(self):
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
@@ -184,7 +262,7 @@ class SoloModel:
         sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
         plt.ylim(-4, 4)
         plt.axvspan(80, 83, color="grey")
-        plt.axvspan(83, 104, color="gainsboro")
+        plt.axvspan(83, 89, color="gainsboro")
         # plt.xlim(95, 100)
         # plt.tight_layout()
         # plt.legend()
@@ -192,7 +270,7 @@ class SoloModel:
         plt.savefig('text.png')
         # plt.savefig("data.png")
 
-        plt.show()
+        # plt.show()
 
 
     def check_loss(self):
@@ -202,8 +280,8 @@ class SoloModel:
         plt.tight_layout()
         # plt.savefig("train loss actual.png")
         # plt.savefig("train loss nosf.png")
-        plt.savefig("train loss.png")
-        plt.show()
+        # plt.savefig("train loss.png")
+        # plt.show()
 
         # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
         # plt.show()
@@ -214,8 +292,8 @@ class SoloModel:
         plt.tight_layout()
         # plt.savefig("validation loss actual.png")
         # plt.savefig("validation loss nosf.png")
-        plt.savefig("validation loss.png")
-        plt.show()
+        # plt.savefig("validation loss.png")
+        # plt.show()
 
     def check_ball(self):
         plt.rcParams['font.family'] = 'Times New Roman'
@@ -272,7 +350,7 @@ class SoloModel:
         y.axvspan(83, 89, color="gainsboro")
 
         # plt.savefig("ball nosf.png")
-        plt.savefig("ball.png")
+        # plt.savefig("ball.png")
 
         plt.show()
 
