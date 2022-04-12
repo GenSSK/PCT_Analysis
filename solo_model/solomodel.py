@@ -10,7 +10,7 @@ import itertools
 class SoloModel:
     def __init__(self, data):
         self.data = data
-        self.dec = 100
+        self.dec = 10
 
 
     def ttest(self, a, b):
@@ -274,6 +274,7 @@ class SoloModel:
 
 
     def check_loss(self):
+        plt.figure()
         plt.plot(np.arange(self.data['train_loss'].size) + 1, self.data['train_loss'])
         plt.xlabel('epoch')
         plt.ylabel('train loss')
@@ -286,6 +287,7 @@ class SoloModel:
         # plt.plot(np.arange(self.data['running_loss'].size) + 1, self.data['running_loss'])
         # plt.show()
 
+        plt.figure()
         plt.plot(np.arange(self.data['validation_loss'].size) + 1, self.data['validation_loss'])
         plt.xlabel('epoch')
         plt.ylabel('validation loss')
