@@ -6,6 +6,7 @@
 import numpy as np
 import matplotlib as plt
 import matplotlib.pyplot as plt
+import pandas as pd
 import Npz
 import PCT
 import solomodel
@@ -19,6 +20,15 @@ if __name__ == '__main__':
     pct = PCT.PCT()
     hist = histogram.histogram()
     # pct.task_show(data)
+
+    tes = pd.read_table('/home/genki/data/log/pandf.log', header=None)
+    print(tes)
+
+
+    # f = open('/home/genki/data/log/pandf.log', 'r')
+    # tes = f.read()
+    # print(tes)
+    exit()
 
     data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en10_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000.npz')
     data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en10_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_ACTUAL.npz')
