@@ -20,7 +20,8 @@ if __name__ == '__main__':
     hist = histogram.histogram()
     # pct.task_show(data)
 
-    data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en3_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_ACTUAL.npz')
+    data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en10_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000.npz')
+    data = npz.single_load('g.sasaki_ln5_id30_h130_h250_h327_od4_lr0.000100_bn3000_en10_dt0.010000_it0.010000_dtt0.010000_itt0.010000_dte0.010000_ite0.010000_tg0.500000_ttg0.100000_teg1.000000_ACTUAL.npz')
     sm = solomodel.SoloModel(data)
     sm.check_loss()
     # sm.recalc_ball_movement()
