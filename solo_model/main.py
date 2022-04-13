@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # pct.task_show(data)
 
     tes = pd.read_table('/home/genki/data/log/pandf.log', header=None)
-    print(tes)
+    print(tes[0][0])
 
 
     # f = open('/home/genki/data/log/pandf.log', 'r')
