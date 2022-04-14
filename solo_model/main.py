@@ -25,6 +25,7 @@ if __name__ == '__main__':
     log_read = pd.read_table('/home/genki/data/log/pandf.log', header=None)
     size = log_read[0].size - 1
     filename = log_read[0][size]
+    print(log_read[0][size])
     data = npz.single_load(log_read[0][size])
     sm = solomodel.SoloModel(data)
     # sm.check_loss()
