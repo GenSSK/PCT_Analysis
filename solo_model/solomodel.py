@@ -10,7 +10,7 @@ import itertools
 class SoloModel:
     def __init__(self, data):
         self.data = data
-        self.dec = 10
+        self.dec = 100
 
 
     def ttest(self, a, b):
@@ -35,8 +35,6 @@ class SoloModel:
         return p, f
 
     def analyze(self):
-        plt.figure()
-
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
                            'type': ['0'],
@@ -116,7 +114,7 @@ class SoloModel:
         # plt.savefig("nosf.png")
         plt.savefig("sf.png")
 
-        plt.show()
+        # plt.show()
 
     def analyze_position(self):
         df = pd.DataFrame({'time': [0.0],
@@ -269,7 +267,7 @@ class SoloModel:
         # plt.tight_layout()
         # plt.legend()
         # plt.savefig('text_actual.png')
-        plt.savefig('text.png')
+        # plt.savefig('text.png')
         # plt.savefig("data.png")
 
         # plt.show()
@@ -300,8 +298,6 @@ class SoloModel:
         # plt.show()
 
     def check_ball(self):
-        plt.figure()
-
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
@@ -361,7 +357,7 @@ class SoloModel:
         # plt.show()
 
     def recalc_ball_movement(self):
-        plt.figure()
+        # plt.figure()
 
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
@@ -416,3 +412,24 @@ class SoloModel:
         # plt.savefig("far.png")
 
         # plt.show()
+
+    def check_input(self):
+        typ = ["thm_r", "thm_p", "text_r", "text_p", "err_x", "err_y"]
+        fig, axes = plt.subplots(len(typ), figsize=(10, 15), dpi=100, sharex=True)
+        plt.xlabel("Time[sec]")
+        for i in range(self.data['inputType'][0] * 2):
+
+            axes[i].set_ylabel(typ[i])
+            for j in range(self.data['pastNum'][0]):
+                string = "input_" + typ[i] + "_" + str(j + 1)
+                axes[i].plot(self.data['pre_time'][::self.dec], self.data[string][::self.dec], label=str(j + 1))
+
+            axes[i].legend(ncol=self.data['pastNum'][0], columnspacing=1, loc='upper left')
+
+
+
+
+# fig.append(plt.figure())
+# ax = fig[i * len(self.data) + j].add_subplot(111)
+# for k in range(self.period[i][j]):
+#     ax.plot(self.data[i][j]['time'][:self.num[i][j]], thm_[self.num[i][j] * k:self.num[i][j] * (k + 1)])

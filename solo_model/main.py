@@ -27,10 +27,11 @@ if __name__ == '__main__':
     filename = log_read[0][size]
     data = npz.single_load(log_read[0][size])
     sm = solomodel.SoloModel(data)
-    sm.check_loss()
-    sm.recalc_ball_movement()
-    sm.check_ball()
+    # sm.check_loss()
+    # sm.recalc_ball_movement()
+    # sm.check_ball()
     sm.analyze()
+    sm.check_input()
 
     # log_read = pd.read_table('/home/genki/data/log/f.log', header=None)
     # size = log_read[0].size - 1
