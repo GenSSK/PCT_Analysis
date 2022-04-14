@@ -35,6 +35,8 @@ class SoloModel:
         return p, f
 
     def analyze(self):
+        plt.figure()
+
         df = pd.DataFrame({'time': [0.0],
                            'val': [0.0],
                            'type': ['0'],
@@ -191,7 +193,7 @@ class SoloModel:
         # plt.savefig('text.png')
         # plt.savefig("data.png")
 
-        plt.show()
+        # plt.show()
 
 
     def analyze_force(self):
@@ -298,6 +300,8 @@ class SoloModel:
         # plt.show()
 
     def check_ball(self):
+        plt.figure()
+
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
@@ -354,9 +358,11 @@ class SoloModel:
         # plt.savefig("ball nosf.png")
         # plt.savefig("ball.png")
 
-        plt.show()
+        # plt.show()
 
     def recalc_ball_movement(self):
+        plt.figure()
+
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
@@ -409,4 +415,4 @@ class SoloModel:
 
         # plt.savefig("far.png")
 
-        plt.show()
+        # plt.show()
