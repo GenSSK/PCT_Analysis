@@ -10,7 +10,7 @@ import itertools
 class SoloModel:
     def __init__(self, data):
         self.data = data
-        self.dec = 100
+        self.dec = (int)(100 / self.data['dec'][0])
 
 
     def ttest(self, a, b):
