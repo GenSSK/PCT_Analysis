@@ -112,9 +112,91 @@ class SoloModel:
         # plt.legend()
         # plt.savefig('text_compare.pdf')
         # plt.savefig("nosf.png")
-        plt.savefig("sf.png")
+        # plt.savefig("sf.png")
 
         # plt.show()
+
+        def analyze_predict(self):
+            df = pd.DataFrame({'time': [0.0],
+                               'val': [0.0],
+                               'type': ['0'],
+                               'lorp': ['0']})
+
+            value = np.array([
+                self.data['label_pre_thm_r'][::self.dec],
+                self.data['label_pre_thm_p'][::self.dec],
+                self.data['label_pre_text_r'][::self.dec],
+                self.data['label_pre_text_p'][::self.dec],
+                self.data['pre_thm_r'][::self.dec],
+                self.data['pre_thm_p'][::self.dec],
+                self.data['pre_text_r'][::self.dec],
+                self.data['pre_text_p'][::self.dec]
+
+            ])
+
+            # 値だけのデータフレーム
+            df_val = pd.DataFrame(
+                columns=['val'],
+                data=value.flatten()
+            )
+
+            # print(df_val)
+
+            # 時間だけのデータフレーム
+            pre_t = self.data['pre_time'][::self.dec].copy()
+            for i in range(7):
+                pre_t = np.hstack((pre_t, self.data['pre_time'][::self.dec]))
+
+            df_time = pd.DataFrame(
+                columns=['time'],
+                data=pre_t
+            )
+
+            # print(df_time)
+
+            types = ["thm_r", "thm_p", "text_r", "text_p"]
+            type1 = []
+            for j in range(2):
+                for i in types:
+                    type1.append([i] * self.data['pre_time'][::self.dec].size)
+
+            type1 = list(itertools.chain.from_iterable(type1))
+            # print(len(type1))
+            df_types = pd.DataFrame(
+                columns=["type"],
+                data=type1
+            )
+
+            lorps = ["Label", "Prediction"]
+            type2 = []
+            for i in lorps:
+                for k in range(4):
+                    type2.append([i] * self.data['pre_time'][::self.dec].size)
+
+            type2 = list(itertools.chain.from_iterable(type2))
+            # print(len(type2))
+            df_lorp = pd.DataFrame(
+                columns=["lorp"],
+                data=type2
+            )
+
+            df = pd.concat([df_time, df_val, df_types, df_lorp], axis=1)
+
+            # print(df)
+
+            plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
+            sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line', height=2, aspect=3)
+            plt.axvspan(80, 83, color="grey")
+            plt.axvspan(83, 89, color="gainsboro")
+            plt.ylim(-1.5, 1.5)
+            # plt.xlim(95, 100)
+            # plt.tight_layout()
+            # plt.legend()
+            # plt.savefig('text_compare.pdf')
+            # plt.savefig("nosf.png")
+            # plt.savefig("sf.png")
+
+            # plt.show()
 
     def analyze_position(self):
         df = pd.DataFrame({'time': [0.0],
