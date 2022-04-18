@@ -23,29 +23,31 @@ if __name__ == '__main__':
 
 
     # OperationModel.cpp
-    # log_read = pd.read_table('/home/genki/data/log/pandf.log', header=None)
-    # size = log_read[0].size - 1
-    # filename = log_read[0][size]
-    # print(filename)
-    # #g.sasaki_ln5_id30_h145_h255_h320_od4_lr0.000100_bn30000_en50_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz うまくいってるかも
-    # data = npz.single_load(log_read[0][size])
-    # sm = solomodel.SoloModel(data)
-    # sm.check_loss()
-    # sm.recalc_ball_movement()
-    # sm.check_ball()
-    # sm.analyze()
-    # sm.check_input()
-
-    # OperationModel_predict.cpp
-    log_read = pd.read_table('/home/genki/data/log/predict.log', header=None)
+    log_read = pd.read_table('/home/genki/data/log/pandf.log', header=None)
     size = log_read[0].size - 1
     filename = log_read[0][size]
     print(filename)
+    #g.sasaki_ln5_id30_h145_h255_h320_od4_lr0.000100_bn30000_en50_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz うまくいってるかも
     data = npz.single_load(log_read[0][size])
-    sm_pre = solomodel.SoloModel(data)
-    sm_pre.check_ball()
-    sm_pre.analyze()
-    sm_pre.check_input()
+    sm = solomodel.SoloModel(data)
+    sm.check_loss()
+    sm.recalc_ball_movement()
+    sm.check_ball()
+    sm.analyze()
+    sm.check_input()
+
+    # OperationModel_predict.cpp
+    # log_read = pd.read_table('/home/genki/data/log/predict.log', header=None)
+    # size = log_read[0].size - 1
+    # filename = log_read[0][size]
+    # print(filename)
+    # data = npz.single_load(log_read[0][size])
+    # sm_pre = solomodel.SoloModel(data)
+    # sm_pre.check_ball()
+    # sm_pre.analyze()
+    # sm_pre.check_input()
+
+
 
 
     # filename = log_read[0][size]

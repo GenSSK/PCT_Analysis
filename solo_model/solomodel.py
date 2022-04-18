@@ -103,16 +103,16 @@ class SoloModel:
         # print(df)
 
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
-        sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=3)
-        plt.axvspan(80, 83, color="grey")
-        plt.axvspan(83, 89, color="gainsboro")
+        sns.relplot(data=df, row='type', x='time', y='val', hue='lorp', kind='line',height=2, aspect=6)
+        # plt.axvspan(80, 83, color="grey")
+        # plt.axvspan(83, 89, color="gainsboro")
         plt.ylim(-1.5, 1.5)
         # plt.xlim(95, 100)
         # plt.tight_layout()
         # plt.legend()
         # plt.savefig('text_compare.pdf')
         # plt.savefig("nosf.png")
-        # plt.savefig("sf.png")
+        plt.savefig("pre.png")
 
         # plt.show()
 
@@ -194,7 +194,7 @@ class SoloModel:
             # plt.legend()
             # plt.savefig('text_compare.pdf')
             # plt.savefig("nosf.png")
-            # plt.savefig("sf.png")
+            plt.savefig("koba.png")
 
             # plt.show()
 
@@ -421,8 +421,8 @@ class SoloModel:
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_yticks(np.arange(-10, 10, 0.1))
         x.set_ylim([-0.3, 0.3])  # y軸の範囲
-        x.axvspan(80, 83, color="grey")
-        x.axvspan(83, 89, color="gainsboro")
+        # x.axvspan(80, 83, color="grey")
+        # x.axvspan(83, 89, color="gainsboro")
 
         y.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_y'][::self.dec], label='predicted')
         y.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_y'][::self.dec], label='Actuality')
@@ -430,11 +430,11 @@ class SoloModel:
         y.legend(ncol=2, columnspacing=1, loc='upper left')
         y.set_yticks(np.arange(-10, 10, 0.1))
         y.set_ylim([-0.3, 0.3])  # y軸の範囲
-        y.axvspan(80, 83, color="grey")
-        y.axvspan(83, 89, color="gainsboro")
+        # y.axvspan(80, 83, color="grey")
+        # y.axvspan(83, 89, color="gainsboro")
 
         # plt.savefig("ball nosf.png")
-        # plt.savefig("ball.png")
+        plt.savefig("ball.png")
 
         # plt.show()
 
