@@ -12,7 +12,7 @@ import PCT
 import solomodel
 import histogram
 
-plt.switch_backend('Qt5Agg')
+# plt.switch_backend('Qt5Agg')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -23,12 +23,12 @@ if __name__ == '__main__':
 
 
     # OperationModel.cpp
-    log_read = pd.read_table('/home/genki/data/log/pandf.log', header=None)
-    size = log_read[0].size - 1
-    filename = log_read[0][size]
-    print(filename)
-    #g.sasaki_ln5_id30_h145_h255_h320_od4_lr0.000100_bn30000_en50_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz うまくいってるかも
-    data = npz.single_load(log_read[0][size])
+    # log_read = pd.read_table('/home/genki/data/log/pandf.log', header=None)
+    # size = log_read[0].size - 1
+    # filename = log_read[0][size]
+    # print(filename)
+    # data = npz.single_load(log_read[0][size])
+    data = npz.single_load('y.inoue_ln3_id126_h145_h2195_h320_od4_lr0.000100_bn30000_en125_dec1_dt0.028394_it0.174225_dtt0.028394_itt0.174225_dte0.028394_ite0.174225_tg0.422165_ttg0.010367_teg1.887680.npz')
     sm = solomodel.SoloModel(data)
     sm.check_loss()
     sm.recalc_ball_movement()
