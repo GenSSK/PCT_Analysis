@@ -31,7 +31,7 @@ if __name__ == '__main__':
     # filename = log_read[0][size]
     # print(filename)
     # data = npz.single_load(log_read[0][size])
-    data = npz.single_load('y.inoue_ln3_id126_h145_h2195_h320_od4_lr0.000100_bn30000_en125_dec1_dt0.028394_it0.174225_dtt0.028394_itt0.174225_dte0.028394_ite0.174225_tg0.422165_ttg0.010367_teg1.887680.npz')
+    data = npz.single_load('y.inoue_ln3_id120_h145_h2205_h320_od4_lr0.000100_bn30000_en110_dec1_dt0.015543_it0.152552_dtt0.015543_itt0.152552_dte0.015543_ite0.152552_tg0.331184_ttg0.015226_teg1.845360.npz')
     sm = solomodel.SoloModel(data)
     sm.check_loss()
     sm.recalc_ball_movement()
