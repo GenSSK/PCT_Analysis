@@ -354,6 +354,42 @@ class SoloModel:
 
         # plt.show()
 
+    def analyze_subplot(self):
+        fig, axes = plt.subplots(4, figsize=(10, 6), dpi=100)
+        plt.xlabel("Time[sec]")
+
+        axes[0].plot(self.data['pre_time'][::self.dec], self.data['label_pre_thm_r'][::self.dec], label='Label')
+        axes[0].plot(self.data['pre_time'][::self.dec], self.data['pre_thm_r'][::self.dec], label='Predicted')
+        axes[0].set_ylabel('Roll Position [rad]')
+        axes[0].legend(ncol=2, columnspacing=1, loc='upper left')
+        axes[0].set_yticks(np.arange(-10, 10, 0.5))
+        axes[0].set_ylim([-1.5, 1.5])  # y軸の範囲
+
+        axes[1].plot(self.data['pre_time'][::self.dec], self.data['label_pre_thm_p'][::self.dec], label='Label')
+        axes[1].plot(self.data['pre_time'][::self.dec], self.data['pre_thm_p'][::self.dec], label='Predicted')
+        axes[1].set_ylabel('Pitch Position [rad]')
+        axes[1].legend(ncol=2, columnspacing=1, loc='upper left')
+        axes[1].set_yticks(np.arange(-10, 10, 0.5))
+        axes[1].set_ylim([-1.5, 1.5])  # y軸の範囲
+
+        axes[2].plot(self.data['pre_time'][::self.dec], self.data['label_pre_text_r'][::self.dec], label='Label')
+        axes[2].plot(self.data['pre_time'][::self.dec], self.data['pre_text_r'][::self.dec], label='Predicted')
+        axes[2].set_ylabel('Roll Torque [Nm]')
+        axes[2].legend(ncol=2, columnspacing=1, loc='upper left')
+        axes[2].set_yticks(np.arange(-30, 30, 1.5))
+        axes[2].set_ylim([-3.0, 3.0])  # y軸の範囲
+
+        axes[3].plot(self.data['pre_time'][::self.dec], self.data['label_pre_text_p'][::self.dec], label='Label')
+        axes[3].plot(self.data['pre_time'][::self.dec], self.data['pre_text_p'][::self.dec], label='Predicted')
+        axes[3].set_ylabel('Pitch Torque [Nm]')
+        axes[3].legend(ncol=2, columnspacing=1, loc='upper left')
+        axes[3].set_yticks(np.arange(-30, 30, 1.5))
+        axes[3].set_ylim([-3.0, 3.0])  # y軸の範囲
+
+        plt.tight_layout()
+        plt.savefig('analyze.png')
+
+
 
     def check_loss(self):
         plt.figure()
