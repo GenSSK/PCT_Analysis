@@ -31,10 +31,12 @@ if __name__ == '__main__':
     # filename = log_read[0][size]
     # print(filename)
     # data = npz.single_load(log_read[0][size])
-    data = npz.single_load('y.inoue_ln3_id180_h10_h2405_h30_od4_lr0.000100_bn30000_en95_dec1_dt0.159602_it0.033559_dtt0.159602_itt0.033559_dte0.159602_ite0.033559_tg0.843198_ttg0.063135_teg3.034640.npz')
-    print('y.inoue_ln3_id180_h10_h2405_h30_od4_lr0.000100_bn30000_en95_dec1_dt0.159602_it0.033559_dtt0.159602_itt0.033559_dte0.159602_ite0.033559_tg0.843198_ttg0.063135_teg3.034640.npz')
+    # data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz') #OperationModel.cpp OK
+    # data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000_optuna.npz') #OperationModel_optuna.cpp
+    data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000_predict.npz') #main.cpp
+    # print('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz')
     sm = solomodel.SoloModel(data)
-    sm.check_loss()
+    # sm.check_loss()
     # sm.recalc_ball_movement()
     sm.check_ball()
     # sm.analyze()

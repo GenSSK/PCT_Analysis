@@ -26,7 +26,7 @@ class NPZ:
         # self.data = np.load(self.dir + '2022-01-22_Twelfth_test.npz')  #pitchのみ　対面
 
         data = np.load(self.dir + filename, mmap_mode='r')
-
+        print("read = " + self.dir + filename)
         return data
 
     def all_load(self):
