@@ -24,10 +24,17 @@ if __name__ == '__main__':
     cfoo = npz.single_load('/cfo/2022-05-02_ko.kobayashi_s.watanabe_1_CFO.npz')
     data = npz.single_load('/npz/cooperation/2022-05-02_ko.kobayashi_s.watanabe_1.npz')
 
-    plt.plot(cfoo['ballx_pre'])
-    plt.plot(data['ballx'])
-    plt.show()
+    # plt.plot(cfoo['ballx_pre'])
+    # plt.plot(data['ballx'])
+    # plt.show()
 
     cfo.graph_sub(data, cfoo)
 
     plt.show()
+
+    cfo.cfo_sub(data, cfoo)
+
+    # cfo.task_show(data)
+
+    plt.show()
+
