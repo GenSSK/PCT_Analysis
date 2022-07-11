@@ -59,10 +59,10 @@ class CFO:
         plt.xlabel("Time[sec]")
 
         # thm.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        thm.plot(data['time'][self.start_num:self.end_num:10], data['i1_p_thm'][self.start_num:self.end_num:10], label='P1 act')
-        thm.plot(data['time'][self.start_num:self.end_num:10], cfoo['i1_p_thm_pre'][::10], label='P1 pre')
-        thm.plot(data['time'][self.start_num:self.end_num:10], data['i2_p_thm'][self.start_num:self.end_num:10], label='P2 act')
-        thm.plot(data['time'][self.start_num:self.end_num:10], cfoo['i2_p_thm_pre'][::10], label='P2 pre')
+        thm.plot(self.cfoo['time'][::10], cfoo['i1_p_thm'][::10], label='P1 act')
+        thm.plot(self.cfoo['time'][::10], cfoo['i1_p_thm_pre'][::10], label='P1 pre')
+        thm.plot(self.cfoo['time'][::10], cfoo['i2_p_thm'][::10], label='P2 act')
+        thm.plot(self.cfoo['time'][::10], cfoo['i2_p_thm_pre'][::10], label='P2 pre')
         # thm.plot(data['time'][::10], data['i2_p_thm'][::10], label='Interface2')
         # thm.plot(data['time'][::10], data['i3_p_thm'][::10], label='Interface3')
         # thm.plot(data['time'][::10], data['i4_p_thm'][::10], label='Interface4')
@@ -74,10 +74,10 @@ class CFO:
         # thm.set_ylim([-1.5, 1.5])  # y軸の範囲
 
         # text.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        text.plot(data['time'][self.start_num:self.end_num:10], data['i1_p_text'][self.start_num:self.end_num:10], label='P1 act')
-        text.plot(data['time'][self.start_num:self.end_num:10], cfoo['i1_p_text_pre'][::10], label='P2 pre')
-        text.plot(data['time'][self.start_num:self.end_num:10], data['i2_p_text'][self.start_num:self.end_num:10],label='P2 act')
-        text.plot(data['time'][self.start_num:self.end_num:10], cfoo['i2_p_text_pre'][::10], label='P2pre')
+        text.plot(self.cfoo['time'][::10], cfoo['i1_p_text'][::10], label='P1 act')
+        text.plot(self.cfoo['time'][::10], cfoo['i1_p_text_pre'][::10], label='P2 pre')
+        text.plot(self.cfoo['time'][::10], cfoo['i2_p_text'][::10],label='P2 act')
+        text.plot(self.cfoo['time'][::10], cfoo['i2_p_text_pre'][::10], label='P2pre')
         # text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
         # text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
         # text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
@@ -117,23 +117,23 @@ class CFO:
         plt.rcParams['axes.ymargin'] = '0'
         plt.rcParams['savefig.facecolor'] = 'None'
         plt.rcParams['savefig.edgecolor'] = 'None'
-        # plt.rcParams['savefig.bbox'] = 'tight'
-        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
+        # plt.rcParams['savefig.bbox'] = 'tight'self.cfoo
+        plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータself.
 
         fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-        x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10], label='Target')
-        x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10], label='Ball(H-H)')
-        x.plot(data['time'][self.start_num:self.end_num:10], self.cfoo['ballx_pre'][::10], label='Ball(M-M)')
+        x.plot(self.cfoo['time'][::10], self.cfoo['targetx'][::10], label='Target')
+        x.plot(self.cfoo['time'][::10], self.cfoo['ballx'][::10], label='Ball(H-H)')
+        x.plot(self.cfoo['time'][::10], self.cfoo['ballx_pre'][::10], label='Ball(M-M)')
         # x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
         x.set_ylabel('X-axis Position (m)')
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
 
-        y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10], label='Target')
-        y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10], label='Ball(H-H)')
-        y.plot(data['time'][self.start_num:self.end_num:10], self.cfoo['bally_pre'][::10], label='Ball(M-M)')
+        y.plot(self.cfoo['time'][::10], self.cfoo['targety'][::10], label='Target')
+        y.plot(self.cfoo['time'][::10], self.cfoo['bally'][::10], label='Ball(H-H)')
+        y.plot(self.cfoo['time'][::10], self.cfoo['bally_pre'][::10], label='Ball(M-M)')
         # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
         y.set_ylabel('Y-axis Position (m)')
         y.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -201,8 +201,8 @@ class CFO:
         plt.show()
 
     def cfo_sub(self, data, cfoo):
-        self.data = data
-        self.cfoo = cfoo
+        # self.data = data
+        # self.cfoo = cfoo
 
         self.smp = 0.0001  # サンプリング時間
         self.time = self.data['duringtime']  # ターゲットの移動時間
@@ -251,8 +251,10 @@ class CFO:
         plt.xlabel("Time[sec]")
 
         # thm.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_nupcfom:self.end_num:10])), color='black', lw=0.5)
-        pcfo.plot(data['time'][self.start_num:self.end_num:10], cfoo['i1_p_pcfo'][::10], label='P1')
-        pcfo.plot(data['time'][self.start_num:self.end_num:10], cfoo['i2_p_pcfo'][::10], label='P2')
+        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_pcfo'][::10], label='P1')
+        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_pcfo'][::10], label='P2')
+        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_thm'][::10] - self.cfoo['i1_p_thm_pre'][::10], label='P1_re')
+        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_thm'][::10] - self.cfoo['i2_p_thm_pre'][::10], label='P2_re')
         # thm.plot(data['time'][::10], data['i2_p_thm'][::10], label='Interface2')
         # thm.plot(data['time'][::10], data['i3_p_thm'][::10], label='Interface3')
         # thm.plot(data['time'][::10], data['i4_p_thm'][::10], label='Interface4')
@@ -264,8 +266,10 @@ class CFO:
         pcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
 
         # text.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        fcfo.plot(data['time'][self.start_num:self.end_num:10], cfoo['i1_p_fcfo'][::10], label='P1')
-        fcfo.plot(data['time'][self.start_num:self.end_num:10], cfoo['i2_p_fcfo'][::10], label='P2')
+        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_fcfo'][::10], label='P1')
+        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_fcfo'][::10], label='P2')
+        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_text'][::10] - self.cfoo['i1_p_text_pre'][::10], label='P1_re')
+        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_text'][::10] - self.cfoo['i2_p_text_pre'][::10], label='P2_re')
         # text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
         # text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
         # text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
