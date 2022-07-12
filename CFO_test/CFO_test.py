@@ -4,10 +4,9 @@ import matplotlib.pyplot as plt
 import math
 
 class CFO:
-    def graph_sub(self, data, cfoo):
+    def __init__(self, data, cfoo):
         self.data = data
         self.cfoo = cfoo
-
 
         self.smp = 0.0001  # サンプリング時間
         self.time = self.data['duringtime']  # ターゲットの移動時間
@@ -16,7 +15,9 @@ class CFO:
         self.start_num = int(self.data['starttime'] / self.smp)
         self.end_num = int(self.data['endtime'] / self.smp)
         self.nn_read_flag = False
+        self.join = self.cfoo['join'][0]
 
+    def graph_sub(self):
         mpl.rcParams['font.family'] = 'Times New Roman'
         mpl.rcParams['mathtext.default'] = 'regular'
         mpl.rcParams['xtick.top'] = 'True'
@@ -58,30 +59,23 @@ class CFO:
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
-        # thm.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        thm.plot(self.cfoo['time'][::10], cfoo['i1_p_thm'][::10], label='P1 act')
-        thm.plot(self.cfoo['time'][::10], cfoo['i1_p_thm_pre'][::10], label='P1 pre')
-        thm.plot(self.cfoo['time'][::10], cfoo['i2_p_thm'][::10], label='P2 act')
-        thm.plot(self.cfoo['time'][::10], cfoo['i2_p_thm_pre'][::10], label='P2 pre')
-        # thm.plot(data['time'][::10], data['i2_p_thm'][::10], label='Interface2')
-        # thm.plot(data['time'][::10], data['i3_p_thm'][::10], label='Interface3')
-        # thm.plot(data['time'][::10], data['i4_p_thm'][::10], label='Interface4')
-        # thm.plot(data['time'][::10], data['i1_p_thm'][::10] - data['i2_p_thm'][::10], label='1 - 2')
+        for i in range(self.join):
+            interfacenum = 'i' + str(i + 1)
+            thmname = interfacenum + '_p_thm'
+            thm_prename = interfacenum + '_p_thm_pre'
+            thm.plot(self.cfoo['time'][::10], self.cfoo[thmname][::10], label='P'+str(i+1)+'_act')
+            thm.plot(self.cfoo['time'][::10], self.cfoo[thm_prename][::10], label='P'+str(i+1)+'_pre')
+
+
+            textname = interfacenum + '_p_text'
+            text_prename = interfacenum + '_p_text_pre'
+            text.plot(self.cfoo['time'][::10], self.cfoo[textname][::10], label='P'+str(i+1)+'_act')
+            text.plot(self.cfoo['time'][::10], self.cfoo[text_prename][::10], label='P'+str(i+1)+'_pre')
 
         thm.set_ylabel('Position [rad]')
         thm.legend(ncol=2, columnspacing=1, loc='upper left')
         # thm.set_yticks(np.arange(-10, 10, 0.5))
         # thm.set_ylim([-1.5, 1.5])  # y軸の範囲
-
-        # text.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        text.plot(self.cfoo['time'][::10], cfoo['i1_p_text'][::10], label='P1 act')
-        text.plot(self.cfoo['time'][::10], cfoo['i1_p_text_pre'][::10], label='P2 pre')
-        text.plot(self.cfoo['time'][::10], cfoo['i2_p_text'][::10],label='P2 act')
-        text.plot(self.cfoo['time'][::10], cfoo['i2_p_text_pre'][::10], label='P2pre')
-        # text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
-        # text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
-        # text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
-
 
         text.set_ylabel('Reaction torque[Nm]')
         text.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -200,18 +194,7 @@ class CFO:
         # plt.savefig("First_time_target_movement.png")
         plt.show()
 
-    def cfo_sub(self, data, cfoo):
-        # self.data = data
-        # self.cfoo = cfoo
-
-        self.smp = 0.0001  # サンプリング時間
-        self.time = self.data['duringtime']  # ターゲットの移動時間
-        self.period = int((self.data['tasktime'] - 9.0) / self.time)  # 回数
-        self.num = int(self.time / self.smp)  # 1ピリオドにおけるデータ数
-        self.start_num = int(self.data['starttime'] / self.smp)
-        self.end_num = int(self.data['endtime'] / self.smp)
-        self.nn_read_flag = False
-
+    def cfo_sub(self):
         mpl.rcParams['font.family'] = 'Times New Roman'
         mpl.rcParams['mathtext.default'] = 'regular'
         mpl.rcParams['xtick.top'] = 'True'
@@ -250,29 +233,19 @@ class CFO:
         # plt.xlim([0.28, 0.89])  # x軸の範囲
         plt.xlabel("Time[sec]")
 
-        # thm.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_nupcfom:self.end_num:10])), color='black', lw=0.5)
-        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_pcfo'][::10], label='P1')
-        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_pcfo'][::10], label='P2')
-        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_thm'][::10] - self.cfoo['i1_p_thm_pre'][::10], label='P1_re')
-        pcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_thm'][::10] - self.cfoo['i2_p_thm_pre'][::10], label='P2_re')
-        # thm.plot(data['time'][::10], data['i2_p_thm'][::10], label='Interface2')
-        # thm.plot(data['time'][::10], data['i3_p_thm'][::10], label='Interface3')
-        # thm.plot(data['time'][::10], data['i4_p_thm'][::10], label='Interface4')
-        # thm.plot(data['time'][::10], data['i1_p_thm'][::10] - data['i2_p_thm'][::10], label='1 - 2')
+        for i in range(self.join):
+            interfacenum = 'i' + str(i + 1)
+            pcfoname = interfacenum + '_p_pcfo'
+            fcfoname = interfacenum + '_p_fcfo'
+
+            pcfo.plot(self.cfoo['time'][::10], self.cfoo[pcfoname][::10], label='P'+str(i+1))
+            fcfo.plot(self.cfoo['time'][::10], self.cfoo[fcfoname][::10], label='P'+str(i+1))
+
 
         pcfo.set_ylabel('PCFO [rad]')
         pcfo.legend(ncol=2, columnspacing=1, loc='upper left')
         pcfo.set_yticks(np.arange(-10, 10, 0.5))
         pcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
-
-        # text.plot(data['time'][self.start_num:self.end_num:10], np.zeros(len(data['time'][self.start_num:self.end_num:10])), color='black', lw=0.5)
-        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_fcfo'][::10], label='P1')
-        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_fcfo'][::10], label='P2')
-        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i1_p_text'][::10] - self.cfoo['i1_p_text_pre'][::10], label='P1_re')
-        fcfo.plot(self.cfoo['time'][::10], self.cfoo['i2_p_text'][::10] - self.cfoo['i2_p_text_pre'][::10], label='P2_re')
-        # text.plot(data['time'][::10], data['i2_p_text'][::10], label='Interface2')
-        # text.plot(data['time'][::10], data['i3_p_text'][::10], label='Interface3')
-        # text.plot(data['time'][::10], data['i4_p_text'][::10], label='Interface4')
 
         fcfo.set_ylabel('FCFO [Nm]')
         fcfo.legend(ncol=2, columnspacing=1, loc='upper left')
