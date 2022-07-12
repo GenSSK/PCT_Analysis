@@ -26,8 +26,12 @@ if __name__ == '__main__':
     cfoo = npz.single_load('/cfo/2022-07-01_y.inoue_k.tozuka_b.poitorimol_y.baba_1234_CFO.npz')
     data = npz.single_load('/npz/cooperation/2022-07-01_y.inoue_k.tozuka_b.poitorimol_y.baba_1234.npz')
 
-    plt.plot(cfoo['ballx_pre'])
-    plt.plot(cfoo['ballx'])
+    plt.plot(data['targetx'])
+    plt.plot(cfoo['targetx'])
+    # plt.show()
+
+    plt.plot(data['targety'])
+    plt.plot(cfoo['targety'])
     plt.show()
 
     cfo = CFO_test.CFO(data, cfoo)
