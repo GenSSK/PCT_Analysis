@@ -40,8 +40,11 @@ if __name__ == '__main__':
     # plt.show()
     #
     # cfo.cfo_sub()
+    #
+    # cfo.task_show(data)
+    #
+    # plt.show()
 
-    cfo.task_show(data)
-
+    cfo.ocfo()
     plt.show()
 
