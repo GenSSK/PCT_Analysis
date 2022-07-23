@@ -16,8 +16,10 @@ def main():
     sock = socket(AF_INET, SOCK_DGRAM)
 
     npz = Npz.NPZ()
-    data = npz.single_load('/cfo/2022-07-01_y.inoue_k.tozuka_b.poitorimol_y.baba_1234_CFO.npz')
+    # data = npz.single_load('/cfo/2022-07-01_y.inoue_k.tozuka_b.poitorimol_y.baba_1234_CFO.npz')
     # data = npz.single_load('npz/cooperation/2022-07-01_y.inoue_k.tozuka_b.poitorimol_y.baba_1234.npz')
+    # data = npz.single_load('npz/2022-07-21_g.sasaki_1.npz')
+    data = npz.single_load('npz/2022-07-01_y.inoue_1_trans.npz')
 
     send_string = []
     message = []
@@ -27,18 +29,18 @@ def main():
     reading_file = []
     filename = 'tes'
 
-    overwrite = True
+    overwrite = False
 
     if overwrite:
         print('make file')
         for i in range(len(data['time'][::dec])):
-            send_string.append(str(data['pitch'][i * dec]) + ',' + \
-                               str(data['roll'][i * dec]) + ',' + \
-                               str(-data['targety'][i * dec]) + ',' + \
+            send_string.append(str(data['i2_p_thm'][i * dec]) + ',' + \
+                               str(data['i2_r_thm'][i * dec]) + ',' + \
                                str(data['targetx'][i * dec]) + ',' + \
-                               str(-data['bally_pre'][i * dec]) + ',' + \
-                               str(data['ballx_pre'][i * dec]) + ',' + \
-                               str(data['task_angle_unity'][i * dec]) + ',' + \
+                               str(data['targety'][i * dec]) + ',' + \
+                               str(data['ballx'][i * dec]) + ',' + \
+                               str(data['bally'][i * dec]) + ',' + \
+                               str(data['task_angle'][i * dec]) + ',' + \
                                str(0.03) + ',' + \
                                str(2)
                                )
@@ -52,12 +54,12 @@ def main():
     except OSError:
         for i in range(len(data['time'][::dec])):
             print('make file')
-            send_string.append(str(data['pitch'][i * dec]) + ',' + \
-                               str(data['roll'][i * dec]) + ',' + \
-                               str(-data['targety'][i * dec]) + ',' + \
+            send_string.append(str(data['i2_p_thm'][i * dec]) + ',' + \
+                               str(data['i2_r_thm'][i * dec]) + ',' + \
                                str(data['targetx'][i * dec]) + ',' + \
-                               str(-data['bally_pre'][i * dec]) + ',' + \
-                               str(data['ballx_pre'][i * dec]) + ',' + \
+                               str(data['targety'][i * dec]) + ',' + \
+                               str(data['ballx'][i * dec]) + ',' + \
+                               str(data['bally'][i * dec]) + ',' + \
                                str(data['task_angle'][i * dec]) + ',' + \
                                str(0.03) + ',' + \
                                str(2)

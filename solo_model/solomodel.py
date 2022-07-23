@@ -451,8 +451,10 @@ class SoloModel:
 
         plt.xlabel("Time[sec]")
 
+        x.plot(self.data['pre_time'][::self.dec], self.data['label_pre_tgt_x'][::self.dec], label='Target')
         x.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_x'][::self.dec], label='predicted')
         x.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_x'][::self.dec], label='Actuality')
+        x.plot(self.data['pre_time'][::self.dec], self.data['train_ball_x_recalc'][::self.dec], label='Recalc')
         x.set_ylabel('x-axis Position (m)')
         x.legend(ncol=2, columnspacing=1, loc='upper left')
         x.set_yticks(np.arange(-10, 10, 0.1))
@@ -460,8 +462,11 @@ class SoloModel:
         # x.axvspan(80, 83, color="grey")
         # x.axvspan(83, 89, color="gainsboro")
 
+        y.plot(self.data['pre_time'][::self.dec], self.data['label_pre_tgt_y'][::self.dec], label='Target')
         y.plot(self.data['pre_time'][::self.dec], self.data['pre_ball_y'][::self.dec], label='predicted')
         y.plot(self.data['pre_time'][::self.dec], self.data['label_pre_ball_y'][::self.dec], label='Actuality')
+        y.plot(self.data['pre_time'][::self.dec], self.data['train_ball_y_recalc'][::self.dec], label='Recalc')
+
         y.set_ylabel('y-axis Position (m)')
         y.legend(ncol=2, columnspacing=1, loc='upper left')
         y.set_yticks(np.arange(-10, 10, 0.1))

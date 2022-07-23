@@ -33,7 +33,8 @@ if __name__ == '__main__':
     # data = npz.single_load(log_read[0][size])
     # data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz') #OperationModel.cpp OK
     # data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000_optuna.npz') #OperationModel_optuna.cpp
-    data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000_predict.npz') #main.cpp
+    # data = npz.single_load('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000_predict.npz') #main.cpp
+    data = npz.single_load('y.inoue_ln3_id90_h10_h2115_h30_od4_lr0.000100_bn30000_en90_dec1_dt0.035382_it0.146999_dtt0.035382_itt0.146999_dte0.035382_ite0.146999_tg0.101609_ttg0.034337_teg1.932930_predict.npz') #main.cpp
     # print('y.inoue_ln3_id30_h10_h255_h30_od4_lr0.000100_bn30000_en100_dec1_dt0.010000_it0.100000_dtt0.010000_itt0.100000_dte0.010000_ite0.100000_tg0.500000_ttg0.100000_teg1.000000.npz')
     sm = solomodel.SoloModel(data)
     # sm.check_loss()
@@ -43,9 +44,9 @@ if __name__ == '__main__':
     sm.analyze_subplot()
     # sm.check_input()
 
-    distance_r, path_r = fastdtw(data['label_pre_text_r'][::100], data['pre_text_r'][::100], dist=euclidean)
-
-    print(distance_r)
+    # distance_r, path_r = fastdtw(data['label_pre_text_r'][::100], data['pre_text_r'][::100], dist=euclidean)
+    #
+    # print(distance_r)
 
     # OperationModel_predict.cpp
     # log_read = pd.read_table('/home/genki/data/log/predict.log', header=None)
