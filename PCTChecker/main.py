@@ -41,10 +41,14 @@ def main():
                                str(data['ballx'][i * dec]) + ',' + \
                                str(data['bally'][i * dec]) + ',' + \
                                str(data['task_angle'][i * dec]) + ',' + \
-                               str(data['i1_cfo_magnitude'][i * dec]) + ',' + \
-                               str(data['i1_cfo_angle'][i * dec]) + ',' + \
-                               str(data['i1_ecfo'][i * dec]) + ',' + \
-                               str(data['i1_inecfo'][i * dec]) + ',' + \
+                               # str(data['i1_cfo_magnitude'][i * dec]) + ',' + \
+                               # str(data['i1_cfo_angle'][i * dec]) + ',' + \
+                               # str(data['i1_ecfo'][i * dec]) + ',' + \
+                               # str(data['i1_inecfo'][i * dec]) + ',' + \
+                               str(0) + ',' + \
+                               str(0) + ',' + \
+                               str(data['ecfo'][i * dec]) + ',' + \
+                               str(data['inecfo'][i * dec]) + ',' + \
                                str(0.03) + ',' + \
                                str(2)
                                )
