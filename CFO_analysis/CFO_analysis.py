@@ -214,5 +214,19 @@ class CFO:
         plt.show()
 
     def summation(self):
-        for i in range(self.join):
-            interfacenum = 'i' + str(i + 1)
+        ppcfo_sumation = np.array([])
+
+        for j in range(len(self.cfo)):
+            data = self.cfo[j]
+            ppcfo_sumation_ = np.array([])
+            for i in range(self.join):
+                interfacenum = 'i' + str(i + 1)
+                pcfoname = interfacenum + '_p_pcfo'
+                fcfoname = interfacenum + '_p_fcfo'
+
+                ppcfo_sumation_ = np.append(ppcfo_sumation_, data[pcfoname])
+            ppcfo_sumation = np.append(ppcfo_sumation, np.sum(ppcfo_sumation_, axis=0))
+
+        print(ppcfo_sumation.shape)
+        print(ppcfo_sumation)
+

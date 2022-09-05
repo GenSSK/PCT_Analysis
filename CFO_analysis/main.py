@@ -55,18 +55,22 @@ if __name__ == '__main__':
     triad_cfo = CFO_analysis.CFO(triad_npz)
     tetrad_cfo = CFO_analysis.CFO(tetrad_npz)
 
+    ##予測確認
     # dyad_cfo.graph_sub()
     # triad_cfo.graph_sub()
     # tetrad_cfo.graph_sub()
 
+    ##タスク確認
     # dyad_cfo.task_show()
     # triad_cfo.task_show()
     # tetrad_cfo.task_show()
 
-    dyad_cfo.cfo_sub()
-    triad_cfo.cfo_sub()
-    tetrad_cfo.cfo_sub()
+    ##CFO確認
+    # dyad_cfo.cfo_sub()
+    # triad_cfo.cfo_sub()
+    # tetrad_cfo.cfo_sub()
 
+    dyad_cfo.summation()
 
     # plt.plot(data['targetx'])
     # plt.plot(cfoo['targetx'])
