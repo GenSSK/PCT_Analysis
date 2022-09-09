@@ -80,5 +80,10 @@ if __name__ == '__main__':
     ##和のCFOを比較
     # com.summation_CFO_analysis()
 
-    com.performance_show()
+    ##パフォーマンスの確認
+    # com.performance_show()
     # com.dyad_cfo.period_performance_human()
+    # com.performance_comparison()
+
+    ##ECFOとパフォーマンスの確認
+    com.dyad_cfo.ocfo_performance_relation()

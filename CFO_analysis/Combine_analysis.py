@@ -109,10 +109,86 @@ class combine:
 
         types = ['dyad', 'triad', 'tetrad']
 
-        fig_error = plt.figure(figsize=(10, 7), dpi=150)
+        fig_error = plt.figure(figsize=(10, 7), dpi=300)
+        fig_error.suptitle('Error Period')
         for i in range(3):
-            a = fig_error.add_subplot(3, 1, i + 1)
+            ax = fig_error.add_subplot(3, 1, i + 1)
+            ax.title.set_text(types[i])
             for error in error_periode[i]:
-                a.plot(error, label='Group' + str(i + 1))
+                ax.plot(error, label='Group' + str(i + 1))
 
-        fig_error.show()
+        fig_spend = plt.figure(figsize=(10, 7), dpi=300)
+        for i in range(3):
+            ax = fig_spend.add_subplot(3, 1, i + 1)
+            for spend in spend_periode[i]:
+                ax.plot(spend, label='Group' + str(i + 1))
+
+        plt.tight_layout()
+        plt.show()
+
+    def performance_comparison(self):
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        sns.set()
+        # sns.set_style('whitegrid')
+        sns.set_palette('Set3')
+
+        fig_error = plt.figure(figsize=(10, 7), dpi=150)
+
+        ax = fig_error.add_subplot(1, 1, 1)
+
+        ep = []
+        ep_melt = []
+        for i in range(5):
+            ep.append(pd.DataFrame({
+                'Dyad': error_period_dyad[i],
+                'Triad': error_period_triad[i],
+                'Tetrad': error_period_tetrad[i],
+            })
+            )
+
+            ep_melt.append(pd.melt(ep[i]))
+            ep_melt[i]['Group'] = 'Group' + str(i + 1)
+
+        df_ep = pd.concat([i for i in ep_melt], axis=0)
+
+        sns.boxplot(x="variable", y="value", data=df_ep, ax=ax, sym="")
+        sns.stripplot(x='variable', y='value', data=df_ep, hue='Group', dodge=True,
+                      jitter=0.2, color='black', palette='Paired', ax=ax)
+
+        ax.legend_ = None
+        ax.set_ylabel('Error Period')
+        ax.set_ylim(-0.02, 0.02)
+
+
+        fig_spend = plt.figure(figsize=(10, 7), dpi=150)
+
+        ax = fig_spend.add_subplot(1, 1, 1)
+
+        sp = []
+        sp_melt = []
+        for i in range(5):
+            sp.append(pd.DataFrame({
+                'Dyad': spend_period_dyad[i],
+                'Triad': spend_period_triad[i],
+                'Tetrad': spend_period_tetrad[i],
+            })
+            )
+
+            sp_melt.append(pd.melt(sp[i]))
+            sp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+        df_sp = pd.concat([i for i in sp_melt], axis=0)
+
+        sns.boxplot(x="variable", y="value", data=df_sp, ax=ax, sym="")
+        sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
+                      jitter=0.2, color='black', palette='Paired', ax=ax)
+
+        ax.legend_ = None
+        ax.set_ylabel('Spend Period')
+        ax.set_ylim(-0.5, 0.5)
+
+        plt.tight_layout()
+        plt.show()

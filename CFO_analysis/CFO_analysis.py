@@ -3,6 +3,10 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
 
+import pandas as pd
+import seaborn as sns
+
+
 class CFO:
     def __init__(self, cfo_data, group_type):
         self.rpcof_summation = None
@@ -340,9 +344,9 @@ class CFO:
             # spent_period = spent_period_ * self.smp
             spent_period.append(spent_period_ * self.smp)
 
-            plt.plot(np.arange(self.period) + 1, spent_period[i])
-            plt.xticks(np.arange(1, self.period + 1, 1))
-            plt.show()
+            # plt.plot(np.arange(self.period) + 1, spent_period[i])
+            # plt.xticks(np.arange(1, self.period + 1, 1))
+            # plt.show()
 
         return error_period, spent_period
 
@@ -377,3 +381,61 @@ class CFO:
         spend_period = np.subtract(spend_period_human, spend_period_model)
 
         return error_period, spend_period
+
+
+    def ocfo_performance_relation(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ecfo = CFO.period_ecfo(self)
+        inecfo = CFO.period_inecfo(self)
+
+        df = []
+        for i in range(len(self.cfo)):
+            df.append(pd.DataFrame({
+                'error': error_period[i],
+                'spend': spend_period[i],
+                'ecfo': ecfo[i],
+                'inecfo': inecfo[i],
+            }))
+
+            df[i]['Group'] = 'Group' + str(i + 1)
+
+        df_all = pd.concat([i for i in df], axis=0)
+        # print(df_all)
+
+        fig = plt.figure(figsize=(4, 4), dpi=200)
+        fig.add_subplot(2, 2, 1)
+        sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group')
+
+        fig.add_subplot(2, 2, 2)
+        sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group')
+
+        fig.add_subplot(2, 2, 3)
+        sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group')
+
+        fig.add_subplot(2, 2, 4)
+        sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group')
+
+        plt.tight_layout()
+        plt.show()
+
+    def period_ecfo(self):
+        ecfo = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            ecfo.append(CFO.period_calculation(self, data['ecfo']))
+
+        return ecfo
+
+    def period_inecfo(self):
+        inecfo = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            inecfo.append(CFO.period_calculation(self, data['inecfo']))
+
+        return inecfo
+
+    def period_calculation(self, data):
+        data_reshape = data.reshape([self.period, self.num])  # [回数][データ]にわける
+        data_period = np.sum(data_reshape, axis=1) / self.num
+
+        return data_period
