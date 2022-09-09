@@ -21,8 +21,8 @@ class CFO:
         self.time = 3.0  # ターゲットの移動時間
         self.tasktime = 60.0  # タスクの時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 20.0  # タスク開始時間
-        self.endtime = 80.0  # タスク終了時間
+        self.starttime = 29.0  # タスク開始時間
+        self.endtime = 77.0  # タスク終了時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数
         self.num = int(self.time / self.smp)  # 1ピリオドにおけるデータ数
         self.start_num = int(self.starttime / self.smp)
@@ -33,7 +33,7 @@ class CFO:
 
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
-        plt.rcParams['xtick.top'] = 'True'
+        plt.rcParams['xtick.top'] = 'True'c
         plt.rcParams['ytick.right'] = 'True'
         # plt.rcParams['axes.grid'] = 'True'
         plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
@@ -393,8 +393,8 @@ class CFO:
             df.append(pd.DataFrame({
                 'error': error_period[i],
                 'spend': spend_period[i],
-                'ecfo': ecfo[i],
-                'inecfo': inecfo[i],
+                'ECFO': ecfo[i],
+                'Ineffective CFO': inecfo[i],
             }))
 
             df[i]['Group'] = 'Group' + str(i + 1)
@@ -402,18 +402,44 @@ class CFO:
         df_all = pd.concat([i for i in df], axis=0)
         # print(df_all)
 
+        marker_size = 5
+
         fig = plt.figure(figsize=(4, 4), dpi=200)
-        fig.add_subplot(2, 2, 1)
-        sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group')
 
-        fig.add_subplot(2, 2, 2)
-        sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group')
+        xdata = ['ECFO', 'Ineffective CFO']
+        ydata = ['error', 'spend']
 
-        fig.add_subplot(2, 2, 3)
-        sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group')
+        xlim = [[-1.5, 1.5],    #ECOF
+                [ 0.0, 4.0]]    #InECFO
+        ylim = [[-0.015, 0.015],    #error
+                [-0.3, 0.4]]    #spend
 
-        fig.add_subplot(2, 2, 4)
-        sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group')
+
+        for i in range(2):
+            for j in range(2):
+                ax = fig.add_subplot(2, 2, i * 2 + j + 1)
+                ax.set_xlim(xlim[i][0], xlim[i][1])
+                ax.set_ylim(ylim[j][0], ylim[j][1])
+                g = sns.scatterplot(data=df_all, x=xdata[i], y=ydata[j], hue='Group', s=marker_size)
+                for lh in g.legend_.legendHandles:
+                    lh.set_alpha(1)
+                    lh._sizes = [10]
+
+        # ax1 = fig.add_subplot(2, 2, 1)
+        # ax1.set_ylim(-0.3, 0.5)
+        # ax1.set_xlim(-1.5, 1.5)
+        # g = sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group', s=marker_size)
+        # for lh in g.legend_.legendHandles:
+        #     lh.set_alpha(1)
+        #     lh._sizes = [10]
+        # fig.add_subplot(2, 2, 2)
+        # sns.scatterplot(data=df_all, x='ecfo', y='spend', hue='Group', s=marker_size)
+        #
+        # fig.add_subplot(2, 2, 3)
+        # sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group', s=marker_size)
+        #
+        # fig.add_subplot(2, 2, 4)
+        # sns.scatterplot(data=df_all, x='inecfo', y='spend', hue='Group', s=marker_size)
 
         plt.tight_layout()
         plt.show()
@@ -430,7 +456,7 @@ class CFO:
         inecfo = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            inecfo.append(CFO.period_calculation(self, data['inecfo']))
+            inecfo.append(CFO.period_calculation(self, np.abs(data['inecfo'])))
 
         return inecfo
 

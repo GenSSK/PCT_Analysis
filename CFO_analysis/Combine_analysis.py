@@ -73,7 +73,7 @@ class combine:
         for j in range(len(plot)):
             dfpp = []
             dfpp_melt = []
-            for i in range(5):
+            for i in range(len(dyad_pp)):
                 dfpp.append(pd.DataFrame({
                     'Dyad': summation_3sec_datas[j][0][i],
                     'Triad': summation_3sec_datas[j][1][i],
