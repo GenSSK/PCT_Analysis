@@ -37,13 +37,15 @@ if __name__ == '__main__':
     # data = npz.single_load('y.inoue_ln3_id150_h10_h2220_h30_od4_lr0.000100_bn30000_en70_dec1_dt0.027349_it0.189596_dtt0.027349_itt0.189596_dte0.027349_ite0.189596_tg0.042071_ttg0.028865_teg1.570370_predict.npz') #main.cpp
     # data = npz.single_load('k.tozuka_ln3_id150_h10_h2115_h30_od4_lr0.000100_bn30000_en45_dec1_dt0.033422_it0.131264_dtt0.033422_itt0.131264_dte0.033422_ite0.131264_tg0.019921_ttg0.015404_teg1.839330_predict.npz') #main.cpp
     # data = npz.single_load('b.poitrimol_ln3_id120_h10_h2165_h30_od4_lr0.000100_bn30000_en55_dec1_dt0.015045_it0.153912_dtt0.015045_itt0.153912_dte0.015045_ite0.153912_tg0.163840_ttg0.024175_teg1.562840_predict.npz') #main.cpp
-    data = npz.single_load('y.baba_ln3_id150_h10_h2195_h30_od4_lr0.000100_bn30000_en60_dec1_dt0.043150_it0.149401_dtt0.043150_itt0.149401_dte0.043150_ite0.149401_tg0.046506_ttg0.027517_teg1.920420_predict.npz') #main.cpp
+    data = npz.single_load('k.kobayashi_ln3_id240_h10_h2230_h30_od4_lr0.000100_bn30000_en65_dec1_dt0.036648_it0.126339_dtt0.036648_itt0.126339_dte0.036648_ite0.126339_tg0.335094_ttg0.015159_teg2.691620_predict.npz') #main.cpp
     sm = solomodel.SoloModel(data)
     # sm.check_loss()
     # sm.recalc_ball_movement()
     sm.check_ball()
+    plt.savefig('ball_prediction_kobayashi_bp.png')
     # sm.analyze()
     sm.analyze_subplot()
+    plt.savefig('prediction_result_kobayashi_bp.png')
     # sm.check_input()
 
     # distance_r, path_r = fastdtw(data['label_pre_text_r'][::100], data['pre_text_r'][::100], dist=euclidean)
@@ -89,7 +91,7 @@ if __name__ == '__main__':
     # # sm_position.check_ball()
     # # sm_position.analyze_position()
 
-    plt.show()
+    # plt.show()
 
 
     # hist.graph_out(data)

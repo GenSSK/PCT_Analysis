@@ -30,6 +30,18 @@ if __name__ == '__main__':
         'dyad/2022-08-26_y.kobayashi_r.yanase_1234',
         # 'dyad/2022-08-26_y.kobayashi_r.yanase_1324',
         # 'dyad/2022-08-26_y.kobayashi_r.yanase_1423',
+        '2022-09-05_s.watanabe_ko.kobayashi_1234.bin',
+        # '2022-09-05_s.watanabe_ko.kobayashi_1324.bin',
+        # '2022-09-05_s.watanabe_ko.kobayashi_1423.bin',
+        '2022-09-07_k.kobayashi_r.yanase_1234.bin',
+        # '2022-09-07_k.kobayashi_r.yanase_1324.bin',
+        # '2022-09-07_k.kobayashi_r.yanase_1423.bin',
+        '2022-09-07_k.tozuka_ko.kobayashi_1234.bin',
+        # '2022-09-07_k.tozuka_ko.kobayashi_1324.bin',
+        # '2022-09-07_k.tozuka_ko.kobayashi_1423.bin',
+        '2022-09-07_y.inoue_k.kobayashi_1234.bin',
+        # '2022-09-07_y.inoue_k.kobayashi_1324.bin',
+        # '2022-09-07_y.inoue_k.kobayashi_1423.bin',
     ]
 
     triad = [
@@ -46,6 +58,20 @@ if __name__ == '__main__':
         'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_1234',
         # 'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_2314',
         # 'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_3412',
+        '2022-09-05_b.poitrimol_y.inoue_k.tozuka_1234.bin',
+        # '2022-09-05_b.poitrimol_y.inoue_k.tozuka_2314.bin',
+        '2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_1234.bin',
+        # '2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_2431.bin',
+        # '2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_3421.bin',
+        '2022-09-07_b.poitrimol_y.inoue_r.yanase_1234.bin',
+        # '2022-09-07_b.poitrimol_y.inoue_r.yanase_3241.bin',
+        # '2022-09-07_b.poitrimol_y.inoue_r.yanase_4132.bin',
+        '2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_1234.bin',
+        # '2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_3412.bin',
+        # '2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_4132.bin',
+        '2022-09-07_r.yanase_k.kobayashi_s.kamioka_1234.bin',
+        # '2022-09-07_r.yanase_k.kobayashi_s.kamioka_2431.bin',
+        # '2022-09-07_r.yanase_k.kobayashi_s.kamioka_4132.bin',
     ]
 
     tetrad = [
@@ -69,9 +95,18 @@ if __name__ == '__main__':
         'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_1234',
         # 'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_2314',
         # 'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421',
+        '2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234.bin',
+        # '2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_2413.bin',
+        # '2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_4132.bin',
+        '2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_1234.bin',
+        # '2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413.bin',
+        # '2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_3142.bin',
+        '2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_1234.bin',
+        # '2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341.bin',
+        # '2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_3124.bin',
     ]
 
-    tpe = ThreadPoolExecutor(max_workers=9)
+    tpe = ThreadPoolExecutor(max_workers=24)
 
     files = []
     files.extend(dyad)

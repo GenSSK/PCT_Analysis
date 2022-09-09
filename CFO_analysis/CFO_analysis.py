@@ -4,7 +4,13 @@ import matplotlib.pyplot as plt
 import math
 
 class CFO:
-    def __init__(self, cfo_data):
+    def __init__(self, cfo_data, group_type):
+        self.rpcof_summation = None
+        self.ppcof_summation = None
+        self.pfcof_summation = None
+        self.rfcof_summation = None
+        self.group_type = group_type
+
         self.cfo = cfo_data
 
         self.smp = 0.0001  # サンプリング時間
@@ -19,7 +25,7 @@ class CFO:
         self.end_num = int(self.endtime / self.smp)
         self.nn_read_flag = False
         self.join = self.cfo[0]['join'][0]
-        print(self.join)
+        # print(self.join)
 
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
@@ -30,8 +36,10 @@ class CFO:
         plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
         plt.rcParams['xtick.major.width'] = 1.0  # x軸主目盛り線の線幅
         plt.rcParams['ytick.major.width'] = 1.0  # y軸主目盛り線の線幅
-        plt.rcParams['font.size'] = 12  # フォントの大きさ
-        plt.rcParams['axes.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+        plt.rcParams['font.size'] = 8  # フォントの大きさ
+        plt.rcParams['axes.linewidth'] = 1.5  # 軸の線幅edge linewidth。囲みの太さ
+
+        plt.rcParams['lines.linewidth'] = 0.5  # 線の太さ
 
         plt.rcParams["legend.fancybox"] = False  # 丸角
         plt.rcParams["legend.framealpha"] = 0  # 透明度の指定、0で塗りつぶしなし
@@ -213,20 +221,159 @@ class CFO:
         plt.tight_layout()
         plt.show()
 
+    def summation_cfo_graph(self, savename):
+        CFO.summation(self)
+        fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
+
+        # plt.xlim([10, 60])  # x軸の範囲
+        # plt.xlim([0.28, 0.89])  # x軸の範囲
+        plt.xlabel("Time[sec]")
+
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+
+            ppcfo.plot(data['time'][::10], self.ppcof_summation[i][::10], label='Group'+str(i + 1))
+            rpcfo.plot(data['time'][::10], self.rpcof_summation[i][::10], label='Group'+str(i + 1))
+            pfcfo.plot(data['time'][::10], self.pfcof_summation[i][::10], label='Group' + str(i + 1))
+            rfcfo.plot(data['time'][::10], self.rfcof_summation[i][::10], label='Group' + str(i + 1))
+
+
+        ppcfo.set_ylabel('Summation\nPitch PCFO [rad]')
+        rpcfo.set_ylabel('Summation\nRoll PCFO [rad]')
+        pfcfo.set_ylabel('Summation\nPitch FCFO [Nm]')
+        rfcfo.set_ylabel('Summation\nRoll FCFO [Nm]')
+
+        ppcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+        rpcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+        pfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+        rfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+
+        ppcfo.set_yticks(np.arange(-10, 10, 0.5))
+        rpcfo.set_yticks(np.arange(-10, 10, 0.5))
+        pfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+        rfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+
+        ppcfo.set_ylim([0, 1.0])  # y軸の範囲
+        rpcfo.set_ylim([0, 1.0])  # y軸の範囲
+        pfcfo.set_ylim([0, 4.0])  # y軸の範囲
+        rfcfo.set_ylim([0, 4.0])  # y軸の範囲
+
+        plt.tight_layout()
+        plt.savefig(savename)
+        # plt.show()
+
+    def summation_cfo_3sec(self):
+        CFO.summation(self)
+        ppcof_summation_3sec = self.ppcof_summation.reshape([len(self.cfo), -1, self.num])
+        ppcof_summation_3sec = np.average(ppcof_summation_3sec, axis=2)
+
+        rpcof_summation_3sec = self.rpcof_summation.reshape([len(self.cfo), -1, self.num])
+        rpcof_summation_3sec = np.average(rpcof_summation_3sec, axis=2)
+
+        pfcof_summation_3sec = self.pfcof_summation.reshape([len(self.cfo), -1, self.num])
+        pfcof_summation_3sec = np.average(pfcof_summation_3sec, axis=2)
+
+        rfcof_summation_3sec = self.rfcof_summation.reshape([len(self.cfo), -1, self.num])
+        rfcof_summation_3sec = np.average(rfcof_summation_3sec, axis=2)
+
+        return ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec
+
     def summation(self):
-        ppcfo_sumation = np.array([])
+        summation = self.cfo[0]['i1_p_pcfo']
+        types = ['_p_pcfo', '_r_pcfo', '_p_fcfo', '_r_fcfo']
+        for type in types:
+            for j in range(len(self.cfo)):
+                data = self.cfo[j]
+                summation_ = data['i1_p_pcfo']
+                for i in range(self.join):
+                    interfacenum = 'i' + str(i + 1)
+                    pcfoname = interfacenum + type
 
-        for j in range(len(self.cfo)):
-            data = self.cfo[j]
-            ppcfo_sumation_ = np.array([])
-            for i in range(self.join):
-                interfacenum = 'i' + str(i + 1)
-                pcfoname = interfacenum + '_p_pcfo'
-                fcfoname = interfacenum + '_p_fcfo'
+                    summation_ = np.vstack((summation_, data[pcfoname]))
+                summation_ = np.delete(summation_, 0, 0)
+                # summation_ = np.abs(summation_)
+                summation = np.vstack((summation, np.sum(summation_, axis=0)))
 
-                ppcfo_sumation_ = np.append(ppcfo_sumation_, data[pcfoname])
-            ppcfo_sumation = np.append(ppcfo_sumation, np.sum(ppcfo_sumation_, axis=0))
+            # print(summation_)
+        summation = np.delete(summation, 0, 0)
+        # print(summation.shape)
+        summation = summation.reshape([4, len(self.cfo), -1])
+        summation = summation / self.cfo[0]['join'][0]
+        self.ppcof_summation = summation[0]
+        self.rpcof_summation = summation[1]
+        self.pfcof_summation = summation[2]
+        self.rfcof_summation = summation[3]
 
-        print(ppcfo_sumation.shape)
-        print(ppcfo_sumation)
 
+    def performance_calc(self, data, ballx, bally):
+        error = np.sqrt(
+            (data['targetx'] - ballx) ** 2 + (data['targety'] - bally) ** 2)
+
+        # plt.plot(self.data['time'][self.start_num:self.end_num], error)
+        # plt.show()
+
+        target_size = 0.03
+        spent = np.where(error < target_size, 1, 0)
+        # spent = numpy.where(error < self.data['targetsize'], 1, 0)
+
+        # plt.plot(self.data['time'][self.start_num:self.end_num], spent)
+        # plt.show()
+
+        return error, spent
+
+    def period_performance_human(self):
+        error_period = []
+        spent_period = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+
+            error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
+            error_reshape = error.reshape([self.period, self.num]) #[回数][データ]にわける
+            # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
+            error_period.append(np.sum(error_reshape, axis=1) / self.num)
+
+            # plt.plot(np.arange(self.period) + 1, error_period[i])
+            # plt.show()
+
+            spent_reshape = spent.reshape([self.period, self.num])
+            spent_period_ = np.sum(spent_reshape, axis=1)
+            # spent_period = spent_period_ * self.smp
+            spent_period.append(spent_period_ * self.smp)
+
+            plt.plot(np.arange(self.period) + 1, spent_period[i])
+            plt.xticks(np.arange(1, self.period + 1, 1))
+            plt.show()
+
+        return error_period, spent_period
+
+    def period_performance_model(self):
+        error_period = []
+        spent_period = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+
+            error, spent = CFO.performance_calc(self, data, data['ballx_pre'], data['bally_pre'])
+            error_reshape = error.reshape([self.period, self.num]) #[回数][データ]にわける
+            # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
+            error_period.append(np.sum(error_reshape, axis=1) / self.num)
+
+            # plt.plot(np.arange(self.period) + 1, error_period[i])
+            # plt.show()
+
+            spent_reshape = spent.reshape([self.period, self.num])
+            spent_period_ = np.sum(spent_reshape, axis=1)
+            # spent_period = spent_period_ * self.smp
+            spent_period.append(spent_period_ * self.smp)
+
+            # plt.plot(np.arange(self.period) + 1, spent_period[i])
+            # plt.show()
+
+        return error_period, spent_period
+
+    def period_performance_cooperation(self):
+        error_period_human, spend_period_human = CFO.period_performance_human(self)
+        error_period_model, spend_period_model = CFO.period_performance_model(self)
+        error_period = np.subtract(error_period_human, error_period_model)
+        spend_period = np.subtract(spend_period_human, spend_period_model)
+
+        return error_period, spend_period
