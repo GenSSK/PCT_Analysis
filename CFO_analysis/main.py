@@ -67,18 +67,18 @@ if __name__ == '__main__':
 
     com = Combine_analysis.combine(dyad_npz, triad_npz, tetrad_npz)
 
-    ##予測確認r
+    ##予測確認
     # com.dyad_cfo.graph_sub()
     # com.triad_cfo.graph_sub()
     # com.tetrad_cfo.graph_sub()
 
     ##タスク確認
-    # com.dyad_cfo.task_show()
+    com.dyad_cfo.task_show()
     # com.triad_cfo.task_show()
     # com.tetrad_cfo.task_show()
 
     ##CFO確認
-    com.dyad_cfo.cfo_sub()
+    # com.dyad_cfo.cfo_sub()
     # com.triad_cfo.cfo_sub()
     # com.tetrad_cfo.cfo_sub(.npz)
 
@@ -101,4 +101,7 @@ if __name__ == '__main__':
     ##ECFOとパフォーマンスの確認
     # com.dyad_cfo.ocfo_performance_relation()
     # com.triad_cfo.ocfo_performance_relation()
-    com.tetrad_cfo.ocfo_performance_relation()
+    # com.tetrad_cfo.ocfo_performance_relation()
+
+    ##差のCFOの確認
+    # com.dyad_cfo.subtraction_cfo(0)

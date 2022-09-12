@@ -19,21 +19,21 @@ class CFO:
 
         self.smp = 0.0001  # サンプリング時間
         self.time = 3.0  # ターゲットの移動時間
-        self.tasktime = 60.0  # タスクの時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 29.0  # タスク開始時間
-        self.endtime = 77.0  # タスク終了時間
+        self.starttime = 28.835  # タスク開始時間
+        self.endtime = 31.83  # タスク終了時間
+        self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数
         self.num = int(self.time / self.smp)  # 1ピリオドにおけるデータ数
-        self.start_num = int(self.starttime / self.smp)
-        self.end_num = int(self.endtime / self.smp)
+        self.start_num = int((self.starttime - 20.0) / self.smp)
+        self.end_num = int((self.endtime - 20.0) / self.smp)
         self.nn_read_flag = False
         self.join = self.cfo[0]['join'][0]
         # print(self.join)
 
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
-        plt.rcParams['xtick.top'] = 'True'c
+        plt.rcParams['xtick.top'] = 'True'
         plt.rcParams['ytick.right'] = 'True'
         # plt.rcParams['axes.grid'] = 'True'
         plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
@@ -73,14 +73,14 @@ class CFO:
                 interfacenum = 'i' + str(i + 1)
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
-                thm.plot(data['time'][::10], data[thmname][::10], label='P'+str(i+1)+'_act')
-                thm.plot(data['time'][::10], data[thm_prename][::10], label='P'+str(i+1)+'_pre')
+                thm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                thm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
 
 
                 textname = interfacenum + '_p_text'
                 text_prename = interfacenum + '_p_text_pre'
-                text.plot(data['time'][::10], data[textname][::10], label='P'+str(i+1)+'_act')
-                text.plot(data['time'][::10], data[text_prename][::10], label='P'+str(i+1)+'_pre')
+                text.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                text.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
 
             thm.set_ylabel('Position [rad]')
             thm.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -102,18 +102,18 @@ class CFO:
 
             fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            x.plot(data['time'][::10], data['targetx'][::10], label='Target')
-            x.plot(data['time'][::10], data['ballx'][::10], label='Ball(H-H)')
-            x.plot(data['time'][::10], data['ballx_pre'][::10], label='Ball(M-M)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10], label='Target')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10], label='Ball(H-H)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
             # x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
             x.set_ylabel('X-axis Position (m)')
             x.legend(ncol=2, columnspacing=1, loc='upper left')
             x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
 
-            y.plot(data['time'][::10], data['targety'][::10], label='Target')
-            y.plot(data['time'][::10], data['bally'][::10], label='Ball(H-H)')
-            y.plot(data['time'][::10], data['bally_pre'][::10], label='Ball(M-M)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10], label='Target')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10], label='Ball(H-H)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
             # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
             y.set_ylabel('Y-axis Position (m)')
             y.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -143,8 +143,8 @@ class CFO:
             # plt.plot(data['time'], data['ballx'], label='ballx_'+str(i))
             # plt.plot(data['time'], data['bally'], label='bally_'+str(i))
 
-            plt.plot(data[i]['time'], data[i]['targetx'], label= 'targetx_'+str(i))
-            plt.plot(data[i]['time'], data[i]['targety'], label= 'targety_'+str(i))
+            plt.plot(data[i]['time'][self.start_num:self.end_num:10], data[i]['targetx'][self.start_num:self.end_num:10], label= 'targetx_'+str(i))
+            plt.plot(data[i]['time'][self.start_num:self.end_num:10], data[i]['targety'][self.start_num:self.end_num:10], label= 'targety_'+str(i))
             plt.legend()
 
 
@@ -170,14 +170,14 @@ class CFO:
                 pcfoname = interfacenum + '_p_pcfo'
                 fcfoname = interfacenum + '_p_fcfo'
 
-                ppcfo.plot(data['time'][::10], data[pcfoname][::10], label='P'+str(i+1))
-                pfcfo.plot(data['time'][::10], data[fcfoname][::10], label='P'+str(i+1))
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][::10], label='P'+str(i+1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][::10], label='P'+str(i+1))
 
                 pcfoname = interfacenum + '_r_pcfo'
                 fcfoname = interfacenum + '_r_fcfo'
 
-                rpcfo.plot(data['time'][::10], data[pcfoname][::10], label='P' + str(i + 1))
-                rfcfo.plot(data['time'][::10], data[fcfoname][::10], label='P' + str(i + 1))
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][::10], label='P' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][::10], label='P' + str(i + 1))
 
 
             ppcfo.set_ylabel('Pitch PCFO [rad]')
@@ -236,10 +236,10 @@ class CFO:
         for i in range(len(self.cfo)):
             data = self.cfo[i]
 
-            ppcfo.plot(data['time'][::10], self.ppcof_summation[i][::10], label='Group'+str(i + 1))
-            rpcfo.plot(data['time'][::10], self.rpcof_summation[i][::10], label='Group'+str(i + 1))
-            pfcfo.plot(data['time'][::10], self.pfcof_summation[i][::10], label='Group' + str(i + 1))
-            rfcfo.plot(data['time'][::10], self.rfcof_summation[i][::10], label='Group' + str(i + 1))
+            ppcfo.plot(data['time'][self.start_num:self.end_num:10], self.ppcof_summation[i][::10], label='Group'+str(i + 1))
+            rpcfo.plot(data['time'][self.start_num:self.end_num:10], self.rpcof_summation[i][::10], label='Group'+str(i + 1))
+            pfcfo.plot(data['time'][self.start_num:self.end_num:10], self.pfcof_summation[i][::10], label='Group' + str(i + 1))
+            rfcfo.plot(data['time'][self.start_num:self.end_num:10], self.rfcof_summation[i][::10], label='Group' + str(i + 1))
 
 
         ppcfo.set_ylabel('Summation\nPitch PCFO [rad]')
@@ -283,17 +283,17 @@ class CFO:
         return ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec
 
     def summation(self):
-        summation = self.cfo[0]['i1_p_pcfo']
+        summation = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
         types = ['_p_pcfo', '_r_pcfo', '_p_fcfo', '_r_fcfo']
         for type in types:
             for j in range(len(self.cfo)):
                 data = self.cfo[j]
-                summation_ = data['i1_p_pcfo']
+                summation_ = data['i1_p_pcfo'][self.start_num:self.end_num]
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
                     pcfoname = interfacenum + type
 
-                    summation_ = np.vstack((summation_, data[pcfoname]))
+                    summation_ = np.vstack((summation_, data[pcfoname][self.start_num:self.end_num]))
                 summation_ = np.delete(summation_, 0, 0)
                 # summation_ = np.abs(summation_)
                 summation = np.vstack((summation, np.sum(summation_, axis=0)))
@@ -311,7 +311,8 @@ class CFO:
 
     def performance_calc(self, data, ballx, bally):
         error = np.sqrt(
-            (data['targetx'] - ballx) ** 2 + (data['targety'] - bally) ** 2)
+            (data['targetx'][self.start_num:self.end_num] - ballx[self.start_num:self.end_num]) ** 2
+            + (data['targety'][self.start_num:self.end_num] - bally[self.start_num:self.end_num]) ** 2)
 
         # plt.plot(self.data['time'][self.start_num:self.end_num], error)
         # plt.show()
@@ -448,7 +449,7 @@ class CFO:
         ecfo = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            ecfo.append(CFO.period_calculation(self, data['ecfo']))
+            ecfo.append(CFO.period_calculation(self, data['ecfo'][self.start_num:self.end_num]))
 
         return ecfo
 
@@ -456,7 +457,7 @@ class CFO:
         inecfo = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            inecfo.append(CFO.period_calculation(self, np.abs(data['inecfo'])))
+            inecfo.append(CFO.period_calculation(self, np.abs(data['inecfo'][self.start_num:self.end_num])))
 
         return inecfo
 
@@ -465,3 +466,71 @@ class CFO:
         data_period = np.sum(data_reshape, axis=1) / self.num
 
         return data_period
+
+    def subtraction_cfo(self, graph=1):
+        sub_cfo = []
+        types = ['p_pcfo', 'r_pcfo', 'p_fcfo', 'r_fcfo']
+        for type in types:
+            sub_cfo_types = []
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+                if self.group_type == 'dyad':
+                    sub_cfo_types.append(np.abs(np.subtract(data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num])))
+
+                elif self.group_type == 'triad':
+                    sub_cfo1 = np.subtract(np.subtract(2 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(2 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(2 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num])
+                    sub_cfo_ave = np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)) / 3
+                    sub_cfo_types.append(sub_cfo_ave)
+
+                elif self.group_type == 'tetrad':
+                    sub_cfo1 = np.subtract(np.subtract(np.subtract(3 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(np.subtract(3 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(np.subtract(3 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo4 = np.subtract(np.subtract(np.subtract(3 * data['i4_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo_ave = np.add(np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)), np.abs(sub_cfo4)) / 4
+                    sub_cfo_types.append(sub_cfo_ave)
+            sub_cfo.append(sub_cfo_types)
+
+        if graph == 0:
+            fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
+
+            # plt.xlim([10, 60])  # x軸の範囲
+            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xlabel("Time[sec]")
+
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], sub_cfo[0][i][::10], label='Group' + str(i + 1))
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], sub_cfo[1][i][::10], label='Group' + str(i + 1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], sub_cfo[2][i][::10], label='Group' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], sub_cfo[3][i][::10], label='Group' + str(i + 1))
+
+            ppcfo.set_ylabel('Subtraction\nPitch PCFO [rad]')
+            rpcfo.set_ylabel('Subtraction\nRoll PCFO [rad]')
+            pfcfo.set_ylabel('Subtraction\nPitch FCFO [Nm]')
+            rfcfo.set_ylabel('Subtraction\nRoll FCFO [Nm]')
+
+            ppcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            rpcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            pfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            rfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+
+            ppcfo.set_yticks(np.arange(-10, 10, 0.5))
+            rpcfo.set_yticks(np.arange(-10, 10, 0.5))
+            pfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+            rfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+
+            ppcfo.set_ylim([0, 1.0])  # y軸の範囲
+            rpcfo.set_ylim([0, 1.0])  # y軸の範囲
+            pfcfo.set_ylim([0, 4.0])  # y軸の範囲
+            rfcfo.set_ylim([0, 4.0])  # y軸の範囲
+
+            plt.tight_layout()
+            # plt.savefig(savename)
+            plt.show()
+
+
+        return sub_cfo[0], sub_cfo[1], sub_cfo[2], sub_cfo[3]

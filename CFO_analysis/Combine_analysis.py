@@ -192,3 +192,15 @@ class combine:
 
         plt.tight_layout()
         plt.show()
+
+    def subtraction_cfo(self):
+        dyad_sub_ppcfo, dyad_sub_rpcfo, dyad_sub_pfcfo, dyad_sub_rfcfo =  self.dyad_cfo.subtraction_cfo()
+        triad_sub_ppcfo, triad_sub_rpcfo, triad_sub_pfcfo, triad_sub_rfcfo =  self.triad_cfo.subtraction_cfo()
+        tetrad_sub_ppcfo, tetrad_sub_rpcfo, tetrad_sub_pfcfo, tetrad_sub_rfcfo =  self.tetrad_cfo.subtraction_cfo()
+
+        sub_cfo = [
+            [dyad_sub_ppcfo, dyad_sub_rpcfo, dyad_sub_pfcfo, dyad_sub_rfcfo],
+            [triad_sub_ppcfo, triad_sub_rpcfo, triad_sub_pfcfo, triad_sub_rfcfo],
+            [tetrad_sub_ppcfo, tetrad_sub_rpcfo, tetrad_sub_pfcfo, tetrad_sub_rfcfo]
+        ]
+
