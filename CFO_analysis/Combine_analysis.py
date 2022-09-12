@@ -203,4 +203,3 @@ class combine:
             [triad_sub_ppcfo, triad_sub_rpcfo, triad_sub_pfcfo, triad_sub_rfcfo],
             [tetrad_sub_ppcfo, tetrad_sub_rpcfo, tetrad_sub_pfcfo, tetrad_sub_rfcfo]
         ]
-

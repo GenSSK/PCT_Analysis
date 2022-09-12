@@ -527,8 +527,8 @@ class CFO:
 
             ppcfo.set_ylim([0, 1.0])  # y軸の範囲
             rpcfo.set_ylim([0, 1.0])  # y軸の範囲
-            pfcfo.set_ylim([0, 4.0])  # y軸の範囲
-            rfcfo.set_ylim([0, 4.0])  # y軸の範囲
+            pfcfo.set_ylim([0, 10.0])  # y軸の範囲
+            rfcfo.set_ylim([0, 10.0])  # y軸の範囲
 
             plt.tight_layout()
             # plt.savefig(savename)
