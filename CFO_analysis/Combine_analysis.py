@@ -39,10 +39,10 @@ class combine:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
-    def summation_CFO_analysis(self):
-        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec()
-        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo_3sec()
-        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo_3sec()
+    def summation_cfo(self, graph=1, mode='noabs'):
+        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec(mode)
+        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo_3sec(mode)
+        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo_3sec(mode)
         summation_3sec_datas = [
             [dyad_pp, triad_pp, tetrad_pp],
             [dyad_rp, triad_rp, tetrad_rp],
@@ -50,54 +50,136 @@ class combine:
             [dyad_rf, triad_rf, tetrad_rf],
         ]
 
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
 
-        sns.set()
-        # sns.set_style('whitegrid')
-        sns.set_palette('Set3')
+            types = ['Summation Pitch PCFO (Avg)',
+                     'Summation Roll PCFO (Avg)',
+                     'Summation Pitch FCFO (Avg)',
+                     'Summation Roll FCFO (Avg)']
+            ranges = [0.05, 0.05, 0.3, 0.3]
 
-        types = ['Summation Pitch PCFO (Avg)', 'Summation Roll PCFO (Avg)', 'Summation Pitch FCFO (Avg)',
-                 'Summation Roll FCFO (Avg)']
-        ranges = [0.05, 0.05, 0.3, 0.3]
+            if mode == 'b_abs':
+                types = ['Before abs.\nSummation Pitch PCFO (Avg)',
+                         'Before abs.\nSummation Roll PCFO (Avg)',
+                         'Before abs.\nSummation Pitch FCFO (Avg)',
+                         'Before abs.\nSummation Roll FCFO (Avg)']
+                ranges = [0.2, 0.2, 2.0, 2.0]
+
+            if mode == 'a_abs':
+                types = ['After abs.\nSummation Pitch PCFO (Avg)',
+                         'After abs.\nSummation Roll PCFO (Avg)',
+                         'After abs.\nSummation Pitch FCFO (Avg)',
+                         'After abs.\nSummation Roll FCFO (Avg)']
+                ranges = [0.2, 0.2, 0.8, 0.8]
 
 
 
-        fig = plt.figure(figsize=(10, 7), dpi=150)
+            fig = plt.figure(figsize=(10, 7), dpi=150)
 
-        plot = [
-            fig.add_subplot(2, 2, 1),
-            fig.add_subplot(2, 2, 2),
-            fig.add_subplot(2, 2, 3),
-            fig.add_subplot(2, 2, 4),
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_pp)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': summation_3sec_datas[j][0][i],
+                        'Triad': summation_3sec_datas[j][1][i],
+                        'Tetrad': summation_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
+                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-ranges[j], ranges[j])
+                if mode == 'b_abs' or mode == 'a_abs':
+                    plot[j].set_ylim(0, ranges[j])
+
+            plt.tight_layout()
+            plt.show()
+            # plt.savefig('fig/summation_3sec_noabs.png')
+
+        return summation_3sec_datas
+
+    def subtraction_cfo(self, graph=1):
+        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.subtraction_cfo_3sec()
+        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.subtraction_cfo_3sec()
+        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.subtraction_cfo_3sec()
+        subtraction_3sec_datas = [
+            [dyad_pp, triad_pp, tetrad_pp],
+            [dyad_rp, triad_rp, tetrad_rp],
+            [dyad_pf, triad_pf, tetrad_pf],
+            [dyad_rf, triad_rf, tetrad_rf],
         ]
 
-        for j in range(len(plot)):
-            dfpp = []
-            dfpp_melt = []
-            for i in range(len(dyad_pp)):
-                dfpp.append(pd.DataFrame({
-                    'Dyad': summation_3sec_datas[j][0][i],
-                    'Triad': summation_3sec_datas[j][1][i],
-                    'Tetrad': summation_3sec_datas[j][2][i],
-                })
-                )
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
 
-                dfpp_melt.append(pd.melt(dfpp[i]))
-                dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+            types = ['Subtraction Pitch PCFO (Avg)', 'Subtraction Roll PCFO (Avg)', 'Subtraction Pitch FCFO (Avg)',
+                     'Subtraction Roll FCFO (Avg)']
+            ranges = [0.4, 0.4, 6.0, 6.0]
 
-            df = pd.concat([i for i in dfpp_melt], axis=0)
 
-            sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-            sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-                          jitter=0.2, color='black', palette='Paired', ax=plot[j])
 
-            plot[j].legend_ = None
-            plot[j].set_ylabel(types[j])
-            # plot[j].axes.xaxis.set_visible(False)
-            plot[j].set_ylim(-ranges[j], ranges[j])
+            fig = plt.figure(figsize=(10, 7), dpi=150)
 
-        plt.tight_layout()
-        plt.show()
-        # plt.savefig('fig/summation_3sec_noabs.png')
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_pp)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': subtraction_3sec_datas[j][0][i],
+                        'Triad': subtraction_3sec_datas[j][1][i],
+                        'Tetrad': subtraction_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
+                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(0.0, ranges[j])
+
+            plt.tight_layout()
+            plt.show()
+            # plt.savefig('fig/summation_3sec_noabs.png')
+
+        return subtraction_3sec_datas
 
     def performance_show(self):
         error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
@@ -109,7 +191,7 @@ class combine:
 
         types = ['dyad', 'triad', 'tetrad']
 
-        fig_error = plt.figure(figsize=(10, 7), dpi=300)
+        fig_error = plt.figure(figsize=(10, 7), dpi=150)
         fig_error.suptitle('Error Period')
         for i in range(3):
             ax = fig_error.add_subplot(3, 1, i + 1)
@@ -117,9 +199,11 @@ class combine:
             for error in error_periode[i]:
                 ax.plot(error, label='Group' + str(i + 1))
 
-        fig_spend = plt.figure(figsize=(10, 7), dpi=300)
+        fig_spend = plt.figure(figsize=(10, 7), dpi=150)
+        fig_spend.suptitle('Spent time Period')
         for i in range(3):
             ax = fig_spend.add_subplot(3, 1, i + 1)
+            ax.title.set_text(types[i])
             for spend in spend_periode[i]:
                 ax.plot(spend, label='Group' + str(i + 1))
 
@@ -192,14 +276,3 @@ class combine:
 
         plt.tight_layout()
         plt.show()
-
-    def subtraction_cfo(self):
-        dyad_sub_ppcfo, dyad_sub_rpcfo, dyad_sub_pfcfo, dyad_sub_rfcfo =  self.dyad_cfo.subtraction_cfo()
-        triad_sub_ppcfo, triad_sub_rpcfo, triad_sub_pfcfo, triad_sub_rfcfo =  self.triad_cfo.subtraction_cfo()
-        tetrad_sub_ppcfo, tetrad_sub_rpcfo, tetrad_sub_pfcfo, tetrad_sub_rfcfo =  self.tetrad_cfo.subtraction_cfo()
-
-        sub_cfo = [
-            [dyad_sub_ppcfo, dyad_sub_rpcfo, dyad_sub_pfcfo, dyad_sub_rfcfo],
-            [triad_sub_ppcfo, triad_sub_rpcfo, triad_sub_pfcfo, triad_sub_rfcfo],
-            [tetrad_sub_ppcfo, tetrad_sub_rpcfo, tetrad_sub_pfcfo, tetrad_sub_rfcfo]
-        ]
