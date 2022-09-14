@@ -77,7 +77,7 @@ class combine:
 
 
 
-            fig = plt.figure(figsize=(10, 7), dpi=150)
+            fig = plt.figure(figsize=(10, 7), dpi=300)
 
             plot = [
                 fig.add_subplot(2, 2, 1),
@@ -176,8 +176,8 @@ class combine:
                 plot[j].set_ylim(0.0, ranges[j])
 
             plt.tight_layout()
+            plt.savefig('fig/subtraction_3sec_compare.png')
             plt.show()
-            # plt.savefig('fig/summation_3sec_noabs.png')
 
         return subtraction_3sec_datas
 

@@ -98,7 +98,7 @@ if __name__ == '__main__':
     # com.triad_cfo.summation_cfo(0) #和のCFOの時系列重ね
     # com.tetrad_cfo.summation_cfo(0) #和のCFOの時系列重ね
     # com.summation_cfo(0) #和のCFOの人数間比較
-    com.summation_cfo(0, 'b_abs') #和のCFOの人数間比較、前絶対値
+    # com.summation_cfo(0, 'b_abs') #和のCFOの人数間比較、前絶対値
     # com.summation_cfo(0, 'a_abs') #和のCFOの人数間比較、後絶対値
 
 
@@ -121,6 +121,6 @@ if __name__ == '__main__':
     # com.dyad_cfo.subtraction_cfo(0)
     # com.triad_cfo.subtraction_cfo(0)
     # com.tetrad_cfo.subtraction_cfo(0)
-    # com.subtraction_cfo(0)
+    com.subtraction_cfo(0)
 
     # com.dyad_cfo.sum_sub_performance()
