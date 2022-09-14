@@ -107,7 +107,12 @@ if __name__ == '__main__':
     # com.dyad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
     # com.dyad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
     # com.dyad_cfo.period_performance_human_model() #H-HとM-Mのパフォーマンス比較、グループごと
+    # com.triad_cfo.period_performance_human_model()
+    # com.tetrad_cfo.period_performance_human_model()
     # com.performance_comparison() #人数間のパフォーマンス比較
+    # com.performance_comparison('h-h')
+    # com.performance_comparison('m-m')
+
 
     ##OCFOとパフォーマンスの確認
     # com.dyad_cfo.each_ocfo_performance()
@@ -121,6 +126,17 @@ if __name__ == '__main__':
     # com.dyad_cfo.subtraction_cfo(0)
     # com.triad_cfo.subtraction_cfo(0)
     # com.tetrad_cfo.subtraction_cfo(0)
-    com.subtraction_cfo(0)
+    # com.subtraction_cfo(0)
 
+    ##差のCFOとパフォーマンスの確認
+    com.dyad_cfo.subtraction_performance()
+    # com.triad_cfo.subtraction_performance()
+    # com.tetrad_cfo.subtraction_performance()
+
+    ##和のCFOとパフォーマンスの確認
+    # com.dyad_cfo.summation_performance('a_abs')
+    # com.triad_cfo.summation_performance('a_abs')
+
+
+    ##和のCFOと差のCFOとパフォーマンスの関係
     # com.dyad_cfo.sum_sub_performance()

@@ -210,22 +210,38 @@ class combine:
         plt.tight_layout()
         plt.show()
 
-    def performance_comparison(self):
-        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
-        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
-        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+    def performance_comparison(self, mode='h-m'):
+        if mode == 'h-m':
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+        elif mode == 'h-h':
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_human()
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_human()
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_human()
+        elif mode == 'm-m':
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_model()
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_model()
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_model()
 
         sns.set()
         # sns.set_style('whitegrid')
         sns.set_palette('Set3')
 
-        fig_error = plt.figure(figsize=(10, 7), dpi=150)
+        fig_per = plt.figure(figsize=(10, 7), dpi=150)
 
-        ax = fig_error.add_subplot(1, 1, 1)
+        ax = fig_per.add_subplot(1, 2, 1)
+
+        if mode == 'h-m':
+            ax.set_ylim(-0.02, 0.02)
+        elif mode == 'h-h':
+            ax.set_ylim(0.0, 0.06)
+        elif mode == 'm-m':
+            ax.set_ylim(0.0, 0.06)
 
         ep = []
         ep_melt = []
-        for i in range(5):
+        for i in range(len(error_period_dyad)):
             ep.append(pd.DataFrame({
                 'Dyad': error_period_dyad[i],
                 'Triad': error_period_triad[i],
@@ -244,16 +260,22 @@ class combine:
 
         ax.legend_ = None
         ax.set_ylabel('Error Period')
-        ax.set_ylim(-0.02, 0.02)
 
 
-        fig_spend = plt.figure(figsize=(10, 7), dpi=150)
 
-        ax = fig_spend.add_subplot(1, 1, 1)
+        # fig_spend = plt.figure(figsize=(10, 7), dpi=150)
+        ax = fig_per.add_subplot(1, 2, 2)
+
+        if mode == 'h-m':
+            ax.set_ylim(-0.5, 0.5)
+        elif mode == 'h-h':
+            ax.set_ylim(1.0, 3.0)
+        elif mode == 'm-m':
+            ax.set_ylim(1.0, 3.0)
 
         sp = []
         sp_melt = []
-        for i in range(5):
+        for i in range(len(spend_period_dyad)):
             sp.append(pd.DataFrame({
                 'Dyad': spend_period_dyad[i],
                 'Triad': spend_period_triad[i],
@@ -272,7 +294,7 @@ class combine:
 
         ax.legend_ = None
         ax.set_ylabel('Spend Period')
-        ax.set_ylim(-0.5, 0.5)
+        # ax.set_ylim(-0.5, 0.5)
 
         plt.tight_layout()
         plt.show()

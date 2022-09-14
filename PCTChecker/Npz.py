@@ -14,7 +14,7 @@ class NPZ:
         else:
             # self.dir = "/home/genki/tmp/ez_libtorch/data/"  # linux
             # self.dir = "/home/genki/tmp/tmp.DCaNlQozen/data/"  # linux
-            self.dir = "/home/genki/data/"  # linux
+            self.dir = "/home/genki/data/cfo/"  # linux
 
 
     def single_load(self, filename):

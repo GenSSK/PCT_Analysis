@@ -724,3 +724,117 @@ class CFO:
         rfcof_subtraction_3sec = np.average(rfcof_subtraction_3sec, axis=2)
 
         return ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec
+
+    def subtraction_performance(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(self)
+
+        df = []
+        for i in range(len(self.cfo)):
+            df.append(pd.DataFrame({
+                'error': error_period[i],
+                'spend': spend_period[i],
+                'Pitch subtraction PCFO': ppcof_subtraction_3sec[i],
+                'Roll subtraction PCFO': rpcof_subtraction_3sec[i],
+                'Pitch subtraction FCFO': pfcof_subtraction_3sec[i],
+                'Roll subtraction FCFO': rfcof_subtraction_3sec[i],
+            }))
+
+            df[i]['Group'] = 'Group' + str(i + 1)
+
+        df_all = pd.concat([i for i in df], axis=0)
+        # print(df_all)
+
+        marker_size = 5
+
+        performance = ['error', 'spend']
+        cmap = ['Blues_r', 'Blues']
+        xlabel = ['Pitch subtraction PCFO', 'Roll subtraction PCFO', 'Pitch subtraction FCFO', 'Roll subtraction FCFO']
+
+        xlim = [0.2, 0.2, 4.0, 3.0]
+
+        fig = plt.figure(figsize=(8, 4), dpi=300)
+        for i in range(2):
+            for j in range(4):
+                ax = fig.add_subplot(2, 4, 4 * i + j + 1)
+                ax.set_xlim(0, xlim[j])
+                # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
+                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i], hue='Group', s=marker_size)
+                for lh in g.legend_.legendHandles:
+                    lh.set_alpha(1)
+                    lh._sizes = [10]
+
+                ax.set_xlabel(xlabel[j])
+                ax.set_ylabel(performance[i])
+
+        plt.tight_layout()
+        plt.show()
+
+    def summation_performance(self, mode='noabs'):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self, mode)
+        if mode == 'noabs':
+            xlabel = ['Pitch summation PCFO', 'Roll summation PCFO', 'Pitch summation FCFO', 'Roll summation FCFO']
+            xlim = [
+                [-0.04, 0.04],
+                [-0.04, 0.04],
+                [-0.2, 0.2],
+                [-0.2, 0.2],
+            ]
+        elif mode == 'b_abs':
+            xlabel = ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO',
+             'Before abs. Roll summation FCFO']
+            xlim = [
+                [0.0, 0.15],
+                [0.0, 0.15],
+                [0.0, 2.0],
+                [0.0, 1.25],
+            ]
+        elif mode == 'a_abs':
+            xlabel = ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO',
+             'After abs. Roll summation FCFO']
+            xlim = [
+                [0.0, 0.12],
+                [0.0, 0.12],
+                [0.0, 0.7],
+                [0.0, 0.6],
+            ]
+
+        performance = ['error', 'spend']
+
+        df = []
+        for i in range(len(self.cfo)):
+            df.append(pd.DataFrame({
+                performance[0]: error_period[i],
+                performance[1]: spend_period[i],
+                xlabel[0]: ppcof_summation_3sec[i],
+                xlabel[1]: rpcof_summation_3sec[i],
+                xlabel[2]: pfcof_summation_3sec[i],
+                xlabel[3]: rfcof_summation_3sec[i],
+            }))
+
+            df[i]['Group'] = 'Group' + str(i + 1)
+
+        df_all = pd.concat([i for i in df], axis=0)
+        # print(df_all)
+
+        marker_size = 5
+
+        cmap = ['Blues_r', 'Blues']
+
+        fig = plt.figure(figsize=(8, 4), dpi=300)
+        for i in range(2):
+            for j in range(4):
+                ax = fig.add_subplot(2, 4, 4 * i + j + 1)
+                ax.set_xlim(xlim[j][0], xlim[j][1])
+                # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
+                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i], hue='Group', s=marker_size)
+                for lh in g.legend_.legendHandles:
+                    lh.set_alpha(1)
+                    lh._sizes = [10]
+
+                ax.set_xlabel(xlabel[j])
+                ax.set_ylabel(performance[i])
+
+        plt.tight_layout()
+        plt.show()
