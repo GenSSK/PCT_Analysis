@@ -29,7 +29,7 @@ def main():
     reading_file = []
     filename = 'tes'
 
-    overwrite = False
+    overwrite = True
 
     if overwrite:
         print('make file')

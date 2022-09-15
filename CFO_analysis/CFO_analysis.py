@@ -58,39 +58,60 @@ class CFO:
 
     def graph_sub(self):
         for j in range(len(self.cfo)):
-            fig, (thm, text) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
+            fig, (rthm, pthm, rtext, ptext) = plt.subplots(4, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            # plt.xlim([10, 60])  # x軸の範囲
-            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xticks(np.arange(self.starttime, self.endtime * 2, self.time * 2))
+            plt.xlim([self.starttime, self.endtime])  # x軸の範囲
             plt.xlabel("Time (sec)")
 
             data = self.cfo[j]
             for i in range(self.join):
                 interfacenum = 'i' + str(i + 1)
+
+                thmname = interfacenum + '_r_thm'
+                thm_prename = interfacenum + '_r_thm_pre'
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
-                thm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
-                thm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+
+                textname = interfacenum + '_r_text'
+                text_prename = interfacenum + '_r_text_pre'
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
 
 
                 textname = interfacenum + '_p_text'
                 text_prename = interfacenum + '_p_text_pre'
-                text.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
-                text.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
 
-            thm.set_ylabel('Position (rad)')
-            thm.legend(ncol=2, columnspacing=1, loc='upper left')
-            thm.set_yticks(np.arange(-10, 10, 0.5))
-            thm.set_ylim([-1.5, 1.5])  # y軸の範囲
+            rthm.set_ylabel('Roll angle (rad)')
+            rthm.legend(ncol=2, columnspacing=1, loc='upper left')
+            rthm.set_yticks(np.arange(-10, 10, 0.5))
+            rthm.set_ylim([-1.5, 1.5])  # y軸の範囲
 
-            text.set_ylabel('Reaction torque(Nm)')
-            text.legend(ncol=2, columnspacing=1, loc='upper left')
-            text.set_yticks(np.arange(-8.0, 8.0, 2.0))
-            text.set_ylim([-6.0, 6.0])  # y軸の範囲
+            pthm.set_ylabel('Pitch angle (rad)')
+            pthm.legend(ncol=2, columnspacing=1, loc='upper left')
+            pthm.set_yticks(np.arange(-10, 10, 0.5))
+            pthm.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+            rtext.set_ylabel('Roll force (Nm)')
+            rtext.legend(ncol=2, columnspacing=1, loc='upper left')
+            rtext.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            rtext.set_ylim([-6.0, 6.0])  # y軸の範囲
+
+            ptext.set_ylabel('Pitch force (Nm)')
+            ptext.legend(ncol=2, columnspacing=1, loc='upper left')
+            ptext.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            ptext.set_ylim([-6.0, 6.0])  # y軸の範囲
 
             plt.tight_layout()
             # plt.savefig("response.png")
-        plt.show()
+        # plt.show()
 
     def task_show(self):
         for i in range(len(self.cfo)):
@@ -123,6 +144,9 @@ class CFO:
             # plt.yticks(np.arange(-4, 4, 0.1))
             # plt.ylim([-0.4, 0.4])  # y軸の範囲
             # plt.xlim([data['starttime'], data['endtime']])  # x軸の範囲
+
+            plt.xticks(np.arange(self.starttime, self.endtime * 2, self.time * 2))
+            plt.xlim([self.starttime, self.endtime])  # x軸の範囲
             plt.xlabel("Time (sec)")
 
             plt.tight_layout()
@@ -442,10 +466,10 @@ class CFO:
         return error_period, spend_period
 
 
-    def each_ocfo_performance(self):
+    def each_ocfo_performance(self, mode='normal'):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        ecfo = CFO.period_ecfo(self)
-        inecfo = CFO.period_inecfo(self)
+        ecfo = CFO.period_ecfo(self, mode)
+        inecfo = CFO.period_inecfo(self, mode)
 
         df = []
         for i in range(len(self.cfo)):
@@ -611,25 +635,43 @@ class CFO:
         plt.show()
 
 
-    def period_ecfo(self):
+    def period_ecfo(self, mode='normal'):
         ecfo = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            ecfo.append(CFO.period_calculation(self, data['ecfo'][self.start_num:self.end_num]))
+            if mode == 'error':
+                error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
+                ecfo.append(CFO.period_calculation_consider_error(self, data['ecfo'][self.start_num:self.end_num], spent))
+            else:
+                ecfo.append(CFO.period_calculation(self, data['ecfo'][self.start_num:self.end_num]))
 
         return ecfo
 
-    def period_inecfo(self):
+    def period_inecfo(self, mode='normal'):
         inecfo = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            inecfo.append(CFO.period_calculation(self, np.abs(data['inecfo'][self.start_num:self.end_num])))
-
+            if mode == 'error':
+                error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
+                inecfo.append(CFO.period_calculation_consider_error(self, np.abs(data['inecfo'][self.start_num:self.end_num]), spent))
+            else:
+                inecfo.append(CFO.period_calculation(self, np.abs(data['inecfo'][self.start_num:self.end_num])))
         return inecfo
 
     def period_calculation(self, data):
         data_reshape = data.reshape([self.period, self.num])  # [回数][データ]にわける
         data_period = np.sum(data_reshape, axis=1) / self.num
+        return data_period
+
+    def period_calculation_consider_error(self, data, spend):
+        spent_inv = np.where(spend == 0, 1, 0)
+        data_consider = data * spent_inv
+        data_reshape = data_consider.reshape([self.period, self.num])  # [回数][データ]にわける
+        count = np.zeros(len(data_reshape))
+        for i in range(len(data_reshape)):
+            count[i] = self.num - np.count_nonzero(data_reshape[i])
+
+        data_period = np.sum(data_reshape, axis=1) / count
 
         return data_period
 
