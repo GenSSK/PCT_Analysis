@@ -77,7 +77,7 @@ class combine:
 
 
 
-            fig = plt.figure(figsize=(10, 7), dpi=300)
+            fig = plt.figure(figsize=(10, 7), dpi=150)
 
             plot = [
                 fig.add_subplot(2, 2, 1),
