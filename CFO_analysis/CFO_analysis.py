@@ -153,6 +153,52 @@ class CFO:
             # plt.savefig("First_time_target_movement.png")
         plt.show()
 
+    def task_show_solo(self):
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+
+            fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
+
+            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10], label='Target')
+            # x.plot(data['time'][self.start_num:self.end_num:10], data['targetx_act'][self.start_num:self.end_num:10], label='Target_act')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10], label='Ball(H-H)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            for j in range(self.join):
+                x.plot(data['time'][self.start_num:self.end_num:10], data['i'+str(j+1)+'_ballx_solo'][self.start_num:self.end_num:10], label='Ball(solo'+str(j + 1)+')')
+
+
+            # x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
+            x.set_ylabel('X-axis Position (m)')
+            x.legend(ncol=2, columnspacing=1, loc='upper left')
+            x.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10], label='Target')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety_act'][self.start_num:self.end_num:10], label='Target_act')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10], label='Ball(H-H)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            for j in range(self.join):
+                y.plot(data['time'][self.start_num:self.end_num:10], data['i'+str(j+1)+'_bally_solo'][self.start_num:self.end_num:10], label='Ball(solo'+str(j + 1)+')')
+            # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
+            y.set_ylabel('Y-axis Position (m)')
+            y.legend(ncol=2, columnspacing=1, loc='upper left')
+            y.set_ylim([-0.2, 0.2])  # y軸の範囲
+
+
+            # plt.ylabel(r'Position (m)')
+            # plt.legend()
+            # plt.yticks(np.arange(-4, 4, 0.1))
+            # plt.ylim([-0.4, 0.4])  # y軸の範囲
+            # plt.xlim([data['starttime'], data['endtime']])  # x軸の範囲
+
+            plt.xticks(np.arange(self.starttime, self.endtime * 2, self.time * 2))
+            plt.xlim([self.starttime, self.endtime])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            plt.tight_layout()
+            # plt.savefig("First_time_target_movement.png")
+        plt.show()
+
     def task_show_sub(self, data):
 
         plt.ylabel(r'Position (m)')

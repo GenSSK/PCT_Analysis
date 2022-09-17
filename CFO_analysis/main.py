@@ -87,6 +87,11 @@ if __name__ == '__main__':
     # com.triad_cfo.task_show()
     # com.tetrad_cfo.task_show()
 
+    ##タスク確認（単独あり）
+    com.dyad_cfo.task_show_solo()
+    # com.triad_cfo.task_show_solo()
+    # com.tetrad_cfo.task_show_solo()
+
     ##CFO確認
     # com.dyad_cfo.cfo_sub()
     # com.triad_cfo.cfo_sub()

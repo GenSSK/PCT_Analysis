@@ -107,7 +107,7 @@ if __name__ == '__main__':
         ['tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_3124', 'r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi'],
     ]
 
-    tpe = ThreadPoolExecutor(max_workers=24)
+    tpe = ThreadPoolExecutor(max_workers=12)
 
     files = []
     files.extend(dyad)
