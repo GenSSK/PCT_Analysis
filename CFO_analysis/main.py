@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # com.tetrad_cfo.task_show()
 
     ##タスク確認（単独あり）
-    com.dyad_cfo.task_show_solo()
+    # com.dyad_cfo.task_show_solo()
     # com.triad_cfo.task_show_solo()
     # com.tetrad_cfo.task_show_solo()
 
@@ -144,3 +144,6 @@ if __name__ == '__main__':
 
     ##和のCFOと差のCFOとパフォーマンスの関係
     # com.dyad_cfo.sum_sub_performance()
+
+    ##パフォーマンス同士の相関
+    com.performance_relation()

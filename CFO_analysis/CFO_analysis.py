@@ -111,7 +111,7 @@ class CFO:
 
             plt.tight_layout()
             # plt.savefig("response.png")
-        # plt.show()
+        plt.show()
 
     def task_show(self):
         for i in range(len(self.cfo)):

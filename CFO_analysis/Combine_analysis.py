@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import CFO_analysis
-
+from scipy.spatial.distance import correlation
 
 class combine:
     def __init__(self, dyad_npz, triad_npz, tetrad_npz):
@@ -296,5 +296,34 @@ class combine:
         ax.set_ylabel('Spend Period')
         # ax.set_ylim(-0.5, 0.5)
 
+        plt.tight_layout()
+        plt.show()
+
+    def performance_relation(self):
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        error_period_dyad = error_period_dyad.reshape(-1)
+        error_period_triad = error_period_triad.reshape(-1)
+        error_period_tetrad = error_period_tetrad.reshape(-1)
+        spend_period_dyad = spend_period_dyad.reshape(-1)
+        spend_period_triad = spend_period_triad.reshape(-1)
+        spend_period_tetrad = spend_period_tetrad.reshape(-1)
+
+        error_period = np.concatenate((error_period_dyad, error_period_triad, error_period_tetrad))
+        spend_period = np.concatenate((spend_period_dyad, spend_period_triad, spend_period_tetrad))
+
+        print(1 - correlation(error_period, spend_period))
+
+        fig = plt.figure(figsize=(5, 5), dpi=150)
+
+        plt.scatter(error_period_dyad, spend_period_dyad, label='Dyad', color='blue')
+        plt.scatter(error_period_triad, spend_period_triad, label='Triad' , color='red')
+        plt.scatter(error_period_tetrad, spend_period_tetrad, label='Tetrad', color='green')
+
+        plt.xlabel('Error Period')
+        plt.ylabel('Spend Period')
+        plt.legend()
         plt.tight_layout()
         plt.show()
