@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # com.tetrad_cfo.subtraction_performance()
 
     ##和のCFOとパフォーマンスの確認
-    com.dyad_cfo.summation_performance('a_abs')
+    # com.dyad_cfo.summation_performance('a_abs')
     # com.triad_cfo.summation_performance('a_abs')
 
     ##和のCFOと差のCFOとパフォーマンスの関係
