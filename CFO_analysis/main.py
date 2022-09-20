@@ -23,7 +23,7 @@ if __name__ == '__main__':
     npz = Npz.NPZ()
 
     dyad_npz_filename = [
-        # 'dyad/2022-07-28_y.inoue_b.poitrimol_1234_CFO.npz',
+        'dyad/2022-07-28_y.inoue_b.poitrimol_1234_CFO.npz',
         # 'dyad/2022-07-29_i.tsunokuni_k.tozuka_2134_CFO.npz',
         # 'dyad/2022-07-29_i.tsunokuni_y.inoue_1234_CFO.npz',
         # 'dyad/2022-07-31_m.sugaya_n.ito_1234_CFO.npz',
@@ -34,15 +34,15 @@ if __name__ == '__main__':
         # 'dyad/2022-09-07_k.tozuka_ko.kobayashi_1324_CFO.npz',
         # 'dyad/2022-09-07_y.inoue_k.kobayashi_1234_CFO.npz',
 
-        'dyad/2022-07-29_i.tsunokuni_k.tozuka_2134_CFO.npz',
-        'dyad/2022-07-29_i.tsunokuni_y.inoue_1324_CFO.npz',
-        'dyad/2022-07-31_m.sugaya_n.ito_1324_CFO.npz',
-        'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
-        'dyad/2022-08-26_y.kobayashi_r.yanase_1324_CFO.npz',
-        'dyad/2022-09-05_s.watanabe_ko.kobayashi_1324_CFO.npz',
-        'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
-        'dyad/2022-09-07_k.tozuka_ko.kobayashi_1324_CFO.npz',
-        'dyad/2022-09-07_y.inoue_k.kobayashi_1324_CFO.npz',
+        # 'dyad/2022-07-29_i.tsunokuni_k.tozuka_2134_CFO.npz',
+        # 'dyad/2022-07-29_i.tsunokuni_y.inoue_1324_CFO.npz',
+        # 'dyad/2022-07-31_m.sugaya_n.ito_1324_CFO.npz',
+        # 'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
+        # 'dyad/2022-08-26_y.kobayashi_r.yanase_1324_CFO.npz',
+        # 'dyad/2022-09-05_s.watanabe_ko.kobayashi_1324_CFO.npz',
+        # 'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
+        # 'dyad/2022-09-07_k.tozuka_ko.kobayashi_1324_CFO.npz',
+        # 'dyad/2022-09-07_y.inoue_k.kobayashi_1324_CFO.npz',
     ]
 
     triad_npz_filename = [
@@ -78,7 +78,7 @@ if __name__ == '__main__':
     com = Combine_analysis.combine(dyad_npz, triad_npz, tetrad_npz)
 
     ##予測確認
-    # com.dyad_cfo.graph_sub()
+    com.dyad_cfo.graph_sub()
     # com.triad_cfo.graph_sub()
     # com.tetrad_cfo.graph_sub()
 
@@ -146,4 +146,4 @@ if __name__ == '__main__':
     # com.dyad_cfo.sum_sub_performance()
 
     ##パフォーマンス同士の相関
-    com.performance_relation()
+    # com.performance_relation()

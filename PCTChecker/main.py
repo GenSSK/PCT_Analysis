@@ -24,12 +24,12 @@ def main():
     send_string = []
     message = []
 
-    dec = 1000
+    dec = 100
 
     reading_file = []
     filename = 'tes'
 
-    overwrite = True
+    overwrite = False
 
     if overwrite:
         print('make file')
@@ -53,9 +53,10 @@ def main():
                                str(2)
                                )
             message.append('{0}'.format(send_string[i]).encode('utf-8'))
+            print(i)
 
-            with open(filename, 'wb') as w:
-                pickle.dump(message, w)
+        with open(filename, 'wb') as w:
+            pickle.dump(message, w)
 
     try:
         reading_file = open(filename, 'rb')
@@ -89,7 +90,7 @@ def main():
         print('send')
         for i in range(len(data['time'][::dec])):
             sock.sendto(message[i], (host, port))
-            time.sleep(0.0001 * float(dec))
+            time.sleep(0.001 * float(dec))
     return
 
 

@@ -70,24 +70,32 @@ class CFO:
 
                 thmname = interfacenum + '_r_thm'
                 thm_prename = interfacenum + '_r_thm_pre'
+                thm_prename_solo = interfacenum + '_r_thm_pre_solo'
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
+                thm_prename_solo = interfacenum + '_p_thm_pre_solo'
                 pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
                 pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text'
                 text_prename = interfacenum + '_r_text_pre'
+                text_prename_solo = interfacenum + '_r_text_pre_solo'
                 rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
                 rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
 
                 textname = interfacenum + '_p_text'
                 text_prename = interfacenum + '_p_text_pre'
+                text_prename_solo = interfacenum + '_p_text_pre_solo'
                 ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
                 ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
             rthm.set_ylabel('Roll angle (rad)')
             rthm.legend(ncol=2, columnspacing=1, loc='upper left')
