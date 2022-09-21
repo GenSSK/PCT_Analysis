@@ -6,6 +6,10 @@ import math
 import pandas as pd
 import seaborn as sns
 
+# import sys
+# sys.path.append('..')
+from .. import histogram
+
 
 class CFO:
     def __init__(self, cfo_data, group_type):
