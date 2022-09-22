@@ -5,6 +5,14 @@ import seaborn as sns
 import CFO_analysis
 from scipy.spatial.distance import correlation
 
+import sys
+# import os
+# sys.path.append(os.path.abspath("../statistics"))
+# import histogram
+
+sys.path.append('../statistics')
+import myhistogram
+
 class combine:
     def __init__(self, dyad_npz, triad_npz, tetrad_npz):
         self.dyad_cfo = CFO_analysis.CFO(dyad_npz, 'dyad')
@@ -327,3 +335,159 @@ class combine:
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+    def performance_hist(self):
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        error_period_dyad = error_period_dyad.reshape(-1)
+        error_period_triad = error_period_triad.reshape(-1)
+        error_period_tetrad = error_period_tetrad.reshape(-1)
+        spend_period_dyad = spend_period_dyad.reshape(-1)
+        spend_period_triad = spend_period_triad.reshape(-1)
+        spend_period_tetrad = spend_period_tetrad.reshape(-1)
+
+
+
+        error = pd.DataFrame({
+            'Dyad': error_period_dyad,
+            'Triad': error_period_triad,
+            'Tetrad': error_period_tetrad,
+        }
+        )
+
+        spend = pd.DataFrame({
+            'Dyad': spend_period_dyad,
+            'Triad': spend_period_triad,
+            'Tetrad': spend_period_tetrad,
+        }
+        )
+
+        performence = [error, spend]
+
+        xlim = [
+            (-0.1, 0.1),
+            (-1, 1),
+        ]
+        xtics = [
+            (np.arange(-5, 5, 1)),
+            (np.arange(-1, 1, 1)),
+        ]
+
+        mode = ['Dyad', 'Triad', 'Tetrad']
+        kwargs = dict(hist_kws={'alpha': .6}, kde_kws={'linewidth': 2})
+
+        for i in range(len(performence)):
+            fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
+            for j in range(3):
+                sns.histplot(performence[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j])
+
+                ax[j].set_title(mode[i])
+                ax[j].set_xlim(xlim[i])
+            plt.tight_layout()
+        plt.show()
+
+    def performance_bootstrap(self):
+        R = 100000
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        data = [
+            error_period_dyad,
+            error_period_triad,
+            error_period_tetrad,
+            spend_period_dyad,
+            spend_period_triad,
+            spend_period_tetrad,
+        ]
+
+        bs_data = []
+
+        for i in range(len(data)):
+            bs_data.append(combine.bootstrap(self, data[i], R))
+
+
+        reshape_data = [data[_].reshape(-1) for _ in range(6)]
+        bs_reshape_data = [bs_data[_].reshape(-1) for _ in range(6)]
+
+        error = pd.DataFrame({
+            'Dyad': reshape_data[0],
+            'Triad': reshape_data[1],
+            'Tetrad': reshape_data[2],
+        }
+        )
+
+        spend = pd.DataFrame({
+            'Dyad': reshape_data[3],
+            'Triad': reshape_data[4],
+            'Tetrad': reshape_data[5],
+        }
+        )
+        performance = [error, spend]
+
+        bs_error = pd.DataFrame({
+            'Dyad': bs_reshape_data[0],
+            'Triad': bs_reshape_data[1],
+            'Tetrad': bs_reshape_data[2],
+        }
+        )
+
+        bs_spend = pd.DataFrame({
+            'Dyad': bs_reshape_data[3],
+            'Triad': bs_reshape_data[4],
+            'Tetrad': bs_reshape_data[5],
+        }
+        )
+        bs_performance = [bs_error, bs_spend]
+
+
+        xlim = [
+            (-0.1, 0.1),
+            (-1, 1),
+        ]
+        xtics = [
+            (np.arange(-5, 5, 1)),
+            (np.arange(-1, 1, 1)),
+        ]
+
+        mode = ['Dyad', 'Triad', 'Tetrad']
+        kwargs = dict(hist_kws={'alpha': .6}, kde_kws={'linewidth': 2})
+
+        fig, ax_box = plt.subplots(1, 2, figsize=(10, 7), dpi=150)
+        for i in range(2):
+            fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
+            for j in range(3):
+                sns.histplot(performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
+                sns.histplot(bs_performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
+
+                ax[j].set_title(mode[i])
+                ax[j].set_xlim(xlim[i])
+            plt.tight_layout()
+
+            df = pd.melt(performance[0])
+            bs_df = pd.melt(bs_performance[0])
+            # sns.boxplot(x="variable", y="value", data=df, ax=ax_box[i], sym="")
+            sns.boxplot(x="variable", y="value", data=bs_df, ax=ax_box[i], sym="")
+        plt.show()
+
+
+
+    def bootstrap(self, data, R):
+        lenth = len(data[0])
+        data_all = data.reshape(-1)
+        results = np.zeros(R)
+
+        for i in range(R):
+            sample = np.random.choice(data_all, lenth)
+            results[i] = np.mean(sample)
+
+        return results
+
+
+
+
+
+
+
