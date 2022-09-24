@@ -108,7 +108,11 @@ if __name__ == '__main__':
     ##パフォーマンスの確認
     # com.performance_show() #パフォーマンスの時系列重ね
     # com.dyad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
+    # com.triad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
+    # com.tetrad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
     # com.dyad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
+    # com.triad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
+    # com.tetrad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
     # com.dyad_cfo.period_performance_human_model() #H-HとM-Mのパフォーマンス比較、グループごと
     # com.triad_cfo.period_performance_human_model()
     # com.tetrad_cfo.period_performance_human_model()
@@ -137,6 +141,12 @@ if __name__ == '__main__':
     # com.tetrad_cfo.subtraction_performance()
 
     ##和のCFOとパフォーマンスの確認
+    # com.dyad_cfo.summation_performance()
+    # com.triad_cfo.summation_performance()
+    # com.tetrad_cfo.summation_performance()
+    # com.dyad_cfo.summation_performance('b_abs')
+    # com.triad_cfo.summation_performance('b_abs')
+    # com.tetrad_cfo.summation_performance('b_abs')
     # com.dyad_cfo.summation_performance('a_abs')
     # com.triad_cfo.summation_performance('a_abs')
     # com.tetrad_cfo.summation_performance('a_abs')
@@ -149,7 +159,7 @@ if __name__ == '__main__':
 
     ##パフォーマンスの相関
     # com.performance_hist()
-    com.performance_bootstrap()
+    # com.performance_bootstrap()
 
     ##CFOの相関
     # com.dyad_cfo.CFO_relation_axis()
@@ -184,10 +194,10 @@ if __name__ == '__main__':
     # com.subtraction_ave_cfo_bs(graph=0)
 
     ##each axis
-    # com.dyad_cfo.summation_performance_each_axis()
-    # com.triad_cfo.summation_performance_each_axis()
-    # com.tetrad_cfo.summation_performance_each_axis()
+    com.dyad_cfo.summation_performance_each_axis()
+    com.triad_cfo.summation_performance_each_axis()
+    com.tetrad_cfo.summation_performance_each_axis()
 
-    # com.dyad_cfo.subtraction_performance_each_axis()
-    # com.triad_cfo.subtraction_performance_each_axis()
-    # com.tetrad_cfo.subtraction_performance_each_axis()
+    com.dyad_cfo.subtraction_performance_each_axis()
+    com.triad_cfo.subtraction_performance_each_axis()
+    com.tetrad_cfo.subtraction_performance_each_axis()

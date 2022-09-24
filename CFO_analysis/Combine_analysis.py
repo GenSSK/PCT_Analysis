@@ -207,6 +207,9 @@ class combine:
             for error in error_periode[i]:
                 ax.plot(error, label='Group' + str(i + 1))
 
+        plt.tight_layout()
+        plt.savefig('fig/performance_error.png')
+
         fig_spend = plt.figure(figsize=(10, 7), dpi=150)
         fig_spend.suptitle('Spent time Period')
         for i in range(3):
@@ -216,7 +219,7 @@ class combine:
                 ax.plot(spend, label='Group' + str(i + 1))
 
         plt.tight_layout()
-        plt.savefig('fig/performance.png')
+        plt.savefig('fig/performance_spend.png')
         plt.show()
 
     def performance_comparison(self, mode='h-m'):
@@ -368,6 +371,7 @@ class combine:
         )
 
         performence = [error, spend]
+        label = ['error', 'spend']
 
         xlim = [
             (-0.1, 0.1),
@@ -389,7 +393,7 @@ class combine:
                 ax[j].set_title(mode[i])
                 ax[j].set_xlim(xlim[i])
             plt.tight_layout()
-        plt.savefig('fig/performance_hist.png')
+            plt.savefig('fig/performance_hist_' + str(label[i]) + '.png')
         plt.show()
 
     def performance_bootstrap(self):
@@ -574,7 +578,7 @@ class combine:
 
             plt.tight_layout()
             plt.savefig('fig/summation_ave_cfo_' + str(mode) + '.png')
-            plt.show()
+            # plt.show()
 
         return summation_3sec_datas
 
@@ -639,7 +643,7 @@ class combine:
 
             plt.tight_layout()
             plt.savefig('fig/subtraction_ave_cfo.png')
-            plt.show()
+            # plt.show()
 
         return subtraction_3sec_datas
 
@@ -718,7 +722,7 @@ class combine:
 
             plt.tight_layout()
             plt.savefig('fig/summation_ave_cfo_bs' + str(mode) + '.png')
-            plt.show()
+            # plt.show()
 
         return summation_3sec_datas
 
@@ -782,6 +786,6 @@ class combine:
 
             plt.tight_layout()
             plt.savefig('fig/subtraction_ave_cfo_bs.png')
-            plt.show()
+            # plt.show()
 
         return subtraction_3sec_datas

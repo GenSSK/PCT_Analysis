@@ -377,7 +377,7 @@ class CFO:
             rfcfo.set_ylim([0, 4.0])  # y軸の範囲
 
             plt.tight_layout()
-            # plt.savefig(savename)
+            plt.savefig('fig/summation_cfo_' + str(self.group_type) + '.png')
             plt.show()
 
 
@@ -739,6 +739,7 @@ class CFO:
                     lh.set_alpha(1)
                     lh._sizes = [10]
         plt.tight_layout()
+        plt.savefig('fig/each_ocfo_performance_' + str(mode) + '_' + str(self.group_type) + '.png')
         plt.show()
 
     def ocfo_performance(self):
@@ -817,6 +818,8 @@ class CFO:
 
         marker_size = 5
 
+        label = ['normal', 'Before abs.', 'After abs.']
+
         performance = ['error', 'spend']
         cmap = ['Blues_r', 'Blues']
         ylabel = [
@@ -863,6 +866,7 @@ class CFO:
                     ax.set_ylabel(ylabel[i][k])
 
             plt.tight_layout()
+            plt.savefig('fig/sum_sub_performance_' + str(label[i]) + '_' + str(self.group_type) + '.png')
         plt.show()
 
 
@@ -975,7 +979,7 @@ class CFO:
             rfcfo.set_ylim([0, 10.0])  # y軸の範囲
 
             plt.tight_layout()
-            # plt.savefig(savename)
+            plt.savefig('fig/subtraction_cfo_' + str(self.group_type) + '.png')
             plt.show()
 
 
@@ -1117,7 +1121,7 @@ class CFO:
 
         plt.tight_layout()
         plt.savefig('fig/summation_performance_' + str(self.group_type) + '.png')
-        plt.show()
+        # plt.show()
 
 
 
@@ -1281,6 +1285,9 @@ class CFO:
         sns.set(font_scale=1)
         sns.jointplot(data=df, x='Pitch PCFO', y='Roll PCFO', **kwargs, **kwargs_PCFO)
 
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-P_R-P_' + str(self.group_type) + '.png')
+
         kwargs_FCFO = dict(
             xlim=(-2.5, 2.5),
             ylim=(-2.5, 2.5),
@@ -1288,6 +1295,9 @@ class CFO:
         )
 
         sns.jointplot(data=df, x='Pitch FCFO', y='Roll FCFO', **kwargs, **kwargs_FCFO)
+
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-F_R-F_' + str(self.group_type) + '.png')
 
         kwargs_PCFO_FCFO = dict(
             xlim=(-0.25, 0.25),
@@ -1298,7 +1308,13 @@ class CFO:
         sns.set(font_scale=1)
         sns.jointplot(data=df, x='Pitch PCFO', y='Pitch FCFO', **kwargs, **kwargs_PCFO_FCFO)
 
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-P_P-F_' + str(self.group_type) + '.png')
+
         sns.jointplot(data=df, x='Roll PCFO', y='Roll FCFO', **kwargs, **kwargs_PCFO_FCFO)
+
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_R-P_R-F_' + str(self.group_type) + '.png')
 
         plt.tight_layout()
         plt.show()
@@ -1346,6 +1362,9 @@ class CFO:
         sns.set(font_scale=1)
         sns.jointplot(data=df, x='Pitch PCFO', y='Roll PCFO', **kwargs, **kwargs_PCFO)
 
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-P_P-F_3sec_' + str(self.group_type) + '.png')
+
         kwargs_FCFO = dict(
             xlim=(-2.5, 2.5),
             ylim=(-2.5, 2.5),
@@ -1353,6 +1372,9 @@ class CFO:
         )
 
         sns.jointplot(data=df, x='Pitch FCFO', y='Roll FCFO', **kwargs, **kwargs_FCFO)
+
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-F_R-F_3sec_' + str(self.group_type) + '.png')
 
         kwargs_PCFO_FCFO = dict(
             xlim=(-0.25, 0.25),
@@ -1363,14 +1385,20 @@ class CFO:
         sns.set(font_scale=1)
         sns.jointplot(data=df, x='Pitch PCFO', y='Pitch FCFO', **kwargs, **kwargs_PCFO_FCFO)
 
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_P-P_P-F_3sec_' + str(self.group_type) + '.png')
+
         sns.jointplot(data=df, x='Roll PCFO', y='Roll FCFO', **kwargs, **kwargs_PCFO_FCFO)
+
+        plt.tight_layout()
+        plt.savefig('fig/CFO_relation_axis_R-P_R-F_3sec_' + str(self.group_type) + '.png')
 
         plt.tight_layout()
         plt.show()
 
     def summation_ave_performance(self, mode='noabs'):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        pcfo_summation_3sec, fcfo_summation_3sec, pcfo_ave_summation_3sec, fcfo_ave_summation_3sec = CFO.summation_cfo_3sec(self, mode)
+        pcfo_summation_3sec, fcfo_summation_3sec, pcfo_abs_summation_3sec, fcfo_abs_summation_3sec = CFO.summation_cfo_3sec(self, mode)
         if mode == 'noabs':
             xlabel = ['Summation PCFO',
                       'Summation FCFO',
@@ -1390,10 +1418,10 @@ class CFO:
                       'Before abs. summation abs. FCFO',
                       ]
             xlim = [
-                [0.0, 0.15],
-                [0.0, 0.15],
+                [0.0, 0.2],
+                [0.0, 0.2],
                 [0.0, 2.0],
-                [0.0, 1.5],
+                [0.0, 2.0],
             ]
         elif mode == 'a_abs':
             xlabel = ['After abs. summation PCFO',
@@ -1402,9 +1430,9 @@ class CFO:
                       'After abs. summation abs. FCFO',
                       ]
             xlim = [
-                [0.0, 0.12],
-                [0.0, 0.12],
-                [0.0, 0.7],
+                [0.0, 0.15],
+                [0.0, 0.15],
+                [0.0, 0.6],
                 [0.0, 0.6],
             ]
 
@@ -1417,8 +1445,8 @@ class CFO:
                 performance[1]: spend_period[i],
                 xlabel[0]: pcfo_summation_3sec[i],
                 xlabel[1]: fcfo_summation_3sec[i],
-                xlabel[2]: pcfo_ave_summation_3sec[i],
-                xlabel[3]: fcfo_ave_summation_3sec[i],
+                xlabel[2]: pcfo_abs_summation_3sec[i],
+                xlabel[3]: fcfo_abs_summation_3sec[i],
             }))
 
             df[i]['Group'] = 'Group' + str(i + 1)
@@ -1445,11 +1473,12 @@ class CFO:
                 ax.set_ylabel(performance[i])
 
         plt.tight_layout()
-        plt.show()
+        plt.savefig('fig/summation_ave_performance_' + str(mode) + '_' +str(self.group_type) + '.png')
+        # plt.show()
 
     def subtraction_ave_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_ave_cfo_3sec(self)
+        pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec = CFO.subtraction_ave_cfo_3sec(self)
 
         xlabel = ['Subtraction PCFO', 'Subtraction PCFO', 'Subtraction abs. FCFO', 'Subtraction abs. FCFO']
 
@@ -1458,10 +1487,10 @@ class CFO:
             df.append(pd.DataFrame({
                 'error': error_period[i],
                 'spend': spend_period[i],
-                xlabel[0]: ppcof_subtraction_3sec[i],
-                xlabel[1]: rpcof_subtraction_3sec[i],
-                xlabel[2]: pfcof_subtraction_3sec[i],
-                xlabel[3]: rfcof_subtraction_3sec[i],
+                xlabel[0]: pcfo_subtraction_3sec[i],
+                xlabel[1]: fcfo_subtraction_3sec[i],
+                xlabel[2]: pcfo_abs_subtraction_3sec[i],
+                xlabel[3]: fcfo_abs_subtraction_3sec[i],
             }))
 
             df[i]['Group'] = 'Group' + str(i + 1)
@@ -1474,7 +1503,12 @@ class CFO:
         performance = ['error', 'spend']
         cmap = ['Blues_r', 'Blues']
 
-        xlim = [0.4, 0.4, 6.0, 6.0]
+        if self.group_type == 'dyad':
+            xlim = [4.0, 4.0, 2.0, 2.0]
+        elif self.group_type == 'triad':
+            xlim = [7.0, 7.0, 4.0, 4.0]
+        elif self.group_type == 'tetrad':
+            xlim = [10.0, 10.0, 6.0, 6.0]
 
         fig = plt.figure(figsize=(8, 4), dpi=300)
         for i in range(2):
@@ -1491,6 +1525,7 @@ class CFO:
                 ax.set_ylabel(performance[i])
 
         plt.tight_layout()
+        plt.savefig('fig/subtraction_ave_performance_' + str(self.group_type) + '.png')
         plt.show()
 
 
@@ -1649,17 +1684,17 @@ class CFO:
         fcfo_summation_3sec = fcfo_summation.reshape([len(self.cfo), -1, self.num])
         fcfo_summation_3sec = np.average(fcfo_summation_3sec, axis=2)
 
-        pcfo_ave_summation_3sec = pcfo_abs_summation.reshape([len(self.cfo), -1, self.num])
-        pcfo_ave_summation_3sec = np.average(pcfo_ave_summation_3sec, axis=2)
+        pcfo_abs_summation_3sec = pcfo_abs_summation.reshape([len(self.cfo), -1, self.num])
+        pcfo_abs_summation_3sec = np.average(pcfo_abs_summation_3sec, axis=2)
 
-        fcfo_ave_summation_3sec = fcfo_abs_summation.reshape([len(self.cfo), -1, self.num])
-        fcfo_ave_summation_3sec = np.average(fcfo_ave_summation_3sec, axis=2)
+        fcfo_abs_summation_3sec = fcfo_abs_summation.reshape([len(self.cfo), -1, self.num])
+        fcfo_abs_summation_3sec = np.average(fcfo_abs_summation_3sec, axis=2)
 
-        return pcfo_summation_3sec, fcfo_summation_3sec, pcfo_ave_summation_3sec, fcfo_ave_summation_3sec
+        return pcfo_summation_3sec, fcfo_summation_3sec, pcfo_abs_summation_3sec, fcfo_abs_summation_3sec
 
 
     def subtraction_ave_cfo_3sec(self):
-        pcfo_subtraction, fcfo_subtraction, pcfo_ave_subtraction, fcfo_ave_subtraction = CFO.subtraction_ave_cfo(self)
+        pcfo_subtraction, fcfo_subtraction, pcfo_abs_subtraction, fcfo_abs_subtraction = CFO.subtraction_ave_cfo(self)
 
         pcfo_subtraction_3sec = pcfo_subtraction.reshape([len(self.cfo), -1, self.num])
         pcfo_subtraction_3sec = np.average(pcfo_subtraction_3sec, axis=2)
@@ -1667,10 +1702,10 @@ class CFO:
         fcfo_subtraction_3sec = fcfo_subtraction.reshape([len(self.cfo), -1, self.num])
         fcfo_subtraction_3sec = np.average(fcfo_subtraction_3sec, axis=2)
 
-        pcfo_ave_subtraction_3sec = pcfo_ave_subtraction.reshape([len(self.cfo), -1, self.num])
-        pcfo_ave_subtraction_3sec = np.average(pcfo_ave_subtraction_3sec, axis=2)
+        pcfo_abs_subtraction_3sec = pcfo_abs_subtraction.reshape([len(self.cfo), -1, self.num])
+        pcfo_abs_subtraction_3sec = np.average(pcfo_abs_subtraction_3sec, axis=2)
 
-        fcfo_ave_subtraction_3sec = fcfo_ave_subtraction.reshape([len(self.cfo), -1, self.num])
-        fcfo_ave_subtraction_3sec = np.average(fcfo_ave_subtraction_3sec, axis=2)
+        fcfo_abs_subtraction_3sec = fcfo_abs_subtraction.reshape([len(self.cfo), -1, self.num])
+        fcfo_abs_subtraction_3sec = np.average(fcfo_abs_subtraction_3sec, axis=2)
 
-        return pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_ave_subtraction_3sec, fcfo_ave_subtraction_3sec
+        return pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec
