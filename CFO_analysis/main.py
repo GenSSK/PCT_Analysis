@@ -97,7 +97,6 @@ if __name__ == '__main__':
     # com.triad_cfo.cfo_sub()
     # com.tetrad_cfo.cfo_sub()
 
-
     ##和のCFOを確認
     # com.dyad_cfo.summation_cfo(0) #和のCFOの時系列重ね
     # com.triad_cfo.summation_cfo(0) #和のCFOの時系列重ね
@@ -105,7 +104,6 @@ if __name__ == '__main__':
     # com.summation_cfo(0) #和のCFOの人数間比較
     # com.summation_cfo(0, 'b_abs') #和のCFOの人数間比較、前絶対値
     # com.summation_cfo(0, 'a_abs') #和のCFOの人数間比較、後絶対値
-
 
     ##パフォーマンスの確認
     # com.performance_show() #パフォーマンスの時系列重ね
@@ -141,6 +139,7 @@ if __name__ == '__main__':
     ##和のCFOとパフォーマンスの確認
     # com.dyad_cfo.summation_performance('a_abs')
     # com.triad_cfo.summation_performance('a_abs')
+    # com.tetrad_cfo.summation_performance('a_abs')
 
     ##和のCFOと差のCFOとパフォーマンスの関係
     # com.dyad_cfo.sum_sub_performance()
@@ -148,6 +147,47 @@ if __name__ == '__main__':
     ##パフォーマンス同士の相関
     # com.performance_relation()
 
+    ##パフォーマンスの相関
     # com.performance_hist()
-
     com.performance_bootstrap()
+
+    ##CFOの相関
+    # com.dyad_cfo.CFO_relation_axis()
+    # com.triad_cfo.CFO_relation_axis()
+    # com.tetrad_cfo.CFO_relation_axis()
+    # com.dyad_cfo.CFO_relation_axis_3sec()
+    # com.triad_cfo.CFO_relation_axis_3sec()
+    # com.tetrad_cfo.CFO_relation_axis_3sec()
+
+    ##sum_cfoとパフォーマンスの相関
+    # com.dyad_cfo.summation_ave_performance()
+    # com.triad_cfo.summation_ave_performance()
+    # com.tetrad_cfo.summation_ave_performance()
+    # com.dyad_cfo.summation_ave_performance('b_abs')
+    # com.triad_cfo.summation_ave_performance('b_abs')
+    # com.tetrad_cfo.summation_ave_performance('b_abs')
+    # com.dyad_cfo.summation_ave_performance('a_abs')
+    # com.triad_cfo.summation_ave_performance('a_abs')
+    # com.tetrad_cfo.summation_ave_performance('a_abs')
+    # com.dyad_cfo.subtraction_ave_performance()
+    # com.triad_cfo.subtraction_ave_performance()
+    # com.tetrad_cfo.subtraction_ave_performance()
+
+    ##sum_cfoの比較
+    # com.summation_ave_cfo(graph=0)
+    # com.summation_ave_cfo(graph=0, mode='b_abs')
+    # com.summation_ave_cfo(graph=0, mode='a_abs')
+    # com.summation_ave_cfo_bs(graph=0)
+    # com.summation_ave_cfo_bs(graph=0, mode='b_abs')
+    # com.summation_ave_cfo_bs(graph=0, mode='a_abs')
+    # com.subtraction_ave_cfo(graph=0)
+    # com.subtraction_ave_cfo_bs(graph=0)
+
+    ##each axis
+    # com.dyad_cfo.summation_performance_each_axis()
+    # com.triad_cfo.summation_performance_each_axis()
+    # com.tetrad_cfo.summation_performance_each_axis()
+
+    # com.dyad_cfo.subtraction_performance_each_axis()
+    # com.triad_cfo.subtraction_performance_each_axis()
+    # com.tetrad_cfo.subtraction_performance_each_axis()

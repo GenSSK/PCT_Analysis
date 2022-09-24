@@ -122,8 +122,8 @@ class combine:
                     plot[j].set_ylim(0, ranges[j])
 
             plt.tight_layout()
+            plt.savefig('fig/subtraction_3sec_compare' + str(mode) + '.png')
             plt.show()
-            # plt.savefig('fig/summation_3sec_noabs.png')
 
         return summation_3sec_datas
 
@@ -216,6 +216,7 @@ class combine:
                 ax.plot(spend, label='Group' + str(i + 1))
 
         plt.tight_layout()
+        plt.savefig('fig/performance.png')
         plt.show()
 
     def performance_comparison(self, mode='h-m'):
@@ -305,6 +306,7 @@ class combine:
         # ax.set_ylim(-0.5, 0.5)
 
         plt.tight_layout()
+        plt.savefig('fig/performance_comparison' + str(mode) + '.png')
         plt.show()
 
     def performance_relation(self):
@@ -334,6 +336,7 @@ class combine:
         plt.ylabel('Spend Period')
         plt.legend()
         plt.tight_layout()
+        plt.savefig('fig/performance_relation.png')
         plt.show()
 
     def performance_hist(self):
@@ -386,6 +389,7 @@ class combine:
                 ax[j].set_title(mode[i])
                 ax[j].set_xlim(xlim[i])
             plt.tight_layout()
+        plt.savefig('fig/performance_hist.png')
         plt.show()
 
     def performance_bootstrap(self):
@@ -441,6 +445,7 @@ class combine:
         }
         )
         bs_performance = [bs_error, bs_spend]
+        label = ['Error', 'Spend']
 
 
         xlim = [
@@ -462,14 +467,20 @@ class combine:
                 sns.histplot(performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
                 sns.histplot(bs_performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
 
-                ax[j].set_title(mode[i])
+                ax[j].set_title(mode[j])
                 ax[j].set_xlim(xlim[i])
+
+            plt.title(label[i])
             plt.tight_layout()
+            plt.savefig('fig/performance_bootstrap_hist_' + str(label[i]) + '.png')
 
             df = pd.melt(performance[0])
             bs_df = pd.melt(bs_performance[0])
             # sns.boxplot(x="variable", y="value", data=df, ax=ax_box[i], sym="")
             sns.boxplot(x="variable", y="value", data=bs_df, ax=ax_box[i], sym="")
+
+            plt.tight_layout()
+        plt.savefig('fig/performance_bootstrap.png')
         plt.show()
 
 
@@ -487,7 +498,290 @@ class combine:
 
 
 
+    def summation_ave_cfo(self, graph=1, mode='noabs'):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
+        summation_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            types = ['Summation PCFO (Avg)',
+                     'Summation FCFO (Avg)',
+                     'Summation abs. PCFO (Avg)',
+                     'Summation abs. FCFO (Avg)']
+            ranges = [0.06, 0.5, 0.3, 4.0]
+
+            if mode == 'b_abs':
+                types = ['Before abs.\nSummation PCFO (Avg)',
+                         'Before abs.\nSummation FCFO (Avg)',
+                         'Before abs.\nSummation abs. PCFO (Avg)',
+                         'Before abs.\nSummation abs. FCFO (Avg)']
+                ranges = [0.25, 3.0, 0.25, 3.0]
+
+            if mode == 'a_abs':
+                types = ['After abs.\nSummation PCFO (Avg)',
+                         'After abs.\nSummation FCFO (Avg)',
+                         'After abs.\nSummation abs. PCFO (Avg)',
+                         'After abs.\nSummation abs. FCFO (Avg)']
+                ranges = [0.2, 1.0, 0.25, 3.0]
 
 
 
+            fig = plt.figure(figsize=(10, 7), dpi=150)
 
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': summation_3sec_datas[j][0][i],
+                        'Triad': summation_3sec_datas[j][1][i],
+                        'Tetrad': summation_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
+                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-ranges[j], ranges[j])
+                if mode == 'b_abs' or mode == 'a_abs':
+                    plot[j].set_ylim(0, ranges[j])
+
+            plt.tight_layout()
+            plt.savefig('fig/summation_ave_cfo_' + str(mode) + '.png')
+            plt.show()
+
+        return summation_3sec_datas
+
+    def subtraction_ave_cfo(self, graph=1):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
+        subtraction_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            types = ['Subtraction PCFO (Avg)',
+                     'Subtraction FCFO (Avg)',
+                     'Subtraction abs. PCFO (Avg)',
+                     'Subtraction abs. FCFO (Avg)'
+                     ]
+            ranges = [0.4, 8.0, 0.4, 6.0]
+
+
+
+            fig = plt.figure(figsize=(10, 7), dpi=150)
+
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': subtraction_3sec_datas[j][0][i],
+                        'Triad': subtraction_3sec_datas[j][1][i],
+                        'Tetrad': subtraction_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
+                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(0.0, ranges[j])
+
+            plt.tight_layout()
+            plt.savefig('fig/subtraction_ave_cfo.png')
+            plt.show()
+
+        return subtraction_3sec_datas
+
+    def summation_ave_cfo_bs(self, graph=1, mode='noabs'):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
+        summation_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        R = 10000
+        summation_3sec_datas_bs = []
+
+        for i in range(len(summation_3sec_datas)):
+            summation_3sec_datas_bs.append([])
+            for j in range(len(summation_3sec_datas[i])):
+                summation_3sec_datas_bs[i].append(combine.bootstrap(self, summation_3sec_datas[i][j], R))
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            types = ['Summation PCFO (Avg)',
+                     'Summation FCFO (Avg)',
+                     'Summation abs. PCFO (Avg)',
+                     'Summation abs. FCFO (Avg)']
+            ranges = [0.06, 0.5, 0.3, 4.0]
+
+            if mode == 'b_abs':
+                types = ['Before abs.\nSummation PCFO (Avg)',
+                         'Before abs.\nSummation FCFO (Avg)',
+                         'Before abs.\nSummation abs. PCFO (Avg)',
+                         'Before abs.\nSummation abs. FCFO (Avg)']
+                ranges = [0.25, 3.0, 0.25, 3.0]
+
+            if mode == 'a_abs':
+                types = ['After abs.\nSummation PCFO (Avg)',
+                         'After abs.\nSummation FCFO (Avg)',
+                         'After abs.\nSummation abs. PCFO (Avg)',
+                         'After abs.\nSummation abs. FCFO (Avg)']
+                ranges = [0.2, 1.0, 0.25, 3.0]
+
+
+
+            fig = plt.figure(figsize=(10, 7), dpi=150)
+
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = pd.DataFrame({
+                    'Dyad': summation_3sec_datas_bs[j][0],
+                    'Triad': summation_3sec_datas_bs[j][1],
+                    'Tetrad': summation_3sec_datas_bs[j][2],
+                })
+
+                df = pd.melt(dfpp)
+
+                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-ranges[j], ranges[j])
+                if mode == 'b_abs' or mode == 'a_abs':
+                    plot[j].set_ylim(0, ranges[j])
+
+            plt.tight_layout()
+            plt.savefig('fig/summation_ave_cfo_bs' + str(mode) + '.png')
+            plt.show()
+
+        return summation_3sec_datas
+
+
+    def subtraction_ave_cfo_bs(self, graph=1):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
+        subtraction_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        R = 10000
+        subtraction_3sec_datas_bs = []
+
+        for i in range(len(subtraction_3sec_datas)):
+            subtraction_3sec_datas_bs.append([])
+            for j in range(len(subtraction_3sec_datas[i])):
+                subtraction_3sec_datas_bs[i].append(combine.bootstrap(self, subtraction_3sec_datas[i][j], R))
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            types = ['Subtraction PCFO (Avg)',
+                     'Subtraction FCFO (Avg)',
+                     'Subtraction abs. PCFO (Avg)',
+                     'Subtraction abs. FCFO (Avg)'
+                     ]
+            ranges = [0.4, 8.0, 0.4, 6.0]
+
+
+            fig = plt.figure(figsize=(10, 7), dpi=150)
+
+            plot = [
+                fig.add_subplot(2, 2, 1),
+                fig.add_subplot(2, 2, 2),
+                fig.add_subplot(2, 2, 3),
+                fig.add_subplot(2, 2, 4),
+            ]
+
+            for j in range(len(plot)):
+                df = pd.DataFrame({
+                    'Dyad': subtraction_3sec_datas_bs[j][0],
+                     'Triad': subtraction_3sec_datas_bs[j][1],
+                     'Tetrad': subtraction_3sec_datas_bs[j][2],
+                })
+
+                df_melt = pd.melt(df)
+
+                sns.boxplot(x="variable", y="value", data=df_melt, ax=plot[j], sym="")
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(0.0, ranges[j])
+
+            plt.tight_layout()
+            plt.savefig('fig/subtraction_ave_cfo_bs.png')
+            plt.show()
+
+        return subtraction_3sec_datas
