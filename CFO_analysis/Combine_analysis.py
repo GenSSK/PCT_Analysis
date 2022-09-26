@@ -789,3 +789,82 @@ class combine:
             # plt.show()
 
         return subtraction_3sec_datas
+
+    def performance_deviation(self):
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        data = [
+            error_period_dyad.T,
+            error_period_triad.T,
+            error_period_tetrad.T,
+            spend_period_dyad.T,
+            spend_period_triad.T,
+            spend_period_tetrad.T,
+        ]
+
+        # data_bs = []
+        #
+        # R = 10000
+        # for i in range(len(data)):
+        #     data_bs.append([])
+        #     for j in range(len(data[i])):
+        #         data_bs[i].append(combine.bootstrap(self, data[i][j], R))
+
+
+        std = []
+        mean = []
+        data_use = data
+        for i in range(len(data_use)):
+            std.append([])
+            mean.append([])
+            for j in range(len(data_use[i])):
+                std[i].append(np.std(data_use[i][j]))
+                mean[i].append(np.mean(data_use[i][j]))
+
+
+        period = [i+1 for i in range(len(std[0]))] * 3
+        df_period = pd.DataFrame(period, columns=['Period'])
+
+        df_error_ = pd.DataFrame({
+            'Dyad': mean[0],
+            'Triad': mean[1],
+            'Tetrad': mean[2],
+            }
+        )
+
+        df_melt_error = pd.concat([pd.melt(df_error_), df_period], axis=1)
+        df_melt_error.rename(columns={'variable': 'Group size'}, inplace=True)
+        df_melt_error.rename(columns={'value': 'Deviation'}, inplace=True)
+
+        df_spend_melt_ = pd.DataFrame({
+            'Dyad': mean[3],
+            'Triad': mean[4],
+            'Tetrad': mean[5],
+        }
+        )
+        df_melt_spend = pd.concat([pd.melt(df_spend_melt_), df_period], axis=1)
+        df_melt_spend.rename(columns={'variable': 'Group size'}, inplace=True)
+        df_melt_spend.rename(columns={'value': 'Deviation'}, inplace=True)
+
+        df = [df_melt_error, df_melt_spend]
+        label = ['Error', 'Spend']
+
+        kwargs = dict(
+            height=10,
+            aspect=1.5,
+            scatter=True,
+            # n_boot=1000,
+
+        )
+
+        for i in range(2):
+            sns.set(font_scale=2)
+            sns.set_context("poster")
+            # sns.set_style("whitegrid", {'grid.linestyle': '--'})
+            sns.set_style("white")
+            p = sns.lmplot(data=df[i], x='Period', y='Deviation', hue='Group size', order=2, **kwargs)
+            p.set(title=label[i])
+            p.set(xlim=(0, None))
+        plt.show()

@@ -15,7 +15,7 @@ class CFO:
         self.smp = 0.0001  # サンプリング時間
         self.time = 3.0  # ターゲットの移動時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 29.0  # タスク開始時間
+        self.starttime = 20.0  # タスク開始時間
         self.endtime = 77.0  # タスク終了時間
         self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数

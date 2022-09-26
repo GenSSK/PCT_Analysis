@@ -194,10 +194,12 @@ if __name__ == '__main__':
     # com.subtraction_ave_cfo_bs(graph=0)
 
     ##each axis
-    com.dyad_cfo.summation_performance_each_axis()
-    com.triad_cfo.summation_performance_each_axis()
-    com.tetrad_cfo.summation_performance_each_axis()
+    # com.dyad_cfo.summation_performance_each_axis()
+    # com.triad_cfo.summation_performance_each_axis()
+    # com.tetrad_cfo.summation_performance_each_axis()
+    #
+    # com.dyad_cfo.subtraction_performance_each_axis()
+    # com.triad_cfo.subtraction_performance_each_axis()
+    # com.tetrad_cfo.subtraction_performance_each_axis()
 
-    com.dyad_cfo.subtraction_performance_each_axis()
-    com.triad_cfo.subtraction_performance_each_axis()
-    com.tetrad_cfo.subtraction_performance_each_axis()
+    com.performance_deviation()
