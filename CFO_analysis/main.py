@@ -78,7 +78,7 @@ if __name__ == '__main__':
     com = Combine_analysis.combine(dyad_npz, triad_npz, tetrad_npz)
 
     ##予測確認
-    # com.dyad_cfo.graph_sub()
+    com.dyad_cfo.graph_sub()
     # com.triad_cfo.graph_sub()
     # com.tetrad_cfo.graph_sub()
 
@@ -197,9 +197,15 @@ if __name__ == '__main__':
     # com.dyad_cfo.summation_performance_each_axis()
     # com.triad_cfo.summation_performance_each_axis()
     # com.tetrad_cfo.summation_performance_each_axis()
-    #
+    # com.dyad_cfo.summation_performance_each_axis('b_abs')
+    # com.triad_cfo.summation_performance_each_axis('b_abs')
+    # com.tetrad_cfo.summation_performance_each_axis('b_abs')
+    # com.dyad_cfo.summation_performance_each_axis('a_abs')
+    # com.triad_cfo.summation_performance_each_axis('a_abs')
+    # com.tetrad_cfo.summation_performance_each_axis('a_abs')
+
     # com.dyad_cfo.subtraction_performance_each_axis()
     # com.triad_cfo.subtraction_performance_each_axis()
     # com.tetrad_cfo.subtraction_performance_each_axis()
 
-    com.performance_deviation()
+    # com.performance_deviation()

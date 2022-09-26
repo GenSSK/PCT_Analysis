@@ -55,6 +55,11 @@ class CFO:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
+
+
+
+
+
     def graph_sub(self):
         for j in range(len(self.cfo)):
             fig, (rthm, pthm, rtext, ptext) = plt.subplots(4, 1, figsize=(5, 5), dpi=150, sharex=True)
@@ -72,21 +77,21 @@ class CFO:
                 thm_prename_solo = interfacenum + '_r_thm_pre_solo'
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+                # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
                 thm_prename_solo = interfacenum + '_p_thm_pre_solo'
                 pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
                 pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+                # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text'
                 text_prename = interfacenum + '_r_text_pre'
                 text_prename_solo = interfacenum + '_r_text_pre_solo'
                 rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
                 rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+                # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
 
                 textname = interfacenum + '_p_text'
@@ -94,7 +99,7 @@ class CFO:
                 text_prename_solo = interfacenum + '_p_text_pre_solo'
                 ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
                 ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
-                ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+                # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
             rthm.set_ylabel('Roll angle (rad)')
             rthm.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -1182,7 +1187,10 @@ class CFO:
         errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
         ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self, mode)
         if mode == 'noabs':
-            xlabel = ['Pitch summation PCFO', 'Roll summation PCFO', 'Pitch summation FCFO', 'Roll summation FCFO']
+            xlabel = [
+                'Pitch summation PCFO',
+                'Roll summation PCFO',
+                'Pitch summation FCFO', 'Roll summation FCFO']
             xlim = [
                 [-0.04, 0.04],
                 [-0.04, 0.04],
@@ -1190,7 +1198,10 @@ class CFO:
                 [-0.2, 0.2],
             ]
         elif mode == 'b_abs':
-            xlabel = ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO',
+            xlabel = [
+                'Before abs. Pitch summation PCFO',
+                'Before abs. Roll summation PCFO',
+                'Before abs. Pitch summation FCFO',
              'Before abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.15],
@@ -1199,7 +1210,10 @@ class CFO:
                 [0.0, 1.25],
             ]
         elif mode == 'a_abs':
-            xlabel = ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO',
+            xlabel = [
+                'After abs. Pitch summation PCFO',
+                'After abs. Roll summation PCFO',
+                'After abs. Pitch summation FCFO',
              'After abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.12],
