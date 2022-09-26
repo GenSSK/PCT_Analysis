@@ -813,50 +813,53 @@ class combine:
         #         data_bs[i].append(combine.bootstrap(self, data[i][j], R))
 
 
-        std = []
-        mean = []
-        data_use = data
-        for i in range(len(data_use)):
-            std.append([])
-            mean.append([])
-            for j in range(len(data_use[i])):
-                std[i].append(np.std(data_use[i][j]))
-                mean[i].append(np.mean(data_use[i][j]))
-
-
-        period = [i+1 for i in range(len(std[0]))] * 3
-        df_period = pd.DataFrame(period, columns=['Period'])
-
-        df_error_ = pd.DataFrame({
-            'Dyad': mean[0],
-            'Triad': mean[1],
-            'Tetrad': mean[2],
+        df_error_raw_ = []
+        df_spend_raw_ = []
+        for i in range(len(data[0])):
+            df_error_ = pd.DataFrame({
+                'Dyad': data[0][i],
+                'Triad': data[1][i],
+                'Tetrad': data[2][i],
             }
-        )
+            )
+            df_error_raw_.append(df_error_)
 
-        df_melt_error = pd.concat([pd.melt(df_error_), df_period], axis=1)
-        df_melt_error.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_melt_error.rename(columns={'value': 'Deviation'}, inplace=True)
+            df_spend_ = pd.DataFrame({
+                'Dyad': data[3][i],
+                'Triad': data[4][i],
+                'Tetrad': data[5][i],
+            }
+            )
+            df_spend_raw_.append(df_spend_)
 
-        df_spend_melt_ = pd.DataFrame({
-            'Dyad': mean[3],
-            'Triad': mean[4],
-            'Tetrad': mean[5],
-        }
-        )
-        df_melt_spend = pd.concat([pd.melt(df_spend_melt_), df_period], axis=1)
-        df_melt_spend.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_melt_spend.rename(columns={'value': 'Deviation'}, inplace=True)
+        df_error_raw = pd.concat(df_error_raw_[i] for i in range(len(df_error_raw_)))
+        df_error_raw_melt = pd.melt(df_error_raw)
+        Period = [i for i in range(1, len(data[0]) + 1)] * len(data[0][0]) * 3
+        df_error = pd.concat([df_error_raw_melt, pd.DataFrame({'Period': Period})], axis=1)
 
-        df = [df_melt_error, df_melt_spend]
+        df_error.rename(columns={'variable': 'Group size'}, inplace=True)
+        df_error.rename(columns={'value': 'Value'}, inplace=True)
+
+        df_spend_raw = pd.concat(df_spend_raw_[i] for i in range(len(df_spend_raw_)))
+        df_spend_raw_melt = pd.melt(df_spend_raw)
+        df_spend = pd.concat([df_spend_raw_melt, pd.DataFrame({'Period': Period})], axis=1)
+
+        df_spend.rename(columns={'variable': 'Group size'}, inplace=True)
+        df_spend.rename(columns={'value': 'Value'}, inplace=True)
+
+        df = [df_error, df_spend]
         label = ['Error', 'Spend']
+        ylim = [
+            (-0.01, 0.01),
+            (-0.1, 0.3)
+        ]
 
         kwargs = dict(
             height=10,
             aspect=1.5,
             scatter=True,
-            # n_boot=1000,
-
+            n_boot=1000,
+            x_ci='sd',
         )
 
         for i in range(2):
@@ -864,7 +867,72 @@ class combine:
             sns.set_context("poster")
             # sns.set_style("whitegrid", {'grid.linestyle': '--'})
             sns.set_style("white")
-            p = sns.lmplot(data=df[i], x='Period', y='Deviation', hue='Group size', order=2, **kwargs)
+            p = sns.lmplot(data=df[i], x='Period', y='Value', hue='Group size', order=2, **kwargs)
             p.set(title=label[i])
-            p.set(xlim=(0, None))
+            p.set(xlim=(0, 20))
+            p.set(ylim=ylim[i])
         plt.show()
+
+
+
+
+        #
+        # std = []
+        # mean = []
+        # data_use = data
+        # for i in range(len(data_use)):
+        #     std.append([])
+        #     mean.append([])
+        #     for j in range(len(data_use[i])):
+        #         std[i].append(np.std(data_use[i][j]))
+        #         mean[i].append(np.mean(data_use[i][j]))
+        #
+        # period = [i+1 for i in range(len(std[0]))] * 3
+        # df_period = pd.DataFrame(period, columns=['Period'])
+        #
+        # df_error_ = pd.DataFrame({
+        #     'Dyad': mean[0],
+        #     'Triad': mean[1],
+        #     'Tetrad': mean[2],
+        #     }
+        # )
+        #
+        # df_melt_error = pd.concat([pd.melt(df_error_), df_period], axis=1)
+        # df_melt_error.rename(columns={'variable': 'Group size'}, inplace=True)
+        # df_melt_error.rename(columns={'value': 'Deviation'}, inplace=True)
+        #
+        # df_spend_melt_ = pd.DataFrame({
+        #     'Dyad': mean[3],
+        #     'Triad': mean[4],
+        #     'Tetrad': mean[5],
+        # }
+        # )
+        # df_melt_spend = pd.concat([pd.melt(df_spend_melt_), df_period], axis=1)
+        # df_melt_spend.rename(columns={'variable': 'Group size'}, inplace=True)
+        # df_melt_spend.rename(columns={'value': 'Deviation'}, inplace=True)
+        #
+        # df = [df_melt_error, df_melt_spend]
+        # label = ['Error', 'Spend']
+        # ylim = [
+        #     (-0.01, 0.01),
+        #     (-0.1, 0.3)
+        # ]
+        #
+        # kwargs = dict(
+        #     height=10,
+        #     aspect=1.5,
+        #     scatter=True,
+        #     n_boot=1000,
+        #     x_ci='sd',
+        # )
+        #
+        # for i in range(2):
+        #     sns.set(font_scale=2)
+        #     sns.set_context("poster")
+        #     # sns.set_style("whitegrid", {'grid.linestyle': '--'})
+        #     sns.set_style("white")
+        #     p = sns.lmplot(data=df[i], x='Period', y='Deviation', hue='Group size', order=2, **kwargs)
+        #     p.set(title=label[i])
+        #     p.set(xlim=(0, None))
+        #     p.set(ylim=ylim[i])
+        # plt.show()
