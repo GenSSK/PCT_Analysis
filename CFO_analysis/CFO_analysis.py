@@ -1723,3 +1723,42 @@ class CFO:
         fcfo_abs_subtraction_3sec = np.average(fcfo_abs_subtraction_3sec, axis=2)
 
         return pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec
+
+    def fcfo_valiance(self, graph=1):
+        label = ['_p_fcfo', '_r_fcfo']
+        ylabel = ['pitch', 'roll']
+        valiance = []
+        valiance_period = []
+        for i in range(len(self.cfo)):
+            valiance.append([])
+            valiance_period.append([])
+            data = self.cfo[i]
+            for j in range(len(label)):
+                valiance[i].append([])
+                valiance_period[i].append([])
+                stack = np.stack([data['i' + str(_ + 1) + label[j]][self.start_num:self.end_num] for _ in range(self.join)], axis=0)
+                valiance_ = CFO.variance_calculation(self, stack)
+                valiance[i][j] = valiance_
+
+                valiance_period_ = CFO.period_calculation(self, valiance_)
+                valiance_period[i][j] = valiance_period_
+
+        if graph == 0:
+            for i in range(len(self.cfo)):
+                fig = plt.figure(figsize=(5, 3), dpi=300)
+                for j in range(len(label)):
+                    ax = fig.add_subplot(2, 1, j + 1)
+                    ax.set_ylim(0, 4)
+                    ax.plot(data['time'][self.start_num:self.end_num:10], valiance[i][j][::10])
+                    ax.set_ylabel('Variance of '+ylabel[j]+' FCFO (Nm)')
+                    ax.set_xlabel('time (s)')
+
+                plt.tight_layout()
+            plt.show()
+
+        return valiance, valiance_period
+
+
+    def variance_calculation(self, data):
+        variance = np.var(data, axis=0)
+        return variance

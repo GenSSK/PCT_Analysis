@@ -936,3 +936,25 @@ class combine:
         #     p.set(xlim=(0, None))
         #     p.set(ylim=ylim[i])
         # plt.show()
+
+    def performance_fcfovariance(self):
+        dyad_valiance, dyad_valiance_period = self.dyad_cfo.fcfo_valiance()
+        triad_valiance, triad_valiance_period = self.triad_cfo.fcfo_valiance()
+        tetrad_valiance, tetrad_valiance_period = self.tetrad_cfo.fcfo_valiance()
+
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+
+        label = ['Dyad', 'Triad', 'Tetrad']
+
+        dyad_period = []
+        for i in range(len(dyad_valiance_period)):
+            aaa = pd.DataFrame({
+                'Variance of pitch FCFO (Nm)': dyad_valiance_period[i],
+                'Group size': label[0],
+                'Value': dyad_valiance[i]
+            }
+            )
+
+
