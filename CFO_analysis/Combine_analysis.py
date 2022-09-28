@@ -937,7 +937,7 @@ class combine:
         #     p.set(ylim=ylim[i])
         # plt.show()
 
-    def performance_fcfovariance(self):
+    def variance_analysis(self, mode='noabs'):
         dyad_valiance, dyad_valiance_period = self.dyad_cfo.fcfo_valiance()
         triad_valiance, triad_valiance_period = self.triad_cfo.fcfo_valiance()
         tetrad_valiance, tetrad_valiance_period = self.tetrad_cfo.fcfo_valiance()
@@ -946,15 +946,143 @@ class combine:
         error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
         error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
 
-        label = ['Dyad', 'Triad', 'Tetrad']
+        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec(mode)
+        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo_3sec(mode)
+        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo_3sec(mode)
 
-        dyad_period = []
-        for i in range(len(dyad_valiance_period)):
-            aaa = pd.DataFrame({
-                'Variance of pitch FCFO (Nm)': dyad_valiance_period[i],
-                'Group size': label[0],
-                'Value': dyad_valiance[i]
-            }
-            )
+
+        label = ['Dyad', 'Triad', 'Tetrad']
+        variance_label = [
+            'Variance of pitch FCFO(Nm)',
+            'Variance of roll FCFO(Nm)',
+        ]
+        performance_label = [
+            'error',
+            'spend',
+        ]
+        summation_label = [
+            'Summation of pitch FCFO(Nm)',
+            'Summation of roll FCFO(Nm)',
+        ]
+
+        summation_label = [
+                 'Summation Pitch FCFO (Avg)',
+                 'Summation Roll FCFO (Avg)']
+        ranges = [0.05, 0.05, 0.3, 0.3]
+
+        if mode == 'b_abs':
+            summation_label = [
+                     'Before abs.\nSummation Pitch FCFO (Avg)',
+                     'Before abs.\nSummation Roll FCFO (Avg)']
+            ranges = [0.2, 0.2, 2.0, 2.0]
+
+        if mode == 'a_abs':
+            summation_label = [
+                     'After abs.\nSummation Pitch FCFO (Avg)',
+                     'After abs.\nSummation Roll FCFO (Avg)']
+            ranges = [0.2, 0.2, 0.8, 0.8]
+
+
+
+
+        variance_period = [dyad_valiance_period, triad_valiance_period, tetrad_valiance_period]
+        error = [error_period_dyad, error_period_triad, error_period_tetrad]
+        spend = [spend_period_dyad, spend_period_triad, spend_period_tetrad]
+
+        summation = [
+            [dyad_pf, triad_pf, tetrad_pf],
+            [dyad_rf, triad_rf, tetrad_rf],
+        ]
+
+        periods = []
+        for l in range(len(label)):
+            period = []
+            for i, j, k, p, r in zip(variance_period[l], error[l], spend[l], summation[0][l], summation[1][l]):
+                period_ = pd.DataFrame({
+                    variance_label[0]: i[0],
+                    variance_label[1]: i[1],
+                    performance_label[0]: j,
+                    performance_label[1]: k,
+                    summation_label[0]: p,
+                    summation_label[1]: r,
+                    'Group size': label[l],
+                }
+                )
+
+                period.append(period_)
+            periods.append(pd.concat([_ for _ in period], axis=0).reset_index(drop=True))
+
+
+        df = pd.concat([_ for _ in periods], axis=0).reset_index(drop=True)
+        # print(df)
+
+
+
+        # fig = plt.figure(figsize=(10, 10), dpi=300)
+        # subplot = [fig.add_subplot(2, 2, i+1) for i in range(4)]
+        # for i in range(2):
+        #     for j in range(2):
+        #         g = sns.scatterplot(data=df, x=variance_label[j], y=performance_label[i], hue='Group size', ax=subplot[i*2+j], s=10)
+        #         for lh in g.legend_.legendHandles:
+        #             lh.set_alpha(1)
+        #             lh._sizes = [10]
+        #
+        # plt.tight_layout()
+        # plt.show()
+
+
+        # fig = plt.figure(figsize=(10, 10), dpi=300)
+        # subplot = [fig.add_subplot(1, 2, i+1) for i in range(2)]
+        # for j in range(2):
+        #     g = sns.scatterplot(data=df, x=variance_label[j], y=summation_label[j], hue='Group size', ax=subplot[j], s=10)
+        #     for lh in g.legend_.legendHandles:
+        #         lh.set_alpha(1)
+        #         lh._sizes = [10]
+        #
+        # # plt.tight_layout()
+        # plt.show()
+
+        kwargs = dict(
+            height=10,
+            aspect=1.5,
+            scatter=True,
+            # n_boot=1000,
+            # x_ci='sd',
+            order=1,
+        )
+        for i in range(2):
+            g = sns.lmplot(data=df, x=variance_label[i], y=summation_label[i], hue='Group size', **kwargs)
+
+        # plt.tight_layout()
+        plt.show()
+
+        # # cmap = ['Blues_r', 'Blues']
+        # cmap = ['plasma_r', 'plasma']
+        # fig = plt.figure(figsize=(10, 10), dpi=300)
+        # subplot = [fig.add_subplot(2, 2, i+1) for i in range(4)]
+        # for i in range(2):
+        #     for j in range(2):
+        #         points = subplot[i*2+j].scatter(x=df[variance_label[j]], y=df[summation_label[j]], c=df[performance_label[i]], cmap=cmap[i], s=1)
+        #         plt.colorbar(points, ax=subplot[i*2+j], label=performance_label[i])
+        #         subplot[i*2+j].set_xlabel(variance_label[j])
+        #         subplot[i*2+j].set_ylabel(summation_label[j])
+        #
+        # # plt.tight_layout()
+        # plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

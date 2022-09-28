@@ -210,5 +210,7 @@ if __name__ == '__main__':
 
     # com.performance_deviation()
 
-    com.dyad_cfo.fcfo_valiance()
+    # com.dyad_cfo.fcfo_valiance()
     # com.tetrad_cfo.fcfo_valiance(0)
+
+    com.variance_analysis()
