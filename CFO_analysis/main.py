@@ -227,9 +227,9 @@ if __name__ == '__main__':
     # com.triad_cfo.subtraction_performance_each_axis()
     # com.tetrad_cfo.subtraction_performance_each_axis()
 
-    # com.performance_deviation()
+    com.performance_deviation()
 
     # com.dyad_cfo.fcfo_valiance()
     # com.tetrad_cfo.fcfo_valiance(0)
 
-    com.variance_analysis('b_abs')
+    # com.variance_analysis('b_abs')
