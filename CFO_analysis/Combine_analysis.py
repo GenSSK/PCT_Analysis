@@ -578,7 +578,7 @@ class combine:
 
             plt.tight_layout()
             plt.savefig('fig/summation_ave_cfo_' + str(mode) + '.png')
-            # plt.show()
+            plt.show()
 
         return summation_3sec_datas
 
@@ -1036,17 +1036,17 @@ class combine:
 
 
 
-
-        fig = plt.figure(figsize=(10, 10), dpi=300)
-        subplot = [fig.add_subplot(2, 1, i+1) for i in range(2)]
-        for i in range(2):
-            for j in range(3):
-                df_ = df[df['Group size'] == label[j]]
-                sns.histplot(df_[variance_label[i]], kde=True, bins=10, label=label[j], ax=subplot[i], stat='probability')
-
-            plt.legend()
-        plt.tight_layout()
-        plt.show()
+        # ##histogram
+        # fig = plt.figure(figsize=(10, 10), dpi=300)
+        # subplot = [fig.add_subplot(2, 1, i+1) for i in range(2)]
+        # for i in range(2):
+        #     for j in range(3):
+        #         df_ = df[df['Group size'] == label[j]]
+        #         sns.histplot(df_[variance_label[i]], kde=True, bins=10, label=label[j], ax=subplot[i], stat='probability')
+        #
+        #     plt.legend()
+        # plt.tight_layout()
+        # plt.show()
 
 
 
@@ -1078,6 +1078,7 @@ class combine:
         # plt.show()
 
 
+        # ##summatio-variance
         # fig = plt.figure(figsize=(10, 10), dpi=300)
         # subplot = [fig.add_subplot(1, 2, i+1) for i in range(2)]
         # for j in range(2):
@@ -1089,6 +1090,7 @@ class combine:
         # # plt.tight_layout()
         # plt.show()
 
+        # # ##summatio-variance with regression
         # kwargs = dict(
         #     height=10,
         #     aspect=1.5,
@@ -1106,6 +1108,9 @@ class combine:
         # # plt.tight_layout()
         # plt.show()
 
+
+
+        # ##summatio-variance with performance
         # # cmap = ['Blues_r', 'Blues']
         # cmap = ['plasma_r', 'plasma']
         # fig = plt.figure(figsize=(10, 7), dpi=300)
@@ -1118,8 +1123,25 @@ class combine:
         #         subplot[i*2+j].set_ylabel(summation_label[j])
         #
         # # plt.tight_layout()
-        # plt.savefig('fig/variance_summation-'+str(mode)+'_performance.png')
+        # # plt.savefig('fig/variance_summation-'+str(mode)+'_performance.png')
         # plt.show()
+
+        ##summatio-variance with performance each axis
+        # cmap = ['Blues_r', 'Blues']
+        cmap = ['plasma_r', 'plasma']
+        fig = plt.figure(figsize=(10, 7), dpi=300)
+        subplot = [fig.add_subplot(2, 2, i + 1) for i in range(4)]
+        for i in range(2):
+            for j in range(2):
+                points = subplot[i * 2 + j].scatter(x=df[variance_label[j]], y=df[summation_label[j]],
+                                                    c=df[performance_ea_label[i][j]], cmap=cmap[i], s=1)
+                plt.colorbar(points, ax=subplot[i * 2 + j], label=performance_ea_label[i][j])
+                subplot[i * 2 + j].set_xlabel(variance_label[j])
+                subplot[i * 2 + j].set_ylabel(summation_label[j])
+
+        # plt.tight_layout()
+        # plt.savefig('fig/variance_summation-'+str(mode)+'_performance.png')
+        plt.show()
 
 
 

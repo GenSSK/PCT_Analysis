@@ -1117,6 +1117,7 @@ class CFO:
                 ax.set_xlim(xlim[j][0], xlim[j][1])
                 # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
                 g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i], hue='Group', s=marker_size)
+                # g.set(xscale="log")
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
                     lh._sizes = [10]
@@ -1126,7 +1127,7 @@ class CFO:
 
         plt.tight_layout()
         plt.savefig('fig/summation_performance_' + str(self.group_type) + '.png')
-        # plt.show()
+        plt.show()
 
 
 
@@ -1253,6 +1254,7 @@ class CFO:
                 ax.set_xlim(xlim[j][0], xlim[j][1])
                 # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
                 g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j%2], hue='Group', s=marker_size)
+                # g.set(yscale="log")
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
                     lh._sizes = [10]
@@ -1488,7 +1490,7 @@ class CFO:
 
         plt.tight_layout()
         plt.savefig('fig/summation_ave_performance_' + str(mode) + '_' +str(self.group_type) + '.png')
-        # plt.show()
+        plt.show()
 
     def subtraction_ave_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
