@@ -15,7 +15,7 @@ class CFO:
         self.smp = 0.0001  # サンプリング時間
         self.time = 3.0  # ターゲットの移動時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 20.0  # タスク開始時間
+        self.starttime = 29.0  # タスク開始時間
         self.endtime = 77.0  # タスク終了時間
         self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数
@@ -388,7 +388,6 @@ class CFO:
 
         return summation[0], summation[1], summation[2], summation[3]
 
-
     def performance_calc(self, data, ballx, bally):
         error = np.sqrt(
             (data['targetx'][self.start_num:self.end_num] - ballx[self.start_num:self.end_num]) ** 2
@@ -509,7 +508,6 @@ class CFO:
         plt.tight_layout()
         plt.show()
 
-
     def period_performance_cooperation(self):
         error_period_human, spend_period_human = CFO.period_performance_human(self)
         error_period_model, spend_period_model = CFO.period_performance_model(self)
@@ -517,7 +515,6 @@ class CFO:
         spend_period = np.subtract(spend_period_human, spend_period_model)
 
         return error_period, spend_period
-
 
     def performance_calc_each_axis(self, data, ballx, bally):
         errorx = np.abs(data['targetx'][self.start_num:self.end_num] - ballx[self.start_num:self.end_num])
@@ -530,7 +527,6 @@ class CFO:
 
 
         return errorx, errory, spentx, spenty
-
 
     def period_performance_human_each_axis(self, graph=1):
         errorx_period = []
@@ -700,7 +696,6 @@ class CFO:
         spendy_period = np.subtract(spendy_period_human, spendy_period_model)
 
         return errorx_period, errory_period, spendx_period, spendy_period
-
 
     def each_ocfo_performance(self, mode='normal'):
         error_period, spend_period = CFO.period_performance_cooperation(self)
@@ -873,7 +868,6 @@ class CFO:
             plt.tight_layout()
             plt.savefig('fig/sum_sub_performance_' + str(label[i]) + '_' + str(self.group_type) + '.png')
         plt.show()
-
 
     def period_ecfo(self, mode='normal'):
         ecfo = []
@@ -1128,8 +1122,6 @@ class CFO:
         plt.tight_layout()
         plt.savefig('fig/summation_performance_' + str(self.group_type) + '.png')
         plt.show()
-
-
 
     def subtraction_performance_each_axis(self):
         errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
@@ -1544,7 +1536,6 @@ class CFO:
         plt.savefig('fig/subtraction_ave_performance_' + str(self.group_type) + '.png')
         plt.show()
 
-
     def summation_ave_cfo(self, graph=1, mode='noabs'):
         summation = self.cfo[0]['i1_pcfo_sum'][self.start_num:self.end_num]
         types = ['_pcfo_sum', '_fcfo_sum', '_pcfo_sum_abs', '_fcfo_sum_abs']
@@ -1690,7 +1681,6 @@ class CFO:
 
         return subtraction[0], subtraction[1], subtraction[2], subtraction[3]
 
-
     def summation_ave_cfo_3sec(self, mode='noabs'):
         pcfo_summation, fcfo_summation, pcfo_abs_summation, fcfo_abs_summation = CFO.summation_ave_cfo(self, graph=1, mode=mode)
 
@@ -1707,7 +1697,6 @@ class CFO:
         fcfo_abs_summation_3sec = np.average(fcfo_abs_summation_3sec, axis=2)
 
         return pcfo_summation_3sec, fcfo_summation_3sec, pcfo_abs_summation_3sec, fcfo_abs_summation_3sec
-
 
     def subtraction_ave_cfo_3sec(self):
         pcfo_subtraction, fcfo_subtraction, pcfo_abs_subtraction, fcfo_abs_subtraction = CFO.subtraction_ave_cfo(self)
@@ -1760,7 +1749,74 @@ class CFO:
 
         return valiance, valiance_period
 
-
     def variance_calculation(self, data):
         variance = np.var(data, axis=0)
         return variance
+
+
+    def graph_sub_tf(self):
+        for j in range(len(self.cfo)):
+            fig, (rthm, pthm, rtext, ptext) = plt.subplots(4, 1, figsize=(5, 5), dpi=150, sharex=True)
+
+            plt.xticks(np.arange(self.starttime, self.endtime * 2, self.time * 2))
+            plt.xlim([self.starttime, self.endtime])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            data = self.cfo[j]
+            for i in range(self.join):
+                interfacenum = 'i' + str(i + 1)
+
+                thmname = interfacenum + '_r_thm_tf'
+                thm_prename = interfacenum + '_r_thm_pre_tf'
+                thm_prename_solo = interfacenum + '_r_thm_pre_solo_tf'
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+
+                thmname = interfacenum + '_p_thm_tf'
+                thm_prename = interfacenum + '_p_thm_pre_tf'
+                thm_prename_solo = interfacenum + '_p_thm_pre_solo_tf'
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+
+                textname = interfacenum + '_r_text_tf'
+                text_prename = interfacenum + '_r_text_pre_tf'
+                text_prename_solo = interfacenum + '_r_text_pre_solo_tf'
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+
+
+                textname = interfacenum + '_p_text_tf'
+                text_prename = interfacenum + '_p_text_pre_tf'
+                text_prename_solo = interfacenum + '_p_text_pre_solo_tf'
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+
+            rthm.set_ylabel('Roll angle (rad)')
+            rthm.legend(ncol=2, columnspacing=1, loc='upper left')
+            rthm.set_yticks(np.arange(-10, 10, 0.5))
+            rthm.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+            pthm.set_ylabel('Pitch angle (rad)')
+            pthm.legend(ncol=2, columnspacing=1, loc='upper left')
+            pthm.set_yticks(np.arange(-10, 10, 0.5))
+            pthm.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+            rtext.set_ylabel('Roll force (Nm)')
+            rtext.legend(ncol=2, columnspacing=1, loc='upper left')
+            rtext.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            rtext.set_ylim([-6.0, 6.0])  # y軸の範囲
+
+            ptext.set_ylabel('Pitch force (Nm)')
+            ptext.legend(ncol=2, columnspacing=1, loc='upper left')
+            ptext.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            ptext.set_ylim([-6.0, 6.0])  # y軸の範囲
+
+            plt.tight_layout()
+            # plt.savefig("response.png")
+        plt.show()
+
+

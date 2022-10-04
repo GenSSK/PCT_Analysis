@@ -235,3 +235,5 @@ if __name__ == '__main__':
     # com.variance_analysis('noabs')
     # com.variance_analysis('b_abs')
     # com.variance_analysis('a_abs')
+
+    com.dyad_cfo.graph_sub_tf()
