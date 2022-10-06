@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # com.tetrad_cfo.subtraction_performance()
 
     #和のCFOとパフォーマンスの確認
-    com.dyad_cfo.summation_performance()
+    # com.dyad_cfo.summation_performance()
     # com.triad_cfo.summation_performance()
     # com.tetrad_cfo.summation_performance()
     # com.dyad_cfo.summation_performance('b_abs')
@@ -236,4 +236,13 @@ if __name__ == '__main__':
     # com.variance_analysis('b_abs')
     # com.variance_analysis('a_abs')
 
-    com.dyad_cfo.graph_sub_tf()
+    # com.dyad_cfo.tf_graph_sub()
+    # com.triad_cfo.tf_graph_sub()
+    # com.tetrad_cfo.tf_graph_sub()
+
+    # com.dyad_cfo.tf_cfo_sub()
+    # com.triad_cfo.tf_cfo_sub()
+    # com.tetrad_cfo.tf_cfo_sub()
+
+    # com.dyad_cfo.work_calc()
+    com.dyad_cfo.work_diff(0)

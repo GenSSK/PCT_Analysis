@@ -1753,8 +1753,7 @@ class CFO:
         variance = np.var(data, axis=0)
         return variance
 
-
-    def graph_sub_tf(self):
+    def tf_graph_sub(self):
         for j in range(len(self.cfo)):
             fig, (rthm, pthm, rtext, ptext) = plt.subplots(4, 1, figsize=(5, 5), dpi=150, sharex=True)
 
@@ -1819,4 +1818,218 @@ class CFO:
             # plt.savefig("response.png")
         plt.show()
 
+    def tf_cfo_sub(self):
 
+        for j in range(len(self.cfo)):
+            data = self.cfo[j]
+
+            fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 8), dpi=150, sharex=True)
+
+            # plt.xlim([10, 60])  # x軸の範囲
+            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            for i in range(self.join):
+                interfacenum = 'i' + str(i + 1)
+                pcfoname = interfacenum + '_p_pcfo_tf'
+                fcfoname = interfacenum + '_p_fcfo_tf'
+
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
+
+                pcfoname = interfacenum + '_r_pcfo_tf'
+                fcfoname = interfacenum + '_r_fcfo_tf'
+
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
+
+
+            ppcfo.set_ylabel('Pitch PCFO (rad)')
+            ppcfo.legend(ncol=2, columnspacing=1, loc='upper left')
+            ppcfo.set_yticks(np.arange(-10, 10, 0.5))
+            ppcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+            rpcfo.set_ylabel('Roll PCFO (rad)')
+            rpcfo.legend(ncol=2, columnspacing=1, loc='upper left')
+            rpcfo.set_yticks(np.arange(-10, 10, 0.5))
+            rpcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+            pfcfo.set_ylabel('Pitch FCFO (Nm)')
+            pfcfo.legend(ncol=2, columnspacing=1, loc='upper left')
+            pfcfo.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            pfcfo.set_ylim([-6.0, 6.0])  # y軸の範囲
+
+            rfcfo.set_ylabel('Roll FCFO (Nm)')
+            rfcfo.legend(ncol=2, columnspacing=1, loc='upper left')
+            rfcfo.set_yticks(np.arange(-8.0, 8.0, 2.0))
+            rfcfo.set_ylim([-6.0, 6.0])  # y軸の範囲r
+
+            plt.tight_layout()
+            # plt.savefig("response.png")
+        plt.show()
+
+    def tf_summation_cfo_3sec(self, mode='noabs'):
+        ppcfo_summation, rpcfo_summation, pfcfo_summation, rfcfo_summation = CFO.tf_summation_cfo(self, graph=1, mode=mode)
+
+        ppcfo_summation_3sec = ppcfo_summation.reshape([len(self.cfo), -1, self.num])
+        ppcfo_summation_3sec = np.average(ppcfo_summation_3sec, axis=2)
+
+        rpcfo_summation_3sec = rpcfo_summation.reshape([len(self.cfo), -1, self.num])
+        rpcfo_summation_3sec = np.average(rpcfo_summation_3sec, axis=2)
+
+        pfcfo_summation_3sec = pfcfo_summation.reshape([len(self.cfo), -1, self.num])
+        pfcfo_summation_3sec = np.average(pfcfo_summation_3sec, axis=2)
+
+        rfcfo_summation_3sec = rfcfo_summation.reshape([len(self.cfo), -1, self.num])
+        rfcfo_summation_3sec = np.average(rfcfo_summation_3sec, axis=2)
+
+        return ppcfo_summation_3sec, rpcfo_summation_3sec, pfcfo_summation_3sec, rfcfo_summation_3sec
+
+    def tf_summation_cfo(self, graph=1, mode='noabs'):
+        summation = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
+        types = ['_p_pcfo_tf', '_r_pcfo_tf', '_p_fcfo_tf', '_r_fcfo_tf']
+        for type in types:
+            for j in range(len(self.cfo)):
+                data = self.cfo[j]
+                summation_ = data['i1_p_pcfo'][self.start_num:self.end_num]
+                for i in range(self.join):
+                    interfacenum = 'i' + str(i + 1)
+                    pcfoname = interfacenum + type
+
+                    summation_ = np.vstack((summation_, data[pcfoname][self.start_num:self.end_num]))
+                summation_ = np.delete(summation_, 0, 0)
+                if mode == 'b_abs':
+                    summation_ = np.abs(summation_)
+                summation = np.vstack((summation, np.sum(summation_, axis=0)))
+
+            # print(summation_)
+        summation = np.delete(summation, 0, 0)
+        # print(summation.shape)
+        summation = summation.reshape([4, len(self.cfo), -1])
+        summation = summation / self.cfo[0]['join'][0]
+        if mode == 'a_abs':
+            summation = np.abs(summation)
+
+        if graph == 0:
+            fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
+
+            # plt.xlim([10, 60])  # x軸の範囲
+            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                           label='Group' + str(i + 1))
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                           label='Group' + str(i + 1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], summation[2][i][::10],
+                           label='Group' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], summation[3][i][::10],
+                           label='Group' + str(i + 1))
+
+            ppcfo.set_ylabel('Summation\nPitch PCFO (rad)')
+            rpcfo.set_ylabel('Summation\nRoll PCFO (rad)')
+            pfcfo.set_ylabel('Summation\nPitch FCFO (Nm)')
+            rfcfo.set_ylabel('Summation\nRoll FCFO (Nm)')
+
+            ppcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            rpcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            pfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+            rfcfo.legend(ncol=10, columnspacing=1, loc='upper left')
+
+            ppcfo.set_yticks(np.arange(-10, 10, 0.5))
+            rpcfo.set_yticks(np.arange(-10, 10, 0.5))
+            pfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+            rfcfo.set_yticks(np.arange(-8.0, 8.0, 1.0))
+
+            ppcfo.set_ylim([0, 1.0])  # y軸の範囲
+            rpcfo.set_ylim([0, 1.0])  # y軸の範囲
+            pfcfo.set_ylim([0, 4.0])  # y軸の範囲
+            rfcfo.set_ylim([0, 4.0])  # y軸の範囲
+
+            plt.tight_layout()
+            plt.savefig('fig/tf_summation_cfo_' + str(self.group_type) + '.png')
+            plt.show()
+
+
+        return summation[0], summation[1], summation[2], summation[3]
+
+    def work_calc(self, mode='human'):
+        flabel = ['_p_text_tf', '_r_text_tf']
+        plabel = ['_p_thm_tf', '_r_thm_tf']
+
+        if mode == 'model':
+            flabel = ['_p_text_pre_tf', '_r_text_pre_tf']
+            plabel = ['_p_thm_pre_tf', '_r_thm_pre_tf']
+
+        work = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            for j in range(self.join):
+                interfacenum = 'i' + str(j + 1)
+                for k in range(len(flabel)):
+                    thm_data = data[interfacenum + plabel[k]][self.start_num:self.end_num]
+                    thm_data_ = np.append(np.zeros(1), thm_data)
+                    thm_diff = np.diff(thm_data_)
+
+                    work.append(thm_diff * data[interfacenum + flabel[k]][self.start_num:self.end_num])
+
+        work_np_ = np.concatenate([work[_] for _ in range(len(work))])
+        work_np = work_np_.reshape([len(self.cfo), self.join, len(flabel), -1])
+        return work_np
+
+    def work_diff(self, graph=1):
+        work_human = self.work_calc(mode='human')
+        work_model = self.work_calc(mode='model')
+
+        work_diff = work_human - work_model
+
+        if graph == 0:
+            for j in range(len(self.cfo)):
+                data = self.cfo[j]
+
+                fig, (pwork, rwork) = plt.subplots(2, 1, figsize=(5, 8), dpi=150, sharex=True)
+
+                # plt.xlim([10, 60])  # x軸の範囲
+                # plt.xlim([0.28, 0.89])  # x軸の範囲
+                plt.xlabel("Time (sec)")
+
+                for i in range(self.join):
+                    interfacenum = 'i' + str(i + 1)
+                    pwork.plot(data['time'][self.start_num:self.end_num:10],
+                               work_human[j][i][0][::10], label='P' + str(i + 1))
+                    pwork.plot(data['time'][self.start_num:self.end_num:10],
+                               work_model[j][i][0][::10], label='P' + str(i + 1))
+                    pwork.plot(data['time'][self.start_num:self.end_num:10],
+                               work_diff[j][i][0][::10], label='P' + str(i + 1))
+
+                    rwork.plot(data['time'][self.start_num:self.end_num:10],
+                               work_human[j][i][1][::10], label='P' + str(i + 1))
+                    rwork.plot(data['time'][self.start_num:self.end_num:10],
+                               work_diff[j][i][1][::10], label='P' + str(i + 1))
+
+                pwork.set_ylabel('Work (J)')
+                pwork.legend(ncol=2, columnspacing=1, loc='upper left')
+                # pwork.set_yticks(np.arange(-10, 10, 0.5))
+                # pwork.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+                rwork.set_ylabel('Work (J)')
+                rwork.legend(ncol=2, columnspacing=1, loc='upper left')
+                # rwork.set_yticks(np.arange(-10, 10, 0.5))
+                # rwork.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+                plt.tight_layout()
+                # plt.savefig("response.png")
+            plt.show()
+
+
+
+
+
+
+
+
+
+        return work_diff
