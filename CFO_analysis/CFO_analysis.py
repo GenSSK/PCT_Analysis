@@ -1959,10 +1959,17 @@ class CFO:
     def work_calc(self, mode='human'):
         flabel = ['_p_text_tf', '_r_text_tf']
         plabel = ['_p_thm_tf', '_r_thm_tf']
+        flabel = ['_p_text', '_r_text']
+        plabel = ['_p_thm', '_r_thm']
 
         if mode == 'model':
             flabel = ['_p_text_pre_tf', '_r_text_pre_tf']
             plabel = ['_p_thm_pre_tf', '_r_thm_pre_tf']
+            flabel = ['_p_text_pre', '_r_text_pre']
+            plabel = ['_p_thm_pre', '_r_thm_pre']
+
+        omegac =10.0
+        Ts = 0.0001
 
         work = []
         for i in range(len(self.cfo)):
@@ -1971,10 +1978,16 @@ class CFO:
                 interfacenum = 'i' + str(j + 1)
                 for k in range(len(flabel)):
                     thm_data = data[interfacenum + plabel[k]][self.start_num:self.end_num]
-                    thm_data_ = np.append(np.zeros(1), thm_data)
+                    thm_data_lpf = CFO.lpf_1st_order(self, thm_data, omegac, Ts)
+                    thm_data_ = np.append(np.zeros(1), thm_data_lpf)
                     thm_diff = np.diff(thm_data_)
 
-                    work.append(thm_diff * data[interfacenum + flabel[k]][self.start_num:self.end_num])
+                    text_data = data[interfacenum + flabel[k]][self.start_num:self.end_num]
+                    text_data_lpf = CFO.lpf_1st_order(self, text_data, omegac, Ts)
+
+                    diff = thm_diff * text_data_lpf
+
+                    work.append(diff)
 
         work_np_ = np.concatenate([work[_] for _ in range(len(work))])
         work_np = work_np_.reshape([len(self.cfo), self.join, len(flabel), -1])
@@ -1998,24 +2011,20 @@ class CFO:
 
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
-                    pwork.plot(data['time'][self.start_num:self.end_num:10],
-                               work_human[j][i][0][::10], label='P' + str(i + 1))
-                    pwork.plot(data['time'][self.start_num:self.end_num:10],
-                               work_model[j][i][0][::10], label='P' + str(i + 1))
-                    pwork.plot(data['time'][self.start_num:self.end_num:10],
-                               work_diff[j][i][0][::10], label='P' + str(i + 1))
+                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][0][::10], label='P' + str(i + 1) + 'Human')
+                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][0][::10], label='P' + str(i + 1) + 'Model')
+                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
 
-                    rwork.plot(data['time'][self.start_num:self.end_num:10],
-                               work_human[j][i][1][::10], label='P' + str(i + 1))
-                    rwork.plot(data['time'][self.start_num:self.end_num:10],
-                               work_diff[j][i][1][::10], label='P' + str(i + 1))
+                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][1][::10], label='P' + str(i + 1) + 'Human')
+                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][1][::10], label='P' + str(i + 1) + 'Model')
+                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
 
-                pwork.set_ylabel('Work (J)')
+                pwork.set_ylabel('Pitch work (J)')
                 pwork.legend(ncol=2, columnspacing=1, loc='upper left')
                 # pwork.set_yticks(np.arange(-10, 10, 0.5))
                 # pwork.set_ylim([-1.5, 1.5])  # y軸の範囲
 
-                rwork.set_ylabel('Work (J)')
+                rwork.set_ylabel('Roll work (J)')
                 rwork.legend(ncol=2, columnspacing=1, loc='upper left')
                 # rwork.set_yticks(np.arange(-10, 10, 0.5))
                 # rwork.set_ylim([-1.5, 1.5])  # y軸の範囲
@@ -2033,3 +2042,21 @@ class CFO:
 
 
         return work_diff
+
+    def lpf_1st_order(self, data, omegac, Ts):
+        T = omegac * Ts
+
+        data_now = 0.0
+        data_old = 0.0
+        data_lpf_now = 0.0
+        data_lpf_old = 0.0
+
+        data_lpf = np.zeros(len(data))
+        for l in range(len(data)):
+            data_now = data[l]
+            data_lpf_now = (2-T)/(2+T)*data_lpf_old + T/(2+T)*(data_now + data_old)
+            data_lpf[l] = data_lpf_now
+            data_lpf_old = data_lpf_now
+            data_old = data_now
+
+        return data_lpf
