@@ -245,6 +245,6 @@ if __name__ == '__main__':
     # com.tetrad_cfo.tf_cfo_sub()
 
     # com.dyad_cfo.work_calc()
-    # com.dyad_cfo.work_diff(0)
-    com.triad_cfo.work_diff(0)
+    com.dyad_cfo.work_diff(0)
+    # com.triad_cfo.work_diff(0)
     # com.tetrad_cfo.work_diff(0)

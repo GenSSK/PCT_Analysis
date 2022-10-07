@@ -2013,11 +2013,11 @@ class CFO:
                     interfacenum = 'i' + str(i + 1)
                     pwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][0][::10], label='P' + str(i + 1) + 'Human')
                     pwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][0][::10], label='P' + str(i + 1) + 'Model')
-                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
+                    # pwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
 
                     rwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][1][::10], label='P' + str(i + 1) + 'Human')
                     rwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][1][::10], label='P' + str(i + 1) + 'Model')
-                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
+                    # rwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
 
                 pwork.set_ylabel('Pitch work (J)')
                 pwork.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -2032,14 +2032,6 @@ class CFO:
                 plt.tight_layout()
                 # plt.savefig("response.png")
             plt.show()
-
-
-
-
-
-
-
-
 
         return work_diff
 
