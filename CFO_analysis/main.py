@@ -79,15 +79,17 @@ if __name__ == '__main__':
         # 'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_1234_CFO.npz',
         # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_1234_CFO.npz',
 
-        'tetrad/2022-07-30_k.ohya_r.tanaka_y.baba_m.nakamura_1234_CFO.npz',
-        'tetrad/2022-07-30_r.tanaka_h.nishimura_k.tozuka_b.poitrimol_4123_CFO.npz',
-        'tetrad/2022-07-30_s.watanabe_h.nishimura_y.baba_y.yoshida_3421_CFO.npz',
-        'tetrad/2022-07-30_s.watanabe_ko.kobayashi_y.baba_k.tozuka_1324_CFO.npz',
-        'tetrad/2022-07-30_y.inoue_y.yoshida_n.ito_s.sanuka_1234_CFO.npz',
-        'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421_CFO.npz',
-        'tetrad/2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234_CFO.npz',
-        'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413_CFO.npz',
-        'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341_CFO.npz',
+        # 'tetrad/2022-07-30_k.ohya_r.tanaka_y.baba_m.nakamura_1234_CFO.npz',
+        # 'tetrad/2022-07-30_r.tanaka_h.nishimura_k.tozuka_b.poitrimol_4123_CFO.npz',
+        # 'tetrad/2022-07-30_s.watanabe_h.nishimura_y.baba_y.yoshida_3421_CFO.npz',
+        # 'tetrad/2022-07-30_s.watanabe_ko.kobayashi_y.baba_k.tozuka_1324_CFO.npz',
+        # 'tetrad/2022-07-30_y.inoue_y.yoshida_n.ito_s.sanuka_1234_CFO.npz',
+        # 'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421_CFO.npz',
+        # 'tetrad/2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234_CFO.npz',
+        # 'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413_CFO.npz',
+        # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341_CFO.npz',
+
+        'tetrad/2022-10-07_t.test_t.test_t.test_t.test_1234_CFO.npz',
     ]
 
     dyad_npz = npz.select_load(dyad_npz_filename)
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     ##予測確認
     # com.dyad_cfo.graph_sub()
     # com.triad_cfo.graph_sub()
-    # com.tetrad_cfo.graph_sub()
+    com.tetrad_cfo.graph_sub()
 
     ##タスク確認
     # com.dyad_cfo.task_show()
@@ -245,6 +247,6 @@ if __name__ == '__main__':
     # com.tetrad_cfo.tf_cfo_sub()
 
     # com.dyad_cfo.work_calc()
-    com.dyad_cfo.work_diff(0)
+    # com.dyad_cfo.work_diff(0)
     # com.triad_cfo.work_diff(0)
     # com.tetrad_cfo.work_diff(0)

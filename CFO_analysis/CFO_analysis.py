@@ -15,8 +15,8 @@ class CFO:
         self.smp = 0.0001  # サンプリング時間
         self.time = 3.0  # ターゲットの移動時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 29.0  # タスク開始時間
-        self.endtime = 77.0  # タスク終了時間
+        self.starttime = 20.0  # タスク開始時間
+        self.endtime = 80.0  # タスク終了時間
         self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数
         self.num = int(self.time / self.smp)  # 1ピリオドにおけるデータ数
@@ -76,21 +76,21 @@ class CFO:
                 thm_prename = interfacenum + '_r_thm_pre'
                 thm_prename_solo = interfacenum + '_r_thm_pre_solo'
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
                 thm_prename_solo = interfacenum + '_p_thm_pre_solo'
                 pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
                 # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text'
                 text_prename = interfacenum + '_r_text_pre'
                 text_prename_solo = interfacenum + '_r_text_pre_solo'
                 rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
 
