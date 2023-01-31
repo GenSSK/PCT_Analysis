@@ -277,8 +277,10 @@ class each:
             plt.show()
             plt.show()
 
+        error_period_array = np.vstack((error_period[_] for _ in range(len(error_period))))
+        spent_period_array = np.vstack((spent_period[_] for _ in range(len(spent_period))))
 
-        return error_period, spent_period
+        return error_period_array, spent_period_array
 
     def period_calculation(self, data):
         data_reshape = data.reshape([self.period, self.num])  # [回数][データ]にわける
@@ -349,51 +351,134 @@ class each:
         return subtraction[0], subtraction[1]
 
 
-    def subtraction_cfo_3sec(self):
-        pthm_subtraction, rthm_subtraction= each.subtraction_cfo(self)
+    def subtraction_position_3sec(self):
+        pthm_subtraction, rthm_subtraction= each.subtraction_position(self)
 
         pthm_subtraction_3sec = pthm_subtraction.reshape([len(self.data), -1, self.num])
         pthm_subtraction_3sec = np.average(pthm_subtraction_3sec, axis=2)
 
         rthm_subtraction_3sec = rthm_subtraction.reshape([len(self.data), -1, self.num])
-        rthm_subtraction_3sec = np.average(rpcfo_subtraction_3sec, axis=2)
+        rthm_subtraction_3sec = np.average(rthm_subtraction_3sec, axis=2)
 
         return pthm_subtraction_3sec, rthm_subtraction_3sec
 
-    def subtraction_ave_cfo_3sec(self):
-        pcfo_subtraction, fcfo_subtraction, pcfo_abs_subtraction, fcfo_abs_subtraction = CFO.subtraction_ave_cfo(self)
+    def subtraction_ave_position_3sec(self):
+        pthm_subtraction, rthm_subtraction = each.subtraction_position_3sec(self)
 
-        pcfo_subtraction_3sec = pcfo_subtraction.reshape([len(self.cfo), -1, self.num])
-        pcfo_subtraction_3sec = np.average(pcfo_subtraction_3sec, axis=2)
+        pthm_subtraction_3sec = pthm_subtraction.reshape([len(self.data), -1, self.num])
+        pthm_subtraction_3sec = np.average(pthm_subtraction_3sec, axis=2)
 
-        fcfo_subtraction_3sec = fcfo_subtraction.reshape([len(self.cfo), -1, self.num])
-        fcfo_subtraction_3sec = np.average(fcfo_subtraction_3sec, axis=2)
+        rthm_subtraction_3sec = rthm_subtraction.reshape([len(self.data), -1, self.num])
+        rthm_subtraction_3sec = np.average(rthm_subtraction_3sec, axis=2)
 
-        pcfo_abs_subtraction_3sec = pcfo_abs_subtraction.reshape([len(self.cfo), -1, self.num])
-        pcfo_abs_subtraction_3sec = np.average(pcfo_abs_subtraction_3sec, axis=2)
-
-        fcfo_abs_subtraction_3sec = fcfo_abs_subtraction.reshape([len(self.cfo), -1, self.num])
-        fcfo_abs_subtraction_3sec = np.average(fcfo_abs_subtraction_3sec, axis=2)
-
-        return pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec
+        return pthm_subtraction_3sec, rthm_subtraction_3sec
 
 
 
+    def summation_force(self, graph=1, mode='abs'):
+        summation = self.data[0]['i1_p_text'][self.start_num:self.end_num]
+        types = ['_p_text', '_r_text']
+        for type in types:
+            for j in range(len(self.data)):
+                data = self.data[j]
+                summation_ = data['i1_p_text'][self.start_num:self.end_num]
+                for i in range(self.join):
+                    interfacenum = 'i' + str(i + 1)
+                    dataname = interfacenum + type
+
+                    summation_ = np.vstack((summation_, data[dataname][self.start_num:self.end_num]))
+                summation_ = np.delete(summation_, 0, 0)
+                # summation_ = np.abs(summation_)
+                summation = np.vstack((summation, np.sum(summation_, axis=0)))
+
+            # print(summation_)
+        summation = np.delete(summation, 0, 0)
+        # print(summation.shape)
+        summation = summation.reshape([len(types), len(self.data), -1])
+        # summation = summation / self.cfo[0]['join'][0]
+        if mode == 'abs':
+            summation = np.abs(summation)
+
+        if graph == 0:
+            fig, (ptext, rtxt) = plt.subplots(2, 1, figsize=(5, 7), dpi=150, sharex=True)
+
+            # plt.xlim([10, 60])  # x軸の範囲
+            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            for i in range(len(self.data)):
+                data = self.data[i]
+
+                ptext.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                           label='Group' + str(i + 1))
+                rtxt.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                           label='Group' + str(i + 1))
+
+            ptext.set_ylabel('Summation\nforce (Nm)')
+            rtxt.set_ylabel('Summation\nforce (Nm)')
+
+            ptext.legend(ncol=10, columnspacing=1, loc='upper left')
+            rtxt.legend(ncol=10, columnspacing=1, loc='upper left')
+
+            ptext.set_yticks(np.arange(-10, 10, 0.5))
+            rtxt.set_yticks(np.arange(-10, 10, 0.5))
+
+            ptext.set_ylim([0, 5.0])  # y軸の範囲
+            rtxt.set_ylim([0, 5.0])  # y軸の範囲
+
+            plt.tight_layout()
+            os.makedirs('fig/summation_force', exist_ok=True)
+            plt.savefig('fig/summation_force/' + str(self.group_type) + '.png')
+            plt.show()
 
 
+        return summation[0], summation[1]
 
 
+    def summation_force_3sec(self):
+        ptext_summation, rtext_summation= each.summation_force(self)
 
+        ptext_summation_3sec = ptext_summation.reshape([len(self.data), -1, self.num])
+        ptext_summation_3sec = np.average(ptext_summation_3sec, axis=2)
 
+        rtext_summation_3sec = rtext_summation.reshape([len(self.data), -1, self.num])
+        rtext_summation_3sec = np.average(rtext_summation_3sec, axis=2)
 
+        return ptext_summation_3sec, rtext_summation_3sec
 
+    def estimation_task_inertia(self, graph=1):
+        pitch_sum_force, roll_sum_force = each.summation_force(self, mode='no_abs')
 
+        if graph == 0:
+            for i in range(len(self.data)):
+                data = self.data[i]
 
+                fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
+                x.scatter(pitch_sum_force[0][::10], data['pitch_ddot'][self.start_num:self.end_num:10], s=2)
+                x.set_xlabel('sumation force')
+                x.set_ylabel('pitch_ddot')
+                # x.legend(ncol=2, columnspacing=1, loc='upper left')
+                x.set_ylim([-20, 20.0])  # y軸の範囲
+                x.set_xlim([-4, 4.0])  # y軸の範囲
 
+                y.scatter(roll_sum_force[0][::10], data['roll_ddot'][self.start_num:self.end_num:10], s=2)
+                y.set_xlabel('sumation force')
+                y.set_ylabel('roll_ddot')
+                # x.legend(ncol=2, columnspacing=1, loc='upper left')
+                y.set_ylim([-20, 20.0])  # y軸の範囲
+                y.set_xlim([-4, 4.0])  # y軸の範囲
 
+                plt.tight_layout()
+                # plt.savefig("First_time_target_movement.png")
+            plt.show()
 
+        # print(self.data[0]['pitch_ddot'][self.start_num:self.end_num:10])
+        pitch_ddot = np.vstack((self.data[_]['pitch_ddot'][self.start_num:self.end_num] for _ in range(len(self.data))))
+        roll_ddot = np.vstack((self.data[_]['roll_ddot'][self.start_num:self.end_num] for _ in range(len(self.data))))
+        # print(pitch_ddot.shape)
 
+        return pitch_ddot, roll_ddot
 
     def variance_calculation(self, data):
         variance = np.var(data, axis=0)

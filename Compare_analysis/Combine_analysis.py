@@ -269,6 +269,8 @@ class combine:
 
         df_sp = pd.concat([i for i in sp_melt], axis=0)
 
+        print(df_sp)
+
         # sns.boxplot(x="variable", y="value", data=df_sp, ax=ax, sym="")
         sns.barplot(x='Group', y='value', data=df_sp, hue='variable', dodge=True,
                     color='black', palette='Paired', ax=ax)
@@ -285,154 +287,107 @@ class combine:
         df_ep.rename(columns={'value': 'Error'}, inplace=True)
         df_ep.rename(columns={'variable': 'Types'}, inplace=True)
         df_sp.rename(columns={'value': 'Spent time'}, inplace=True)
-        df_sp.drop(['variable', 'Group'], axis=1, inplace=True)
+        df_sp.rename(columns={'variable': 'Types'}, inplace=True)
+
+        df_sp.drop(['Types', 'Group'], axis=1, inplace=True)
         df = pd.concat([df_ep, df_sp], axis=1)
         # print(df)
         return df
-    def performance_hist(self):
-        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
-        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
-        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
 
-        error_period_dyad = error_period_dyad.reshape(-1)
-        error_period_triad = error_period_triad.reshape(-1)
-        error_period_tetrad = error_period_tetrad.reshape(-1)
-        spend_period_dyad = spend_period_dyad.reshape(-1)
-        spend_period_triad = spend_period_triad.reshape(-1)
-        spend_period_tetrad = spend_period_tetrad.reshape(-1)
+    def performance_each_ave(self, graph=1):
+        error_period_PP, spend_period_PP = self.PP.period_performance()
+        error_period_AdPD, spend_period_AdPD = self.AdPD.period_performance()
+        error_period_AdAc, spend_period_AdAc = self.AdAc.period_performance()
+        error_period_Bi, spend_period_Bi = self.Bi.period_performance()
+
+        types = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
 
 
+        # error_ = [error_period_PP, error_period_AdPD, error_period_AdAc, error_period_Bi]
+        # spend = np.array((np.array(spend_period_PP), np.array(spend_period_AdPD), np.array(spend_period_AdAc), np.array(spend_period_Bi)))
+        error = np.array((error_period_PP, error_period_AdPD, error_period_AdAc, error_period_Bi))
+        spend = np.array((spend_period_PP, spend_period_AdPD, spend_period_AdAc, spend_period_Bi))
 
-        error = pd.DataFrame({
-            'Dyad': error_period_dyad,
-            'Triad': error_period_triad,
-            'Tetrad': error_period_tetrad,
-        }
-        )
+        per = np.array((error, spend))
+        per_ave = np.average(per, axis=3)
 
-        spend = pd.DataFrame({
-            'Dyad': spend_period_dyad,
-            'Triad': spend_period_triad,
-            'Tetrad': spend_period_tetrad,
-        }
-        )
-
-        performence = [error, spend]
-        label = ['error', 'spend']
-
-        xlim = [
-            (-0.1, 0.1),
-            (-1, 1),
-        ]
-        xtics = [
-            (np.arange(-5, 5, 1)),
-            (np.arange(-1, 1, 1)),
-        ]
-
-        mode = ['Dyad', 'Triad', 'Tetrad']
-        kwargs = dict(hist_kws={'alpha': .6}, kde_kws={'linewidth': 2})
-
-        for i in range(len(performence)):
-            fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
-            for j in range(3):
-                sns.histplot(performence[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j])
-
-                ax[j].set_title(mode[i])
-                ax[j].set_xlim(xlim[i])
-            plt.tight_layout()
-            plt.savefig('fig/performance_hist_' + str(label[i]) + '.png')
-        plt.show()
-
-    def performance_bootstrap(self):
-        R = 100000
-        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
-        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
-        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
-
-        data = [
-            error_period_dyad,
-            error_period_triad,
-            error_period_tetrad,
-            spend_period_dyad,
-            spend_period_triad,
-            spend_period_tetrad,
-        ]
-
-        bs_data = []
-
-        for i in range(len(data)):
-            bs_data.append(combine.bootstrap(self, data[i], R))
+        # print(per_ave.shape)
 
 
-        reshape_data = [data[_].reshape(-1) for _ in range(6)]
-        bs_reshape_data = [bs_data[_].reshape(-1) for _ in range(6)]
+        df_error_ = pd.DataFrame({
+            types[0]: per_ave[0][0],
+            types[1]: per_ave[0][1],
+            types[2]: per_ave[0][2],
+            types[3]: per_ave[0][3],
+        })
 
-        error = pd.DataFrame({
-            'Dyad': reshape_data[0],
-            'Triad': reshape_data[1],
-            'Tetrad': reshape_data[2],
-        }
-        )
+        df_error = pd.melt(df_error_)
+        df_error['Group'] = [_ for _ in range(1, len(error_period_PP) + 1)] * len(types)
+        df_error.rename(columns={'value': 'Error'}, inplace=True)
+        df_error.rename(columns={'variable': 'Types'}, inplace=True)
 
-        spend = pd.DataFrame({
-            'Dyad': reshape_data[3],
-            'Triad': reshape_data[4],
-            'Tetrad': reshape_data[5],
-        }
-        )
-        performance = [error, spend]
+        df_spent_ = pd.DataFrame({
+            types[0]: per_ave[1][0],
+            types[1]: per_ave[1][1],
+            types[2]: per_ave[1][2],
+            types[3]: per_ave[1][3],
+        })
 
-        bs_error = pd.DataFrame({
-            'Dyad': bs_reshape_data[0],
-            'Triad': bs_reshape_data[1],
-            'Tetrad': bs_reshape_data[2],
-        }
-        )
+        df_spent = pd.melt(df_spent_)
+        df_spent['Group'] = [_ for _ in range(1, len(error_period_PP) + 1)] * len(types)
+        df_spent.rename(columns={'value': 'Spent time'}, inplace=True)
+        df_spent.rename(columns={'variable': 'Types'}, inplace=True)
 
-        bs_spend = pd.DataFrame({
-            'Dyad': bs_reshape_data[3],
-            'Triad': bs_reshape_data[4],
-            'Tetrad': bs_reshape_data[5],
-        }
-        )
-        bs_performance = [bs_error, bs_spend]
-        label = ['Error', 'Spend']
+        df = pd.concat([df_error, df_spent['Spent time']], axis=1)
+
+        df_error_.to_csv('csv/performance_ave_error.csv', index=False)
+        df_spent_.to_csv('csv/performance_ave_spent.csv', index=False)
+        # print(df)
+
+        # print(df_error_)
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            fig_per = plt.figure(figsize=(10, 7), dpi=150)
+
+            ax = fig_per.add_subplot(2, 1, 1)
+
+            ax.set_ylim(0.03, 0.05)
+
+            sns.boxplot(x="Types", y="Error", data=df, ax=ax, sym="")
+            # sns.barplot(x='Types', y='Error', data=df, hue='Group', dodge=True,
+            #             color='black', palette='Paired', ax=ax)
+            sns.stripplot(x='Types', y='Error', data=df, hue='Group', dodge=True,
+                          jitter=0.1, color='black', palette='Paired', ax=ax)
+
+            # ax.legend_.axes.set_title('')
+            ax.set_ylabel('Error Period')
+
+            # fig_spend = plt.figure(figsize=(10, 7), dpi=150)
+            ax = fig_per.add_subplot(2, 1, 2)
+
+            ax.set_ylim(1.2, 2.2)
 
 
-        xlim = [
-            (-0.1, 0.1),
-            (-1, 1),
-        ]
-        xtics = [
-            (np.arange(-5, 5, 1)),
-            (np.arange(-1, 1, 1)),
-        ]
+            sns.boxplot(x="Types", y="Spent time", data=df, ax=ax, sym="")
+            # sns.barplot(x='Group', y='value', data=df_sp, hue='variable', dodge=True,
+            #             color='black', palette='Paired', ax=ax)
+            sns.stripplot(x='Types', y='Spent time', data=df, hue='Group', dodge=True,
+                          jitter=0.1, color='black', palette='Paired', ax=ax)
 
-        mode = ['Dyad', 'Triad', 'Tetrad']
-        kwargs = dict(hist_kws={'alpha': .6}, kde_kws={'linewidth': 2})
-
-        fig, ax_box = plt.subplots(1, 2, figsize=(10, 7), dpi=150)
-        for i in range(2):
-            fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
-            for j in range(3):
-                sns.histplot(performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
-                sns.histplot(bs_performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
-
-                ax[j].set_title(mode[j])
-                ax[j].set_xlim(xlim[i])
-
-            plt.title(label[i])
-            plt.tight_layout()
-            plt.savefig('fig/performance_bootstrap_hist_' + str(label[i]) + '.png')
-
-            df = pd.melt(performance[0])
-            bs_df = pd.melt(bs_performance[0])
-            # sns.boxplot(x="variable", y="value", data=df, ax=ax_box[i], sym="")
-            sns.boxplot(x="variable", y="value", data=bs_df, ax=ax_box[i], sym="")
+            # ax.legend_ = None
+            ax.set_ylabel('Spent Period')
+            # ax.legend_.axes.set_title('')
+            # ax.set_ylim(-0.5, 0.5)
 
             plt.tight_layout()
-        plt.savefig('fig/performance_bootstrap.png')
-        plt.show()
+            plt.savefig('fig/performance_comparison_ave.png')
+            plt.show()
+
+        return df
 
 
 
@@ -449,660 +404,337 @@ class combine:
 
 
 
-    def summation_ave_cfo(self, graph=1, mode='noabs'):
-        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
-        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
-        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
+    def summation_ave_force(self, graph=1):
+        PP_ptext, PP_rtext = self.PP.summation_force_3sec()
+        AdPD_ptext, AdPD_rtext = self.AdPD.summation_force_3sec()
+        AdAc_ptext, AdAc_rtext = self.AdAc.summation_force_3sec()
+        Bi_ptext, Bi_rtext = self.Bi.summation_force_3sec()
+
+        type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
+
+        porr = ['pitch', 'roll']
+
+        types = ['Avg. summation pitch force (Nm)',
+                 'Avg. summation roll force (Nm)',
+                 ]
+
+        exp_num = [_ for _ in range(1, len(PP_ptext[0]) + 1)]
+
+
         summation_3sec_datas = [
-            [dyad_p, triad_p, tetrad_p],
-            [dyad_f, triad_f, tetrad_f],
-            [dyad_pa, triad_pa, tetrad_pa],
-            [dyad_fa, triad_fa, tetrad_fa],
+            [PP_ptext, AdPD_ptext, AdAc_ptext, Bi_ptext],
+            [PP_rtext, AdPD_rtext, AdAc_rtext, Bi_rtext],
         ]
 
-        if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
+        df = []
 
-            types = ['Summation PCFO (Avg)',
-                     'Summation FCFO (Avg)',
-                     'Summation abs. PCFO (Avg)',
-                     'Summation abs. FCFO (Avg)']
-            ranges = [0.06, 0.5, 0.3, 4.0]
-
-            if mode == 'b_abs':
-                types = ['Before abs.\nSummation PCFO (Avg)',
-                         'Before abs.\nSummation FCFO (Avg)',
-                         'Before abs.\nSummation abs. PCFO (Avg)',
-                         'Before abs.\nSummation abs. FCFO (Avg)']
-                ranges = [0.25, 3.0, 0.25, 3.0]
-
-            if mode == 'a_abs':
-                types = ['After abs.\nSummation PCFO (Avg)',
-                         'After abs.\nSummation FCFO (Avg)',
-                         'After abs.\nSummation abs. PCFO (Avg)',
-                         'After abs.\nSummation abs. FCFO (Avg)']
-                ranges = [0.2, 1.0, 0.25, 3.0]
-
-
-
-            fig = plt.figure(figsize=(10, 7), dpi=150)
-
-            plot = [
-                fig.add_subplot(2, 2, 1),
-                fig.add_subplot(2, 2, 2),
-                fig.add_subplot(2, 2, 3),
-                fig.add_subplot(2, 2, 4),
-            ]
-
-            for j in range(len(plot)):
-                dfpp = []
-                dfpp_melt = []
-                for i in range(len(dyad_p)):
-                    dfpp.append(pd.DataFrame({
-                        'Dyad': summation_3sec_datas[j][0][i],
-                        'Triad': summation_3sec_datas[j][1][i],
-                        'Tetrad': summation_3sec_datas[j][2][i],
-                    })
-                    )
-
-                    dfpp_melt.append(pd.melt(dfpp[i]))
-                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
-
-                df = pd.concat([i for i in dfpp_melt], axis=0)
-
-                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
-
-                plot[j].legend_ = None
-                plot[j].set_ylabel(types[j])
-                # plot[j].axes.xaxis.set_visible(False)
-                plot[j].set_ylim(-ranges[j], ranges[j])
-                if mode == 'b_abs' or mode == 'a_abs':
-                    plot[j].set_ylim(0, ranges[j])
-
-            plt.tight_layout()
-            plt.savefig('fig/summation_ave_cfo_' + str(mode) + '.png')
-            plt.show()
-
-        return summation_3sec_datas
-
-    def subtraction_ave_cfo(self, graph=1):
-        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
-        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
-        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
-        subtraction_3sec_datas = [
-            [dyad_p, triad_p, tetrad_p],
-            [dyad_f, triad_f, tetrad_f],
-            [dyad_pa, triad_pa, tetrad_pa],
-            [dyad_fa, triad_fa, tetrad_fa],
-        ]
-
-        if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
-
-            types = ['Subtraction PCFO (Avg)',
-                     'Subtraction FCFO (Avg)',
-                     'Subtraction abs. PCFO (Avg)',
-                     'Subtraction abs. FCFO (Avg)'
-                     ]
-            ranges = [0.4, 8.0, 0.4, 6.0]
-
-
-
-            fig = plt.figure(figsize=(10, 7), dpi=150)
-
-            plot = [
-                fig.add_subplot(2, 2, 1),
-                fig.add_subplot(2, 2, 2),
-                fig.add_subplot(2, 2, 3),
-                fig.add_subplot(2, 2, 4),
-            ]
-
-            for j in range(len(plot)):
-                dfpp = []
-                dfpp_melt = []
-                for i in range(len(dyad_p)):
-                    dfpp.append(pd.DataFrame({
-                        'Dyad': subtraction_3sec_datas[j][0][i],
-                        'Triad': subtraction_3sec_datas[j][1][i],
-                        'Tetrad': subtraction_3sec_datas[j][2][i],
-                    })
-                    )
-
-                    dfpp_melt.append(pd.melt(dfpp[i]))
-                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
-
-                df = pd.concat([i for i in dfpp_melt], axis=0)
-
-                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-                sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-                              jitter=0.2, color='black', palette='Paired', ax=plot[j])
-
-                plot[j].legend_ = None
-                plot[j].set_ylabel(types[j])
-                # plot[j].axes.xaxis.set_visible(False)
-                plot[j].set_ylim(0.0, ranges[j])
-
-            plt.tight_layout()
-            plt.savefig('fig/subtraction_ave_cfo.png')
-            # plt.show()
-
-        return subtraction_3sec_datas
-
-    def summation_ave_cfo_bs(self, graph=1, mode='noabs'):
-        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
-        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
-        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
-        summation_3sec_datas = [
-            [dyad_p, triad_p, tetrad_p],
-            [dyad_f, triad_f, tetrad_f],
-            [dyad_pa, triad_pa, tetrad_pa],
-            [dyad_fa, triad_fa, tetrad_fa],
-        ]
-
-        R = 10000
-        summation_3sec_datas_bs = []
-
-        for i in range(len(summation_3sec_datas)):
-            summation_3sec_datas_bs.append([])
-            for j in range(len(summation_3sec_datas[i])):
-                summation_3sec_datas_bs[i].append(combine.bootstrap(self, summation_3sec_datas[i][j], R))
-
-        if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
-
-            types = ['Summation PCFO (Avg)',
-                     'Summation FCFO (Avg)',
-                     'Summation abs. PCFO (Avg)',
-                     'Summation abs. FCFO (Avg)']
-            ranges = [0.06, 0.5, 0.3, 4.0]
-
-            if mode == 'b_abs':
-                types = ['Before abs.\nSummation PCFO (Avg)',
-                         'Before abs.\nSummation FCFO (Avg)',
-                         'Before abs.\nSummation abs. PCFO (Avg)',
-                         'Before abs.\nSummation abs. FCFO (Avg)']
-                ranges = [0.25, 3.0, 0.25, 3.0]
-
-            if mode == 'a_abs':
-                types = ['After abs.\nSummation PCFO (Avg)',
-                         'After abs.\nSummation FCFO (Avg)',
-                         'After abs.\nSummation abs. PCFO (Avg)',
-                         'After abs.\nSummation abs. FCFO (Avg)']
-                ranges = [0.2, 1.0, 0.25, 3.0]
-
-
-
-            fig = plt.figure(figsize=(10, 7), dpi=150)
-
-            plot = [
-                fig.add_subplot(2, 2, 1),
-                fig.add_subplot(2, 2, 2),
-                fig.add_subplot(2, 2, 3),
-                fig.add_subplot(2, 2, 4),
-            ]
-
-            for j in range(len(plot)):
-                dfpp = pd.DataFrame({
-                    'Dyad': summation_3sec_datas_bs[j][0],
-                    'Triad': summation_3sec_datas_bs[j][1],
-                    'Tetrad': summation_3sec_datas_bs[j][2],
+        for j in range(len(porr)):
+            dfpp = []
+            dfpp_melt = []
+            for i in range(len(PP_ptext)):
+                dfpp.append(pd.DataFrame({
+                    type[0]: summation_3sec_datas[j][0][i],
+                    type[1]: summation_3sec_datas[j][1][i],
+                    type[2]: summation_3sec_datas[j][2][i],
+                    type[3]: summation_3sec_datas[j][3][i],
                 })
-
-                df = pd.melt(dfpp)
-
-                sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-
-                plot[j].legend_ = None
-                plot[j].set_ylabel(types[j])
-                # plot[j].axes.xaxis.set_visible(False)
-                plot[j].set_ylim(-ranges[j], ranges[j])
-                if mode == 'b_abs' or mode == 'a_abs':
-                    plot[j].set_ylim(0, ranges[j])
-
-            plt.tight_layout()
-            plt.savefig('fig/summation_ave_cfo_bs' + str(mode) + '.png')
-            # plt.show()
-
-        return summation_3sec_datas
-
-
-    def subtraction_ave_cfo_bs(self, graph=1):
-        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
-        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
-        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
-        subtraction_3sec_datas = [
-            [dyad_p, triad_p, tetrad_p],
-            [dyad_f, triad_f, tetrad_f],
-            [dyad_pa, triad_pa, tetrad_pa],
-            [dyad_fa, triad_fa, tetrad_fa],
-        ]
-
-        R = 10000
-        subtraction_3sec_datas_bs = []
-
-        for i in range(len(subtraction_3sec_datas)):
-            subtraction_3sec_datas_bs.append([])
-            for j in range(len(subtraction_3sec_datas[i])):
-                subtraction_3sec_datas_bs[i].append(combine.bootstrap(self, subtraction_3sec_datas[i][j], R))
-
-        if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
-
-            types = ['Subtraction PCFO (Avg)',
-                     'Subtraction FCFO (Avg)',
-                     'Subtraction abs. PCFO (Avg)',
-                     'Subtraction abs. FCFO (Avg)'
-                     ]
-            ranges = [0.4, 8.0, 0.4, 6.0]
-
-
-            fig = plt.figure(figsize=(10, 7), dpi=150)
-
-            plot = [
-                fig.add_subplot(2, 2, 1),
-                fig.add_subplot(2, 2, 2),
-                fig.add_subplot(2, 2, 3),
-                fig.add_subplot(2, 2, 4),
-            ]
-
-            for j in range(len(plot)):
-                df = pd.DataFrame({
-                    'Dyad': subtraction_3sec_datas_bs[j][0],
-                     'Triad': subtraction_3sec_datas_bs[j][1],
-                     'Tetrad': subtraction_3sec_datas_bs[j][2],
-                })
-
-                df_melt = pd.melt(df)
-
-                sns.boxplot(x="variable", y="value", data=df_melt, ax=plot[j], sym="")
-
-                plot[j].legend_ = None
-                plot[j].set_ylabel(types[j])
-                # plot[j].axes.xaxis.set_visible(False)
-                plot[j].set_ylim(0.0, ranges[j])
-
-            plt.tight_layout()
-            plt.savefig('fig/subtraction_ave_cfo_bs.png')
-            # plt.show()
-
-        return subtraction_3sec_datas
-
-    def performance_deviation(self):
-        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
-        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
-        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
-
-        data = [
-            error_period_dyad.T,
-            error_period_triad.T,
-            error_period_tetrad.T,
-            spend_period_dyad.T,
-            spend_period_triad.T,
-            spend_period_tetrad.T,
-        ]
-
-        # data_bs = []
-        #
-        # R = 10000
-        # for i in range(len(data)):
-        #     data_bs.append([])
-        #     for j in range(len(data[i])):
-        #         data_bs[i].append(combine.bootstrap(self, data[i][j], R))
-
-
-        df_error_raw_ = []
-        df_spend_raw_ = []
-        for i in range(len(data[0])):
-            df_error_ = pd.DataFrame({
-                'Dyad': data[0][i],
-                'Triad': data[1][i],
-                'Tetrad': data[2][i],
-            }
-            )
-            df_error_raw_.append(df_error_)
-
-            df_spend_ = pd.DataFrame({
-                'Dyad': data[3][i],
-                'Triad': data[4][i],
-                'Tetrad': data[5][i],
-            }
-            )
-            df_spend_raw_.append(df_spend_)
-
-        df_error_raw = pd.concat(df_error_raw_[i] for i in range(len(df_error_raw_)))
-        df_error_raw_melt = pd.melt(df_error_raw)
-        Period = [i for i in range(1, len(data[0]) + 1)] * len(data[0][0]) * 3
-        df_error = pd.concat([df_error_raw_melt, pd.DataFrame({'Period': Period})], axis=1)
-
-        df_error.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_error.rename(columns={'value': 'Value'}, inplace=True)
-
-        df_spend_raw = pd.concat(df_spend_raw_[i] for i in range(len(df_spend_raw_)))
-        df_spend_raw_melt = pd.melt(df_spend_raw)
-        df_spend = pd.concat([df_spend_raw_melt, pd.DataFrame({'Period': Period})], axis=1)
-
-        df_spend.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_spend.rename(columns={'value': 'Value'}, inplace=True)
-
-        df = [df_error, df_spend]
-        label = ['Error', 'Spend']
-        ylim = [
-            (-0.01, 0.01),
-            (-0.1, 0.3)
-        ]
-
-        kwargs = dict(
-            height=10,
-            aspect=1.5,
-            scatter=True,
-            n_boot=1000,
-            x_ci='sd',
-        )
-
-        # for i in range(2):
-        #     sns.set(font_scale=2)
-        #     sns.set_context("poster")
-        #     # sns.set_style("whitegrid", {'grid.linestyle': '--'})
-        #     sns.set_style("white")
-        #     p = sns.lmplot(data=df[i], x='Period', y='Value', hue='Group size', order=2, **kwargs)
-        #     p.set(title=label[i])
-        #     p.set(xlim=(0, 20))
-        #     p.set(ylim=ylim[i])
-        # plt.show()
-
-
-
-
-
-        std = []
-        mean = []
-        data_use = data
-        for i in range(len(data_use)):
-            std.append([])
-            mean.append([])
-            for j in range(len(data_use[i])):
-                std[i].append(np.std(data_use[i][j]))
-                mean[i].append(np.mean(data_use[i][j]))
-
-        period = [i+1 for i in range(len(std[0]))] * 3
-        df_period = pd.DataFrame(period, columns=['Period'])
-
-        df_error_ = pd.DataFrame({
-            'Dyad': mean[0],
-            'Triad': mean[1],
-            'Tetrad': mean[2],
-            }
-        )
-
-        df_melt_error = pd.concat([pd.melt(df_error_), df_period], axis=1)
-        df_melt_error.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_melt_error.rename(columns={'value': 'Deviation'}, inplace=True)
-
-        df_spend_melt_ = pd.DataFrame({
-            'Dyad': mean[3],
-            'Triad': mean[4],
-            'Tetrad': mean[5],
-        }
-        )
-        df_melt_spend = pd.concat([pd.melt(df_spend_melt_), df_period], axis=1)
-        df_melt_spend.rename(columns={'variable': 'Group size'}, inplace=True)
-        df_melt_spend.rename(columns={'value': 'Deviation'}, inplace=True)
-
-        df = [df_melt_error, df_melt_spend]
-        label = ['Error', 'Spend']
-        ylim = [
-            (-0.01, 0.01),
-            (-0.1, 0.3)
-        ]
-
-        kwargs = dict(
-            height=10,
-            aspect=1.5,
-            scatter=True,
-            n_boot=1000,
-            x_ci='sd',
-        )
-
-        for i in range(2):
-            sns.set(font_scale=2)
-            sns.set_context("poster")
-            # sns.set_style("whitegrid", {'grid.linestyle': '--'})
-            sns.set_style("white")
-            p = sns.lmplot(data=df[i], x='Period', y='Deviation', hue='Group size', order=2, **kwargs)
-            p.set(title=label[i])
-            p.set(xlim=(0, None))
-            p.set(ylim=ylim[i])
-        plt.show()
-
-    def variance_analysis(self, mode='noabs'):
-        dyad_valiance, dyad_valiance_period = self.dyad_cfo.fcfo_valiance()
-        triad_valiance, triad_valiance_period = self.triad_cfo.fcfo_valiance()
-        tetrad_valiance, tetrad_valiance_period = self.tetrad_cfo.fcfo_valiance()
-
-        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
-        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
-        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
-
-        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec(mode)
-        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo_3sec(mode)
-        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo_3sec(mode)
-
-        errorx_period_dyad, errory_period_dyad, spendx_period_dyad, spendy_period_dyad = self.dyad_cfo.period_performance_cooperation_each_axis()
-        errorx_period_triad, errory_period_triad, spendx_period_triad, spendy_period_triad = self.triad_cfo.period_performance_cooperation_each_axis()
-        errorx_period_tetrad, errory_period_tetrad, spendx_period_tetrad, spendy_period_tetrad = self.tetrad_cfo.period_performance_cooperation_each_axis()
-
-
-
-        label = ['Dyad', 'Triad', 'Tetrad']
-        variance_label = [
-            'Variance of pitch FCFO(Nm)',
-            'Variance of roll FCFO(Nm)',
-        ]
-        performance_label = [
-            'error',
-            'spend',
-        ]
-        summation_label = [
-            'Summation of pitch FCFO(Nm)',
-            'Summation of roll FCFO(Nm)',
-        ]
-        performance_ea_label = [
-            ['error_x', 'error_y'],
-            ['spend_x', 'spend_y'],
-        ]
-        summation_label = [
-            'Summation Pitch FCFO (Avg)',
-            'Summation Roll FCFO (Avg)']
-        ranges = [0.05, 0.05, 0.3, 0.3]
-
-        if mode == 'b_abs':
-            summation_label = [
-                'Before abs.\nSummation Pitch FCFO (Avg)',
-                'Before abs.\nSummation Roll FCFO (Avg)']
-            ranges = [0.2, 0.2, 2.0, 2.0]
-
-        if mode == 'a_abs':
-            summation_label = [
-                     'After abs.\nSummation Pitch FCFO (Avg)',
-                     'After abs.\nSummation Roll FCFO (Avg)']
-            ranges = [0.2, 0.2, 0.8, 0.8]
-
-
-
-
-        variance_period = [dyad_valiance_period, triad_valiance_period, tetrad_valiance_period]
-        error = [error_period_dyad, error_period_triad, error_period_tetrad]
-        spend = [spend_period_dyad, spend_period_triad, spend_period_tetrad]
-        errorx = [errorx_period_dyad, errorx_period_triad, errorx_period_tetrad]
-        errory = [errory_period_dyad, errory_period_triad, errory_period_tetrad]
-        spendx = [spendx_period_dyad, spendx_period_triad, spendx_period_tetrad]
-        spendy = [spendy_period_dyad, spendy_period_triad, spendy_period_tetrad]
-
-        summation = [
-            [dyad_pf, triad_pf, tetrad_pf],
-            [dyad_rf, triad_rf, tetrad_rf],
-        ]
-
-        periods = []
-        for l in range(len(label)):
-            period = []
-            for i, j, k, p, r, a, b, c, d in zip(variance_period[l], error[l], spend[l], summation[0][l], summation[1][l], errorx[l], errory[l], spendx[l], spendy[l]):
-                period_ = pd.DataFrame({
-                    variance_label[0]: i[0],
-                    variance_label[1]: i[1],
-                    performance_label[0]: j,
-                    performance_label[1]: k,
-                    summation_label[0]: p,
-                    summation_label[1]: r,
-                    performance_ea_label[0][0]: a,
-                    performance_ea_label[0][1]: b,
-                    performance_ea_label[1][0]: c,
-                    performance_ea_label[1][1]: d,
-                    'Group size': label[l],
-                }
                 )
 
-                period.append(period_)
-            periods.append(pd.concat([_ for _ in period], axis=0).reset_index(drop=True))
+                # print(dfpp[i])
+
+                # dfpp_melt.append(pd.melt(dfpp[i])
+                dfpp_melt.append(pd.melt(dfpp[i]))
+                dfpp_melt[i]['Group'] = i + 1
+                # print(dfpp_melt[i])`
 
 
-        df = pd.concat([_ for _ in periods], axis=0).reset_index(drop=True)
-        # print(df)
+            df_ = pd.concat([i for i in dfpp_melt], axis=0)
+            df_.reset_index(drop=True, inplace=True)
+            df_num = pd.DataFrame({'exp': exp_num * len(type) * len(PP_ptext)})
 
+            df_porr = pd.DataFrame({'porr': [porr[j]] * len(type) * len(PP_ptext) * len(exp_num)})
 
+            df.append(pd.concat([df_, df_num, df_porr], axis=1))
+            df[j].rename(columns={'value': 'sum_force'}, inplace=True)
+            df[j].rename(columns={'variable': 'types'}, inplace=True)
 
+            # print(df[j])
 
+        df_sum_force = pd.concat([df[0], df[1]], axis=0)
+        df_sum_force.reset_index(drop=True, inplace=True)
+        print(df_sum_force)
 
-        # ##histogram
-        # fig = plt.figure(figsize=(10, 10), dpi=300)
-        # subplot = [fig.add_subplot(2, 1, i+1) for i in range(2)]
-        # for i in range(2):
-        #     for j in range(3):
-        #         df_ = df[df['Group size'] == label[j]]
-        #         sns.histplot(df_[variance_label[i]], kde=True, bins=10, label=label[j], ax=subplot[i], stat='probability')
-        #
-        #     plt.legend()
-        # plt.tight_layout()
-        # plt.show()
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
 
+            ranges = [3.0, 5.0]
 
+            fig = plt.figure(figsize=(10, 10), dpi=150)
 
-        # ## variance-performance
-        # fig = plt.figure(figsize=(10, 10), dpi=300)
-        # subplot = [fig.add_subplot(2, 2, i+1) for i in range(4)]
-        # for i in range(2):
-        #     for j in range(2):
-        #         g = sns.scatterplot(data=df, x=variance_label[j], y=performance_label[i], hue='Group size', ax=subplot[i*2+j], s=10)
-        #         for lh in g.legend_.legendHandles:
-        #             lh.set_alpha(1)
-        #             lh._sizes = [10]
-        #
-        # plt.tight_layout()
-        # plt.show()
+            plot = [
+                fig.add_subplot(2, 1, 1),
+                fig.add_subplot(2, 1, 2),
+            ]
 
-        # ## variance-each_axis_performance
-        # fig = plt.figure(figsize=(10, 10), dpi=300)
-        # subplot = [fig.add_subplot(2, 2, i + 1) for i in range(4)]
-        # for i in range(2):
-        #     for j in range(2):
-        #         g = sns.scatterplot(data=df, x=variance_label[j], y=performance_ea_label[i][j], hue='Group size',
-        #                             ax=subplot[i * 2 + j], s=10)
-        #         for lh in g.legend_.legendHandles:
-        #             lh.set_alpha(1)
-        #             lh._sizes = [10]
-        #
-        # plt.tight_layout()
-        # plt.show()
+            for i in range(len(plot)):
 
+                sns.boxplot(x="types", y="sum_force", data=df[i], ax=plot[i], sym="")
+                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                #               jitter=0.1, color='black', palette='Paired', ax=plot[j])
 
-        # ##summatio-variance
-        # fig = plt.figure(figsize=(10, 10), dpi=300)
-        # subplot = [fig.add_subplot(1, 2, i+1) for i in range(2)]
-        # for j in range(2):
-        #     g = sns.scatterplot(data=df, x=variance_label[j], y=summation_label[j], hue='Group size', ax=subplot[j], s=10)
-        #     for lh in g.legend_.legendHandles:
-        #         lh.set_alpha(1)
-        #         lh._sizes = [10]
-        #
-        # # plt.tight_layout()
-        # plt.show()
+                # plot[j].legend_ = None
+                plot[i].set_ylabel(types[i])
+                # plot[i].axes.xaxis.set_visible(False)
+                plot[i].set_ylim(0, ranges[i])
 
-        # # ##summatio-variance with regression
-        # kwargs = dict(
-        #     height=10,
-        #     aspect=1.5,
-        #     scatter=True,
-        #     # n_boot=1000,
-        #     # ci='sd',
-        #     ci=None,
-        #     order=2,
-        # )
-        # sns.set(font_scale=2)
-        # for i in range(2):
-        #     g = sns.lmplot(data=df, x=variance_label[i], y=summation_label[i], hue='Group size', **kwargs)
-        #     plt.savefig('fig/'+str(variance_label[i])+'_'+str(summation_label[i])+'_lmplot.png')
-        #
-        # # plt.tight_layout()
-        # plt.show()
+            plt.tight_layout()
+            plt.savefig('fig/summation_ave_force.png')
+            plt.show()
+
+        return df_sum_force
+
+    def subtraction_ave_position(self, graph=1):
+        PP_pthm, PP_rthm = self.PP.subtraction_position_3sec()
+        AdPD_pthm, AdPD_rthm = self.AdPD.subtraction_position_3sec()
+        AdAc_pthm, AdAc_rthm = self.AdAc.subtraction_position_3sec()
+        Bi_pthm, Bi_rthm = self.Bi.subtraction_position_3sec()
+
+        type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
+
+        porr = ['pitch', 'roll']
+
+        exp_num = [_ for _ in range(1, len(PP_pthm[0]) + 1)]
 
 
 
-        # ##summatio-variance with performance
-        # # cmap = ['Blues_r', 'Blues']
-        # cmap = ['plasma_r', 'plasma']
-        # fig = plt.figure(figsize=(10, 7), dpi=300)
-        # subplot = [fig.add_subplot(2, 2, i+1) for i in range(4)]
-        # for i in range(2):
-        #     for j in range(2):
-        #         points = subplot[i*2+j].scatter(x=df[variance_label[j]], y=df[summation_label[j]], c=df[performance_label[i]], cmap=cmap[i], s=1)
-        #         plt.colorbar(points, ax=subplot[i*2+j], label=performance_label[i])
-        #         subplot[i*2+j].set_xlabel(variance_label[j])
-        #         subplot[i*2+j].set_ylabel(summation_label[j])
-        #
-        # # plt.tight_layout()
-        # # plt.savefig('fig/variance_summation-'+str(mode)+'_performance.png')
-        # plt.show()
-
-        ##summatio-variance with performance each axis
-        # cmap = ['Blues_r', 'Blues']
-        cmap = ['plasma_r', 'plasma']
-        fig = plt.figure(figsize=(10, 7), dpi=300)
-        subplot = [fig.add_subplot(2, 2, i + 1) for i in range(4)]
-        for i in range(2):
-            for j in range(2):
-                points = subplot[i * 2 + j].scatter(x=df[variance_label[j]], y=df[summation_label[j]],
-                                                    c=df[performance_ea_label[i][j]], cmap=cmap[i], s=1)
-                plt.colorbar(points, ax=subplot[i * 2 + j], label=performance_ea_label[i][j])
-                subplot[i * 2 + j].set_xlabel(variance_label[j])
-                subplot[i * 2 + j].set_ylabel(summation_label[j])
-
-        # plt.tight_layout()
-        # plt.savefig('fig/variance_summation-'+str(mode)+'_performance.png')
-        plt.show()
+        subtraction_3sec_datas = [
+            [PP_pthm, AdPD_pthm, AdAc_pthm, Bi_pthm],
+            [PP_rthm, AdPD_rthm, AdAc_rthm, Bi_rthm],
+        ]
 
 
+        types = ['Avg. subtraction pitch position (rad)',
+                 'Avg. subtraction roll position (rad)',
+                 ]
+        ranges = [0.1, 0.3]
+
+        df = []
+
+        for j in range(len(porr)):
+            dfpp = []
+            dfpp_melt = []
+            for i in range(len(PP_pthm)):
+                dfpp.append(pd.DataFrame({
+                    type[0]: subtraction_3sec_datas[j][0][i],
+                    type[1]: subtraction_3sec_datas[j][1][i],
+                    type[2]: subtraction_3sec_datas[j][2][i],
+                    type[3]: subtraction_3sec_datas[j][3][i],
+                })
+                )
+
+                # print(dfpp[i])
+
+                # dfpp_melt.append(pd.melt(dfpp[i])
+                dfpp_melt.append(pd.melt(dfpp[i]))
+                dfpp_melt[i]['Group'] = i + 1
+                # print(dfpp_melt[i])`
+
+
+            df_ = pd.concat([i for i in dfpp_melt], axis=0)
+            df_.reset_index(drop=True, inplace=True)
+            df_num = pd.DataFrame({'exp': exp_num * len(type) * len(PP_pthm)})
+
+            df_porr = pd.DataFrame({'porr': [porr[j]] * len(type) * len(PP_pthm) * len(exp_num)})
+
+            df.append(pd.concat([df_, df_num, df_porr], axis=1))
+            df[j].rename(columns={'value': 'sub_pos'}, inplace=True)
+            df[j].rename(columns={'variable': 'types'}, inplace=True)
+
+            # print(df[j])
+
+        df_sub_pos = pd.concat([df[0], df[1]], axis=0)
+        df_sub_pos.reset_index(drop=True, inplace=True)
+        print(df_sub_pos)
+
+        if graph == 0:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            fig = plt.figure(figsize=(10, 10), dpi=150)
+
+            plot = [
+                fig.add_subplot(2, 1, 1),
+                fig.add_subplot(2, 1, 2),
+            ]
+
+            for i in range(len(plot)):
+                sns.boxplot(x="types", y="sub_pos", data=df[i], ax=plot[i], sym="")
+                sns.stripplot(x='types', y='sub_pos', data=df[i], hue='Group', dodge=True,
+                              jitter=0.1, color='black', palette='Paired', ax=plot[i])
+
+                # plot[j].legend_ = None
+                plot[i].set_ylabel(types[i])
+                # plot[i].axes.xaxis.set_visible(False)
+                plot[i].set_ylim(0, ranges[i])
+
+            plt.tight_layout()
+            # plt.savefig('fig/subtraction_ave_position.png')
+            plt.show()
+
+        return df_sub_pos
+
+    def estimation_inertia(self, graph=1):
+        PP_ptext, PP_rtext = self.PP.summation_force(mode = 'noabs')
+        AdPD_ptext, AdPD_rtext = self.AdPD.summation_force(mode = 'noabs')
+        AdAc_ptext, AdAc_rtext = self.AdAc.summation_force(mode = 'noabs')
+        Bi_ptext, Bi_rtext = self.Bi.summation_force(mode = 'noabs')
+
+        PP_pddot, PP_rddot = self.PP.estimation_task_inertia()
+        AdPD_pddot, AdPD_rddot = self.AdPD.estimation_task_inertia()
+        AdAc_pddot, AdAc_rddot = self.AdAc.estimation_task_inertia()
+        Bi_pddot, Bi_rddot = self.Bi.estimation_task_inertia()
+
+        type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
+
+        porr = ['pitch', 'roll']
+
+        axis = ['Summation force (Nm)',
+                "Acceleration of plate (rad/s^2)",
+                 ]
+
+
+        summation_datas = [
+            [PP_ptext, AdPD_ptext, AdAc_ptext, Bi_ptext],
+            [PP_rtext, AdPD_rtext, AdAc_rtext, Bi_rtext],
+        ]
+
+        ddot_datas = [
+            [PP_pddot, AdPD_pddot, AdAc_pddot, Bi_pddot],
+            [PP_rddot, AdPD_rddot, AdAc_rddot, Bi_rddot],
+        ]
+
+        df = []
+
+        dfpp = []
+        for j in range(len(porr)):
+            dfpp.append([])
+            for i in range(len(type)):
+                for k in range(len(PP_ptext)):
+                    dfpp[j].append(pd.DataFrame({
+                        'types': type[i],
+                        axis[0]: summation_datas[j][i][k][::100],
+                        axis[1]: ddot_datas[j][i][k][::100],
+                        "Group" : k + 1,
+                        "porr" : porr[j],
+                    })
+                    )
+
+        df_pitch = pd.concat([i for i in dfpp[0]], axis=0)
+        df_pitch.reset_index(drop=True, inplace=True)
+        # print(df_pitch)
+
+        df_roll = pd.concat([i for i in dfpp[1]], axis=0)
+        df_roll.reset_index(drop=True, inplace=True)
+        # print(df_roll)
+
+        df = pd.concat([df_pitch, df_roll], axis=0)
+
+        if graph == 0:
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("poster",
+                            # font_scale=1.5,
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
 
 
 
+            # plt.rcParams['font.family'] = 'Times New Roman'
+            # plt.rcParams['mathtext.default'] = 'regular'
+            # plt.rcParams['xtick.top'] = 'True'
+            # plt.rcParams['ytick.right'] = 'True'
+            # # plt.rcParams['axes.grid'] = 'True'
+            # plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+            # plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
+            # plt.rcParams['xtick.major.width'] = 1.0  # x軸主目盛り線の線幅
+            # plt.rcParams['ytick.major.width'] = 1.0  # y軸主目盛り線の線幅
+            # plt.rcParams['font.size'] = 5  # フォントの大きさ
+            # plt.rcParams['axes.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
+            #
+            # plt.rcParams["legend.fancybox"] = False  # 丸角
+            # plt.rcParams["legend.framealpha"] = 0  # 透明度の指定、0で塗りつぶしなし
+            # plt.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
+            # plt.rcParams["legend.handlelength"] = 2  # 凡例の線の長さを調節
+            # plt.rcParams["legend.labelspacing"] = 0.1  # 垂直方向（縦）の距離の各凡例の距離
+            # plt.rcParams["legend.handletextpad"] = .4  # 凡例の線と文字の距離の長さ
+            #
+            # plt.rcParams["legend.markerscale"] = 2  # 点がある場合のmarker scale
+            # plt.rcParams['axes.xmargin'] = '0'  # '.05'
+            # plt.rcParams['axes.ymargin'] = '0'
+            # plt.rcParams['savefig.facecolor'] = 'None'
+            # plt.rcParams['savefig.edgecolor'] = 'None'
+            # # plt.rcParams['savefig.bbox'] = 'tight'
+            # plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
 
+            ranges = [3.0, 5.0]
 
+            # fig = plt.figure(figsize=(10, 10), dpi=150)
 
+            sc_kws={
+                'marker':'o',
+                # 'color':'indianred',
+                's':0.8,
+                'alpha':0.3,
+            }
+            ln_kws={
+                'linewidth':3,
+                # 'color':'blue'
+            }
+            fc_kws={
+                'sharex':False,
+                'sharey':False,
+                'legend_out':True
+            }
 
+            g = sns.lmplot(data=df, x=axis[0], y=axis[1], col='porr', hue="types",
+                       fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
+                       palette=sns.color_palette('gist_stern_r', 4),
+                       # palette=sns.color_palette('gist_earth', 4),
+                       # palette=sns.color_palette('Set1', 4),
+                       height=8, aspect=1, col_wrap=2,
+                       facet_kws=fc_kws,
+                       )
 
+            g.set(xlim=(-4, 4), ylim=(30, 30), xticks=[-4, 0, 4], yticks=[-30, 0, 30])
 
+            # plot = [
+            #     fig.add_subplot(2, 1, 1),
+            #     fig.add_subplot(2, 1, 2),
+            # ]
+            #
+            # for i in range(len(plot)):
+            #
+            #     sns.boxplot(x="types", y="sum_force", data=df[i], ax=plot[i], sym="")
+            #     # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+            #     #               jitter=0.1, color='black', palette='Paired', ax=plot[j])
+            #
+            #     # plot[j].legend_ = None
+            #     plot[i].set_ylabel(types[i])
+            #     # plot[i].axes.xaxis.set_visible(False)
+            #     plot[i].set_ylim(0, ranges[i])
 
+            # plt.tight_layout()
+            # plt.savefig('fig/summation_ave_force.png')
+            plt.show()
 
-
-
-
+        return df

@@ -78,6 +78,8 @@ class CFO:
                 rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+
 
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
@@ -101,6 +103,14 @@ class CFO:
                 # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
                 # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
+            rtext.plot(data['time'][self.start_num:self.end_num:10],
+                       data['i1_r_text'][self.start_num:self.end_num:10] + data['i2_r_text'][self.start_num:self.end_num:10] + data['i3_r_text'][self.start_num:self.end_num:10] + data['i4_r_text'][self.start_num:self.end_num:10],
+                       label='Common', color='black', linestyle='dashed')
+
+            ptext.plot(data['time'][self.start_num:self.end_num:10],
+                       data['i1_p_text'][self.start_num:self.end_num:10] + data['i2_p_text'][self.start_num:self.end_num:10] + data['i3_p_text'][self.start_num:self.end_num:10] +  data['i4_p_text'][self.start_num:self.end_num:10],
+                       label='Common', color='black', linestyle='dashed')
+
             rthm.set_ylabel('Roll angle (rad)')
             rthm.legend(ncol=2, columnspacing=1, loc='upper left')
             rthm.set_yticks(np.arange(-10, 10, 0.5))
@@ -122,7 +132,7 @@ class CFO:
             ptext.set_ylim([-6.0, 6.0])  # y軸の範囲
 
             plt.tight_layout()
-            # plt.savefig("response.png")
+            plt.savefig("fig/response_check.png")
         plt.show()
 
     def task_show(self):
@@ -1985,12 +1995,51 @@ class CFO:
                     text_data = data[interfacenum + flabel[k]][self.start_num:self.end_num]
                     text_data_lpf = CFO.lpf_1st_order(self, text_data, omegac, Ts)
 
-                    diff = thm_diff * text_data_lpf
+                    diff = np.abs(thm_diff * text_data_lpf)
 
                     work.append(diff)
 
         work_np_ = np.concatenate([work[_] for _ in range(len(work))])
         work_np = work_np_.reshape([len(self.cfo), self.join, len(flabel), -1])
+        return work_np
+
+    def work_calc_rs(self, mode='human'):
+        flabel = ['_p_text_tf', '_r_text_tf']
+        plabel = ['_p_thm_tf', '_r_thm_tf']
+        flabel = ['_p_text', '_r_text']
+        plabel = ['_p_thm', '_r_thm']
+
+        if mode == 'model':
+            flabel = ['_p_text_pre_tf', '_r_text_pre_tf']
+            plabel = ['_p_thm_pre_tf', '_r_thm_pre_tf']
+            flabel = ['_p_text_pre', '_r_text_pre']
+            plabel = ['_p_thm_pre', '_r_thm_pre']
+
+        omegac =10.0
+        Ts = 0.0001
+
+        work = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            for j in range(self.join):
+                interfacenum = 'i' + str(j + 1)
+                diff = []
+                for k in range(len(flabel)):
+                    thm_data = data[interfacenum + plabel[k]][self.start_num:self.end_num]
+                    thm_data_lpf = CFO.lpf_1st_order(self, thm_data, omegac, Ts)
+                    thm_data_ = np.append(np.zeros(1), thm_data_lpf)
+                    thm_diff = np.diff(thm_data_)
+
+                    text_data = data[interfacenum + flabel[k]][self.start_num:self.end_num]
+                    text_data_lpf = CFO.lpf_1st_order(self, text_data, omegac, Ts)
+
+                    diff.append(np.abs(thm_diff * text_data_lpf))
+                rs = np.sqrt(diff[0]**2 + diff[1]**2)
+
+                work.append(rs)
+
+        work_np_ = np.concatenate([work[_] for _ in range(len(work))])
+        work_np = work_np_.reshape([len(self.cfo), self.join, -1])
         return work_np
 
     def work_diff(self, graph=1):
@@ -2028,6 +2077,40 @@ class CFO:
                 rwork.legend(ncol=2, columnspacing=1, loc='upper left')
                 # rwork.set_yticks(np.arange(-10, 10, 0.5))
                 # rwork.set_ylim([-1.5, 1.5])  # y軸の範囲
+
+                plt.tight_layout()
+                # plt.savefig("response.png")
+            plt.show()
+
+        return work_diff
+
+    def work_diff_rs(self, graph=1):
+        work_human = self.work_calc_rs(mode='human')
+        work_model = self.work_calc_rs(mode='model')
+
+        work_diff = work_human - work_model
+
+        if graph == 0:
+            for j in range(len(self.cfo)):
+                data = self.cfo[j]
+
+                fig = plt.figure(figsize=(5, 4), dpi=150)
+
+                # plt.xlim([10, 60])  # x軸の範囲
+                # plt.xlim([0.28, 0.89])  # x軸の範囲
+                plt.xlabel("Time (sec)")
+
+                for i in range(self.join):
+                    interfacenum = 'i' + str(i + 1)
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][::10], label='P' + str(i + 1) + 'Human')
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][::10], label='P' + str(i + 1) + 'Model')
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][::10], label='P' + str(i + 1) + 'Diff')
+
+
+                plt.ylabel('Pitch work (J)')
+                plt.legend(ncol=2, columnspacing=1, loc='upper left')
+                # pwork.set_yticks(np.arange(-10, 10, 0.5))
+                # pwork.set_ylim([-1.5, 1.5])  # y軸の範囲
 
                 plt.tight_layout()
                 # plt.savefig("response.png")

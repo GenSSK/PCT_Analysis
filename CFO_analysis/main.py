@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ##予測確認
     # com.dyad_cfo.graph_sub()
     # com.triad_cfo.graph_sub()
-    com.tetrad_cfo.graph_sub()
+    # com.tetrad_cfo.graph_sub()
 
     ##タスク確認
     # com.dyad_cfo.task_show()
@@ -250,3 +250,6 @@ if __name__ == '__main__':
     # com.dyad_cfo.work_diff(0)
     # com.triad_cfo.work_diff(0)
     # com.tetrad_cfo.work_diff(0)
+
+    # com.dyad_cfo.work_calc_rs()
+    com.dyad_cfo.work_diff_rs(0)
