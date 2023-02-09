@@ -7,6 +7,7 @@ from scipy.spatial.distance import correlation
 import scipy.stats
 from scipy.stats import beta
 import statsmodels.api as sm
+from numpy.random import Generator, PCG64, MT19937
 
 import sys
 # import os
@@ -684,7 +685,7 @@ class combine:
             dfpp.append([])
             for i in range(len(type)):
                 for k in range(len(PP_ptext)):
-                    dec = 10
+                    dec = 100
                     datax = ddot_datas[j][i][k][::dec]
                     datay = -summation_datas[j][i][k][::dec]
 
@@ -698,15 +699,93 @@ class combine:
                     yhist, edges = combine.myhistogram_normalize(datax, 100)
 
                     p_x = frozen_beta_x.pdf(xx)
-                    p_x = 1 - p_x
-                    p_x = p_x / np.sum(p_x)
-                    # print(np.sum(p_x * (xx[1] - xx[0])))
+                    print(p_x)
+                    print(np.sum(p_x * (xx[1] - xx[0])))
+
+                    p_x_ = 1.0 - p_x
+                    # p_x_ = p_x_ / np.sum(p_x_ * (xx[1] - xx[0]))
+                    print(p_x_)
+
+                    # 乱数生成器にPCGを使う
+                    rg_pcg = Generator(PCG64())
+                    comparator = rg_pcg.random(len(p_x))
+                    # print(comparator)
+
+                    # 乱数生成器にメルセンヌ・ツイスタを使う
+                    # rg_mt = Generator(MT19937())
+                    # comparator = rg_mt.random(100)
+
+                    plt.figure(figsize=(5, 5), dpi=300)
 
 
-                    # plt.bar(edges, yhist, label='histogram', color='orange')
-                    # plt.plot(xx, p_x, label='frozen pdf', color='blue')
-                    # plt.legend()
+                    # yhist, edges = combine.myhistogram(comparator, 1000)
+                    # plt.bar(edges, yhist, label='random', color=(1, 0, 0, 0.5), width=0.001)
                     # plt.show()
+
+                    # p_x = np.full(len(datax), 0.5)
+
+
+                    while n_uniq < size:
+                        x = self.rand(size - n_uniq)
+                        if n_uniq > 0:
+                            p[flat_found[0:n_uniq]] = 0
+                        cdf = np.cumsum(p)
+                        cdf /= cdf[-1]
+                        new = cdf.searchsorted(x, side='right')
+                        _, unique_indices = np.unique(new, return_index=True)
+                        unique_indices.sort()
+                        new = new.take(unique_indices)
+                        flat_found[n_uniq:n_uniq + new.size] = new
+                        n_uniq += new.size
+                    idx = found
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    selection = np.where(comparator > p_x_, True, False)
+                    true_num = np.count_nonzero(selection == True)
+                    false_num = np.count_nonzero(selection == False)
+                    print(true_num)
+                    print(false_num)
+
+                    plt.figure(figsize=(5, 5), dpi=300)
+                    plt.bar(edges, yhist, label='histogram', color='orange')
+                    # plt.bar(xx, selection, label='selection', color='red')
+                    plt.plot(xx, p_x_, label='frozen pdf', color='blue')
+                    plt.legend()
+                    # plt.show()
+
+                    data = np.array([datax, datay])
+                    # print(data)
+                    data = data.T
+                    # print(data)
+                    data = data[np.argsort(data[:, 0])]
+                    # print(data)
+                    data = data.T
+                    # print(data)
+
+                    data_choice = data[:, selection]
+                    print(data_choice)
+
 
                     fit_res_y = beta.fit(datay)
                     frozen_beta_y = beta.freeze(a=fit_res_y[0], b=fit_res_y[1], loc=fit_res_y[2], scale=fit_res_y[3])
@@ -717,30 +796,33 @@ class combine:
                     p_y = p_y / np.sum(p_y)
 
 
-                    choice_num = 10000
-                    datax = np.sort(datax)
-                    datax_choice = np.random.choice(datax, choice_num, p=p_x)
-                    datay_choice = np.random.choice(datay, choice_num, p=p_y)
-                    datax_choice = np.sort(datax_choice)
-                    datay_choice = np.sort(datay_choice)
-                    res_choice = scipy.stats.linregress(datax_choice, datay_choice)
-                    print('choice = ', res_choice)
+                    # choice_num = 10000
+                    # datax = np.sort(datax)
+                    # datax_choice = np.random.choice(datax, choice_num, p=p_x)
+                    # datay_choice = np.random.choice(datay, choice_num, p=p_y)
+                    # datax_choice = np.sort(datax_choice)
+                    # datay_choice = np.sort(datay_choice)
+                    # res_choice = scipy.stats.linregress(datax_choice, datay_choice)
+                    # print('choice = ', res_choice)
 
-                    yhist, edges = combine.myhistogram_normalize(datax, 100)
-                    plt.bar(edges, yhist, label='histogram_raw', color=(1, 0, 0, 0.5))
-                    yhist, edges = combine.myhistogram_normalize(datax_choice, 100)
-                    plt.bar(edges, yhist, label='histogram', color=(0, 1, 0, 0.5))
+                    plt.figure(figsize=(5, 5), dpi=300)
+                    # yhist, edges = combine.myhistogram_normalize(datax, 1000)
+                    # plt.bar(edges, yhist, label='histogram_raw', color=(1, 0, 0, 0.5))
+                    plt.hist(datax, label='histogram_raw', color=(1, 0, 0, 0.5), bins=100, density=True)
+                    # yhist, edges = combine.myhistogram_normalize(datax_choice, 1000)
+                    # plt.bar(edges, yhist, label='histogram', color=(0, 1, 0, 0.5))
+                    plt.hist(data_choice[0], label='histogram', color=(0, 1, 0, 0.5), bins=100, density=True)
                     plt.legend()
                     plt.show()
 
 
                     # print(res[0])
-                    #
+
                     # plt.scatter(datax, datay, s=0.5)
                     # plt.scatter(datax_choice, datay_choice, s=0.5)
                     #
-                    # plt.plot(xx, xx * res[0], label='raw')
-                    # plt.plot(xx, xx * res_choice[0], label='choice')
+                    # # plt.plot(xx, xx * res[0], label='raw')
+                    # # plt.plot(xx, xx * res_choice[0], label='choice')
                     #
                     # plt.legend()
                     # plt.show()
