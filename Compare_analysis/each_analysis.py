@@ -279,6 +279,7 @@ class each:
 
         error_period_array = np.vstack((error_period[_] for _ in range(len(error_period))))
         spent_period_array = np.vstack((spent_period[_] for _ in range(len(spent_period))))
+        # spent_period_array = np.vstack((i for i in spent_period))
 
         return error_period_array, spent_period_array
 
@@ -362,16 +363,22 @@ class each:
 
         return pthm_subtraction_3sec, rthm_subtraction_3sec
 
-    def subtraction_ave_position_3sec(self):
-        pthm_subtraction, rthm_subtraction = each.subtraction_position_3sec(self)
+    def subtraction_position_ave(self):
+        # pthm_subtraction, rthm_subtraction = each.subtraction_position(self)
+        #
+        # pthm_subtraction_ave = np.average(pthm_subtraction, axis=1)
+        #
+        # rthm_subtraction_ave = np.average(rthm_subtraction, axis=1)
+        #
+        # return pthm_subtraction_ave, rthm_subtraction_ave
 
-        pthm_subtraction_3sec = pthm_subtraction.reshape([len(self.data), -1, self.num])
-        pthm_subtraction_3sec = np.average(pthm_subtraction_3sec, axis=2)
+        pthm_subtraction_3sec, rthm_subtraction_3sec = each.subtraction_position_3sec(self)
 
-        rthm_subtraction_3sec = rthm_subtraction.reshape([len(self.data), -1, self.num])
-        rthm_subtraction_3sec = np.average(rthm_subtraction_3sec, axis=2)
+        pthm_subtraction_3sec_ave = np.average(pthm_subtraction_3sec, axis=1)
 
-        return pthm_subtraction_3sec, rthm_subtraction_3sec
+        rthm_subtraction_3sec_ave = np.average(rthm_subtraction_3sec, axis=1)
+
+        return pthm_subtraction_3sec_ave, rthm_subtraction_3sec_ave
 
 
 

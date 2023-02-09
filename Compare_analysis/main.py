@@ -103,6 +103,7 @@ if __name__ == '__main__':
     # com.performance_bootstrap()
     # performance = com.performance_each()
     # performance.to_csv('csv/performance.csv')
+    # com.performance_comparison()
 
     # ave = com.performance_each_ave()
     # ave.to_csv('csv/performance_ave.csv', index=False)
@@ -112,18 +113,20 @@ if __name__ == '__main__':
     # com.AdPD.subtraction_position(0)
     # com.AdAc.subtraction_position(0)
     # com.Bi.subtraction_position(0)
-    # com.subtraction_ave_position(0)
+    # com.subtraction_position_3sec(0)
+    # df = com.subtraction_position_ave()
+    # df.to_csv('csv/subtraction_position_ave.csv', index=False)
 
     ##力の和
     # com.PP.summation_force(0)
     # com.AdPD.summation_force(0)
     # com.AdAc.summation_force(0)
     # com.Bi.summation_force(0)
-    # com.summation_ave_force(0)
+    # com.summation_force_3sec(0)
 
     ##位置の差分と力の和のCSV出力
-    # df_sum_force = com.summation_ave_force()
-    # df_sub_position = com.subtraction_ave_position()
+    # df_sum_force = com.summation_force_3sec()
+    # df_sub_position = com.subtraction_position_3sec()
     # df_calc = pd.concat([df_sub_position, df_sum_force['sum_force']], axis=1)
     # print(df_calc)
     # df_calc.to_csv('csv/summation_subtraction.csv', index=False)
@@ -133,27 +136,4 @@ if __name__ == '__main__':
     # com.AdPD.estimation_task_inertia()
     # com.AdAc.estimation_task_inertia()
     # com.Bi.estimation_task_inertia()
-
     com.estimation_inertia(graph=0)
-
-    # com.performance_deviation()
-
-    # com.dyad_cfo.fcfo_valiance()
-    # com.tetrad_cfo.fcfo_valiance(0)
-
-    # com.variance_analysis('noabs')
-    # com.variance_analysis('b_abs')
-    # com.variance_analysis('a_abs')
-
-    # com.dyad_cfo.tf_graph_sub()
-    # com.triad_cfo.tf_graph_sub()
-    # com.tetrad_cfo.tf_graph_sub()
-
-    # com.dyad_cfo.tf_cfo_sub()
-    # com.triad_cfo.tf_cfo_sub()
-    # com.tetrad_cfo.tf_cfo_sub()
-
-    # com.dyad_cfo.work_calc()
-    # com.dyad_cfo.work_diff(0)
-    # com.triad_cfo.work_diff(0)
-    # com.tetrad_cfo.work_diff(0)

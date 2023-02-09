@@ -4,6 +4,9 @@ import pandas as pd
 import seaborn as sns
 import each_analysis
 from scipy.spatial.distance import correlation
+import scipy.stats
+from scipy.stats import beta
+import statsmodels.api as sm
 
 import sys
 # import os
@@ -91,11 +94,25 @@ class combine:
         types = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
 
 
-        sns.set()
-        # sns.set_style('whitegrid')
-        sns.set_palette('Set3')
+        sns.set(font='Times New Roman', font_scale=1.0)
+        # sns.set_palette('cubehelix', 4)
+        sns.set_palette('Set2', 4)
+        # sns.set_palette('gist_stern_r', 4)
+        # sns.set_palette('gist_earth', 10)
+        sns.set_style('ticks')
+        sns.set_context("paper",
+                        # font_scale=1.5,
+                        rc = {
+                            "axes.linewidth": 0.5,
+                            "legend.fancybox": False,
+                            'pdf.fonttype': 42,
+                            'xtick.direction': 'in',
+                            'ytick.major.width': 1.0,
+                            'xtick.major.width': 1.0,
+                        })
 
-        fig_per = plt.figure(figsize=(10, 7), dpi=150)
+        fig_per = plt.figure(figsize=(10, 4), dpi=150)
+
 
         ax = fig_per.add_subplot(1, 2, 1)
 
@@ -119,8 +136,8 @@ class combine:
         df_ep = pd.concat([i for i in ep_melt], axis=0)
 
         sns.boxplot(x="variable", y="value", data=df_ep, ax=ax, sym="")
-        sns.stripplot(x='variable', y='value', data=df_ep, hue='Group', dodge=True,
-                      jitter=0.2, color='black', palette='Paired', ax=ax)
+        # sns.stripplot(x='variable', y='value', data=df_ep, hue='Group', dodge=True,
+        #               jitter=0.2, color='black', palette='Paired', ax=ax)
 
         ax.legend_ = None
         ax.set_ylabel('Error Period')
@@ -150,15 +167,16 @@ class combine:
         df_sp = pd.concat([i for i in sp_melt], axis=0)
 
         sns.boxplot(x="variable", y="value", data=df_sp, ax=ax, sym="")
-        sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
-                      jitter=0.2, color='black', palette='Paired', ax=ax)
+        # sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
+        #               jitter=0.2, color='black', palette='Paired', ax=ax)
 
         ax.legend_ = None
         ax.set_ylabel('Spend Period')
         # ax.set_ylim(-0.5, 0.5)
 
         plt.tight_layout()
-        plt.savefig('fig/performance_comparison.png')
+        # plt.savefig('fig/performance_comparison.png')
+        plt.savefig('fig/performance_comparison.pdf')
         plt.show()
 
     def performance_relation(self):
@@ -404,7 +422,7 @@ class combine:
 
 
 
-    def summation_ave_force(self, graph=1):
+    def summation_force_3sec(self, graph=1):
         PP_ptext, PP_rtext = self.PP.summation_force_3sec()
         AdPD_ptext, AdPD_rtext = self.AdPD.summation_force_3sec()
         AdAc_ptext, AdAc_rtext = self.AdAc.summation_force_3sec()
@@ -495,13 +513,13 @@ class combine:
 
         return df_sum_force
 
-    def subtraction_ave_position(self, graph=1):
+    def subtraction_position_3sec(self, graph=1):
         PP_pthm, PP_rthm = self.PP.subtraction_position_3sec()
         AdPD_pthm, AdPD_rthm = self.AdPD.subtraction_position_3sec()
         AdAc_pthm, AdAc_rthm = self.AdAc.subtraction_position_3sec()
         Bi_pthm, Bi_rthm = self.Bi.subtraction_position_3sec()
 
-        type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
+        type = ['PP', 'Ad(PD)', 'Ad(ABC)', 'Bi']
 
         porr = ['pitch', 'roll']
 
@@ -559,21 +577,34 @@ class combine:
         print(df_sub_pos)
 
         if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
+            sns.set(font='Times New Roman', font_scale=1.0)
+            # sns.set_palette('cubehelix', 4)
+            sns.set_palette('Set2', 4)
+            # sns.set_palette('gist_stern_r', 4)
+            # sns.set_palette('gist_earth', 10)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            # font_scale=1.5,
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
 
-            fig = plt.figure(figsize=(10, 10), dpi=150)
+            fig = plt.figure(figsize=(10, 4), dpi=150)
 
             plot = [
-                fig.add_subplot(2, 1, 1),
-                fig.add_subplot(2, 1, 2),
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
             ]
 
             for i in range(len(plot)):
                 sns.boxplot(x="types", y="sub_pos", data=df[i], ax=plot[i], sym="")
-                sns.stripplot(x='types', y='sub_pos', data=df[i], hue='Group', dodge=True,
-                              jitter=0.1, color='black', palette='Paired', ax=plot[i])
+                # sns.stripplot(x='types', y='sub_pos', data=df[i], hue='Group', dodge=True,
+                #               jitter=0.1, color='black', palette='Paired', ax=plot[i])
 
                 # plot[j].legend_ = None
                 plot[i].set_ylabel(types[i])
@@ -582,9 +613,39 @@ class combine:
 
             plt.tight_layout()
             # plt.savefig('fig/subtraction_ave_position.png')
+            # plt.savefig('fig/subtraction_position_3sec.pdf')
             plt.show()
 
         return df_sub_pos
+
+    def subtraction_position_ave(self, graph=1):
+        PP_pthm, PP_rthm = self.PP.subtraction_position_ave()
+        AdPD_pthm, AdPD_rthm = self.AdPD.subtraction_position_ave()
+        AdAc_pthm, AdAc_rthm = self.AdAc.subtraction_position_ave()
+        Bi_pthm, Bi_rthm = self.Bi.subtraction_position_ave()
+
+        data = [
+            [PP_pthm, AdPD_pthm, AdAc_pthm, Bi_pthm],
+            [PP_rthm, AdPD_rthm, AdAc_rthm, Bi_rthm],
+        ]
+
+        porr = ['pitch', 'roll']
+
+        type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
+
+        df_ = []
+        for i in range(len(type)):
+            df_.append(pd.DataFrame({
+                porr[0]: data[0][i],
+                porr[1]: data[1][i],
+                'Group': [_ for _ in range(1, len(data[0][0]) + 1)],
+                'type': type[i],
+            }))
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        return df
+
 
     def estimation_inertia(self, graph=1):
         PP_ptext, PP_rtext = self.PP.summation_force(mode = 'noabs')
@@ -623,14 +684,78 @@ class combine:
             dfpp.append([])
             for i in range(len(type)):
                 for k in range(len(PP_ptext)):
+                    dec = 10
+                    datax = ddot_datas[j][i][k][::dec]
+                    datay = -summation_datas[j][i][k][::dec]
+
+                    res = scipy.stats.linregress(datax, datay)
+                    print(res)
+
+                    #以下、確率分布にしたがって、データを一様に取得するやつ（問題あり）
+                    fit_res_x = beta.fit(datax)
+                    frozen_beta_x = beta.freeze(a=fit_res_x[0], b=fit_res_x[1], loc=fit_res_x[2], scale=fit_res_x[3])
+                    xx = np.linspace(np.min(datax), np.max(datax), len(datax))
+                    yhist, edges = combine.myhistogram_normalize(datax, 100)
+
+                    p_x = frozen_beta_x.pdf(xx)
+                    p_x = 1 - p_x
+                    p_x = p_x / np.sum(p_x)
+                    # print(np.sum(p_x * (xx[1] - xx[0])))
+
+
+                    # plt.bar(edges, yhist, label='histogram', color='orange')
+                    # plt.plot(xx, p_x, label='frozen pdf', color='blue')
+                    # plt.legend()
+                    # plt.show()
+
+                    fit_res_y = beta.fit(datay)
+                    frozen_beta_y = beta.freeze(a=fit_res_y[0], b=fit_res_y[1], loc=fit_res_y[2], scale=fit_res_y[3])
+                    xy = np.linspace(np.min(datay), np.max(datay), len(datay))
+                    # yhist, edges = combine.myhistogram_normalize(datay, 100)
+
+                    p_y = frozen_beta_y.pdf(xy)
+                    p_y = p_y / np.sum(p_y)
+
+
+                    choice_num = 10000
+                    datax = np.sort(datax)
+                    datax_choice = np.random.choice(datax, choice_num, p=p_x)
+                    datay_choice = np.random.choice(datay, choice_num, p=p_y)
+                    datax_choice = np.sort(datax_choice)
+                    datay_choice = np.sort(datay_choice)
+                    res_choice = scipy.stats.linregress(datax_choice, datay_choice)
+                    print('choice = ', res_choice)
+
+                    yhist, edges = combine.myhistogram_normalize(datax, 100)
+                    plt.bar(edges, yhist, label='histogram_raw', color=(1, 0, 0, 0.5))
+                    yhist, edges = combine.myhistogram_normalize(datax_choice, 100)
+                    plt.bar(edges, yhist, label='histogram', color=(0, 1, 0, 0.5))
+                    plt.legend()
+                    plt.show()
+
+
+                    # print(res[0])
+                    #
+                    # plt.scatter(datax, datay, s=0.5)
+                    # plt.scatter(datax_choice, datay_choice, s=0.5)
+                    #
+                    # plt.plot(xx, xx * res[0], label='raw')
+                    # plt.plot(xx, xx * res_choice[0], label='choice')
+                    #
+                    # plt.legend()
+                    # plt.show()
+
                     dfpp[j].append(pd.DataFrame({
                         'types': type[i],
-                        axis[0]: summation_datas[j][i][k][::100],
-                        axis[1]: ddot_datas[j][i][k][::100],
+                        axis[0]: datay,
+                        axis[1]: datax,
                         "Group" : k + 1,
                         "porr" : porr[j],
                     })
                     )
+
+
+
 
         df_pitch = pd.concat([i for i in dfpp[0]], axis=0)
         df_pitch.reset_index(drop=True, inplace=True)
@@ -641,6 +766,8 @@ class combine:
         # print(df_roll)
 
         df = pd.concat([df_pitch, df_roll], axis=0)
+
+        df_ = [df_pitch, df_roll]
 
         if graph == 0:
             sns.set(font='Times New Roman', font_scale=1.0)
@@ -656,49 +783,15 @@ class combine:
                                 'xtick.major.width': 1.0,
                             })
 
-
-
-            # plt.rcParams['font.family'] = 'Times New Roman'
-            # plt.rcParams['mathtext.default'] = 'regular'
-            # plt.rcParams['xtick.top'] = 'True'
-            # plt.rcParams['ytick.right'] = 'True'
-            # # plt.rcParams['axes.grid'] = 'True'
-            # plt.rcParams['xtick.direction'] = 'in'  # x軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-            # plt.rcParams['ytick.direction'] = 'in'  # y軸の目盛線が内向き('in')か外向き('out')か双方向か('inout')
-            # plt.rcParams['xtick.major.width'] = 1.0  # x軸主目盛り線の線幅
-            # plt.rcParams['ytick.major.width'] = 1.0  # y軸主目盛り線の線幅
-            # plt.rcParams['font.size'] = 5  # フォントの大きさ
-            # plt.rcParams['axes.linewidth'] = 0.5  # 軸の線幅edge linewidth。囲みの太さ
-            #
-            # plt.rcParams["legend.fancybox"] = False  # 丸角
-            # plt.rcParams["legend.framealpha"] = 0  # 透明度の指定、0で塗りつぶしなし
-            # plt.rcParams["legend.edgecolor"] = 'black'  # edgeの色を変更
-            # plt.rcParams["legend.handlelength"] = 2  # 凡例の線の長さを調節
-            # plt.rcParams["legend.labelspacing"] = 0.1  # 垂直方向（縦）の距離の各凡例の距離
-            # plt.rcParams["legend.handletextpad"] = .4  # 凡例の線と文字の距離の長さ
-            #
-            # plt.rcParams["legend.markerscale"] = 2  # 点がある場合のmarker scale
-            # plt.rcParams['axes.xmargin'] = '0'  # '.05'
-            # plt.rcParams['axes.ymargin'] = '0'
-            # plt.rcParams['savefig.facecolor'] = 'None'
-            # plt.rcParams['savefig.edgecolor'] = 'None'
-            # # plt.rcParams['savefig.bbox'] = 'tight'
-            # plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
-
-
-            ranges = [3.0, 5.0]
-
-            # fig = plt.figure(figsize=(10, 10), dpi=150)
-
             sc_kws={
                 'marker':'o',
                 # 'color':'indianred',
-                's':0.8,
-                'alpha':0.3,
+                's':0.04,
+                'alpha':0.4,
             }
             ln_kws={
                 'linewidth':3,
-                # 'color':'blue'
+                # 'color':'Black'
             }
             fc_kws={
                 'sharex':False,
@@ -708,33 +801,58 @@ class combine:
 
             g = sns.lmplot(data=df, x=axis[0], y=axis[1], col='porr', hue="types",
                        fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
-                       palette=sns.color_palette('gist_stern_r', 4),
+                       # palette=sns.color_palette('gist_stern_r', 4),
                        # palette=sns.color_palette('gist_earth', 4),
-                       # palette=sns.color_palette('Set1', 4),
+                       palette=sns.color_palette('Set2', 4),
                        height=8, aspect=1, col_wrap=2,
                        facet_kws=fc_kws,
                        )
 
-            g.set(xlim=(-4, 4), ylim=(30, 30), xticks=[-4, 0, 4], yticks=[-30, 0, 30])
+            g.set(xlim=(-8, 8), ylim=(50, 50), xticks=[-8, 0, 8], yticks=[-50, 0, 50])
 
-            # plot = [
-            #     fig.add_subplot(2, 1, 1),
-            #     fig.add_subplot(2, 1, 2),
-            # ]
+            # xlim = [8, 8]
+            # ylim = [40, 40]
+            # for i in range(len(porr)):
+            #     g = sns.lmplot(data=df_[i], x=axis[0], y=axis[1], col='types', hue="types",
+            #                    fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
+            #                    # palette=sns.color_palette('gist_stern_r', 4),
+            #                    # palette=sns.color_palette('gist_earth', 4),
+            #                    palette=sns.color_palette('Set2', 4),
+            #                    height=4, aspect=1.5, col_wrap=2,
+            #                    facet_kws=fc_kws,
+            #                    )
             #
-            # for i in range(len(plot)):
-            #
-            #     sns.boxplot(x="types", y="sum_force", data=df[i], ax=plot[i], sym="")
-            #     # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-            #     #               jitter=0.1, color='black', palette='Paired', ax=plot[j])
-            #
-            #     # plot[j].legend_ = None
-            #     plot[i].set_ylabel(types[i])
-            #     # plot[i].axes.xaxis.set_visible(False)
-            #     plot[i].set_ylim(0, ranges[i])
+            #     g.set(xlim=(-xlim[i], xlim[i]), ylim=(-ylim[i], ylim[i]), xticks=[-xlim[i], 0, xlim[i]], yticks=[-ylim[i], 0, ylim[i]])
+            #     plt.savefig('fig/estimation_inertia_' + porr[i] + '.pdf')
 
             # plt.tight_layout()
             # plt.savefig('fig/summation_ave_force.png')
             plt.show()
 
         return df
+
+
+    # def fit_func(self, parameter, x, y):
+    #     a = parameter[0]
+    #     b = parameter[1]
+    #     residual = y - (a * x + b)
+    #     return residual
+    #
+    # def fit(self, x, y):
+    #     parameter0 = [0., 0.]
+    #     result = optimize.leastsq(combine.fit_func, parameter0, args=(x, y))
+    #     print(result)
+    #     a = result[0][0]
+    #     b = result[0][1]
+    #
+    #     print('a = ', a, ' b = ', b)
+
+    def myhistogram(data, bin):
+        yhist, edges = np.histogram(data, bins=bin, density=True)
+        return yhist, edges[:-1]
+
+    def myhistogram_normalize(data, bin):
+        yhist, edges = np.histogram(data, bins=bin, density=True)
+        w = np.diff(edges)
+        yhist = yhist * w
+        return yhist, edges[:-1]
