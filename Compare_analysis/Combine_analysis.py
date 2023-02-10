@@ -725,29 +725,19 @@ class combine:
                     # p_x = np.full(len(datax), 0.5)
 
 
-                    while n_uniq < size:
-                        x = self.rand(size - n_uniq)
-                        if n_uniq > 0:
-                            p[flat_found[0:n_uniq]] = 0
-                        cdf = np.cumsum(p)
-                        cdf /= cdf[-1]
-                        new = cdf.searchsorted(x, side='right')
-                        _, unique_indices = np.unique(new, return_index=True)
-                        unique_indices.sort()
-                        new = new.take(unique_indices)
-                        flat_found[n_uniq:n_uniq + new.size] = new
-                        n_uniq += new.size
-                    idx = found
-
-
-
-
-
-
-
-
-
-
+                    # while n_uniq < size:
+                    #     x = self.rand(size - n_uniq)
+                    #     if n_uniq > 0:
+                    #         p[flat_found[0:n_uniq]] = 0
+                    #     cdf = np.cumsum(p)
+                    #     cdf /= cdf[-1]
+                    #     new = cdf.searchsorted(x, side='right')
+                    #     _, unique_indices = np.unique(new, return_index=True)
+                    #     unique_indices.sort()
+                    #     new = new.take(unique_indices)
+                    #     flat_found[n_uniq:n_uniq + new.size] = new
+                    #     n_uniq += new.size
+                    # idx = found
 
 
 
