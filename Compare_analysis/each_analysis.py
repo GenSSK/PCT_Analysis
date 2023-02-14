@@ -487,6 +487,13 @@ class each:
 
         return pitch_ddot, roll_ddot
 
+    def get_plate_dot (self):
+        pitch_dot = np.vstack((self.data[_]['pitch_dot'][self.start_num:self.end_num] for _ in range(len(self.data))))
+        roll_dot = np.vstack((self.data[_]['roll_dot'][self.start_num:self.end_num] for _ in range(len(self.data))))
+
+        return pitch_dot, roll_dot
+
+
     def variance_calculation(self, data):
         variance = np.var(data, axis=0)
         return variance

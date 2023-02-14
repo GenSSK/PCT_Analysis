@@ -8,6 +8,7 @@ import scipy.stats
 from scipy.stats import beta
 import statsmodels.api as sm
 from numpy.random import Generator, PCG64, MT19937
+from scipy import signal, optimize
 
 import sys
 # import os
@@ -16,6 +17,37 @@ import sys
 
 sys.path.append('../statistics')
 import myhistogram
+
+
+def fit_func_mse(parameter, *args):
+    x, y = args
+    a = parameter[0]
+    b = parameter[1]
+    residual = y - (a * x + b)
+    mse = np.mean(residual ** 2)
+    return mse
+
+def fit_func(parameter, *args):
+    x, y = args
+    a = parameter[0]
+    b = parameter[1]
+    residual = y - (a * x + b)
+    return residual
+
+def fit_func_2nd(parameter, *args):
+    accel, velo, y = args
+    a = parameter[0]
+    b = parameter[1]
+    residual = y - (a * accel + b * velo)
+    return residual
+
+def fit_func_2nd_mse(parameter, *args):
+    accel, velo, y = args
+    a = parameter[0]
+    b = parameter[1]
+    residual = y - (a * accel + b * velo)
+    mse = np.mean(residual ** 2)
+    return mse
 
 class combine:
     def __init__(self, PP_npz, AdPD_npz, AdAc_npz, Bi_npz):
@@ -141,7 +173,7 @@ class combine:
         #               jitter=0.2, color='black', palette='Paired', ax=ax)
 
         ax.legend_ = None
-        ax.set_ylabel('Error Period')
+        ax.set_ylabel('RMSE on each period (m)')
 
 
 
@@ -172,12 +204,12 @@ class combine:
         #               jitter=0.2, color='black', palette='Paired', ax=ax)
 
         ax.legend_ = None
-        ax.set_ylabel('Spend Period')
+        ax.set_ylabel('Spent time on each period (s)')
         # ax.set_ylim(-0.5, 0.5)
 
         plt.tight_layout()
-        # plt.savefig('fig/performance_comparison.png')
-        plt.savefig('fig/performance_comparison.pdf')
+        plt.savefig('fig/performance_comparison.png')
+        # plt.savefig('fig/performance_comparison.pdf')
         plt.show()
 
     def performance_relation(self):
@@ -433,8 +465,8 @@ class combine:
 
         porr = ['pitch', 'roll']
 
-        types = ['Avg. summation pitch force (Nm)',
-                 'Avg. summation roll force (Nm)',
+        types = ['Avg. summation force of pitch-axis (Nm)',
+                 'Avg. summation force of roll-axis (Nm)',
                  ]
 
         exp_num = [_ for _ in range(1, len(PP_ptext[0]) + 1)]
@@ -483,25 +515,38 @@ class combine:
         df_sum_force.reset_index(drop=True, inplace=True)
         print(df_sum_force)
 
+        ranges = [3.0, 5.0]
+
+
         if graph == 0:
-            sns.set()
-            # sns.set_style('whitegrid')
-            sns.set_palette('Set3')
+            sns.set(font='Times New Roman', font_scale=1.0)
+            # sns.set_palette('cubehelix', 4)
+            sns.set_palette('Set2', 4)
+            # sns.set_palette('gist_stern_r', 4)
+            # sns.set_palette('gist_earth', 10)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            # font_scale=1.5,
+                            rc={
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
 
-            ranges = [3.0, 5.0]
-
-            fig = plt.figure(figsize=(10, 10), dpi=150)
+            fig = plt.figure(figsize=(10, 4), dpi=150)
 
             plot = [
-                fig.add_subplot(2, 1, 1),
-                fig.add_subplot(2, 1, 2),
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
             ]
 
             for i in range(len(plot)):
-
                 sns.boxplot(x="types", y="sum_force", data=df[i], ax=plot[i], sym="")
-                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-                #               jitter=0.1, color='black', palette='Paired', ax=plot[j])
+                # sns.stripplot(x='types', y='sub_pos', data=df[i], hue='Group', dodge=True,
+                #               jitter=0.1, color='black', palette='Paired', ax=plot[i])
 
                 # plot[j].legend_ = None
                 plot[i].set_ylabel(types[i])
@@ -534,8 +579,8 @@ class combine:
         ]
 
 
-        types = ['Avg. subtraction pitch position (rad)',
-                 'Avg. subtraction roll position (rad)',
+        types = ['Avg. position difference of pitch-axis (rad)',
+                 'Avg. position difference of roll-axis (rad)',
                  ]
         ranges = [0.1, 0.3]
 
@@ -614,7 +659,7 @@ class combine:
 
             plt.tight_layout()
             # plt.savefig('fig/subtraction_ave_position.png')
-            # plt.savefig('fig/subtraction_position_3sec.pdf')
+            plt.savefig('fig/subtraction_position_3sec.png')
             plt.show()
 
         return df_sub_pos
@@ -659,6 +704,11 @@ class combine:
         AdAc_pddot, AdAc_rddot = self.AdAc.estimation_task_inertia()
         Bi_pddot, Bi_rddot = self.Bi.estimation_task_inertia()
 
+        PP_pdot, PP_rdot = self.PP.get_plate_dot()
+        AdPD_pdot, AdPD_rdot = self.AdPD.get_plate_dot()
+        AdAc_pdot, AdAc_rdot = self.AdAc.get_plate_dot()
+        Bi_pdot, Bi_rdot = self.Bi.get_plate_dot()
+
         type = ['PP', 'Ad(PD)', 'Ad(Ac)', 'Bi']
 
         porr = ['pitch', 'roll']
@@ -678,154 +728,218 @@ class combine:
             [PP_rddot, AdPD_rddot, AdAc_rddot, Bi_rddot],
         ]
 
+        dot_datas = [
+            [PP_pdot, AdPD_pdot, AdAc_pdot, Bi_pdot],
+            [PP_rdot, AdPD_rdot, AdAc_rdot, Bi_rdot],
+        ]
+
         df = []
+        F = [] # 力の推定
+        J = [] # 慣性モーメント
+        D = [] # 減衰係数
+        Slope = []
+        Intercept = []
 
         dfpp = []
         for j in range(len(porr)):
             dfpp.append([])
+            F.append([])
+            J.append([])
+            D.append([])
+            Slope.append([])
+            Intercept.append([])
             for i in range(len(type)):
+                F[j].append([])
+                J[j].append([])
+                D[j].append([])
+                Slope[j].append([])
+                Intercept[j].append([])
                 for k in range(len(PP_ptext)):
                     dec = 100
                     datax = ddot_datas[j][i][k][::dec]
                     datay = -summation_datas[j][i][k][::dec]
 
-                    res = scipy.stats.linregress(datax, datay)
-                    print(res)
+                    datax_dot = dot_datas[j][i][k][::dec]
 
-                    #以下、確率分布にしたがって、データを一様に取得するやつ（問題あり）
-                    fit_res_x = beta.fit(datax)
-                    frozen_beta_x = beta.freeze(a=fit_res_x[0], b=fit_res_x[1], loc=fit_res_x[2], scale=fit_res_x[3])
-                    xx = np.linspace(np.min(datax), np.max(datax), len(datax))
-                    yhist, edges = combine.myhistogram_normalize(datax, 100)
+                    # res = scipy.stats.linregress(datax, datay)
+                    # print(type[i]+"_"+porr[j]+" = ", res)
 
-                    p_x = frozen_beta_x.pdf(xx)
-                    print(p_x)
-                    print(np.sum(p_x * (xx[1] - xx[0])))
+                    parameter0 = [0.0, 0.0]
+                    print(type[i] + "_" + porr[j] + " = ")
 
-                    p_x_ = 1.0 - p_x
-                    # p_x_ = p_x_ / np.sum(p_x_ * (xx[1] - xx[0]))
-                    print(p_x_)
+                    # MSEで最小化（Jのみ）
+                    # result = optimize.minimize(fit_func_mse, parameter0, args=(datax, datay))
+                    # print(result)
+                    # # print(result.x)
+                    # Slope[j][i].append(result.x[0])
+                    # Intercept[j][i].append(result.x[1])
 
-                    # 乱数生成器にPCGを使う
-                    rg_pcg = Generator(PCG64())
-                    comparator = rg_pcg.random(len(p_x))
-                    # print(comparator)
+                    # LSMで最小化（Jのみ）
+                    result = optimize.leastsq(fit_func, parameter0, args=(datax, datay))
+                    print(result)
+                    Slope[j][i].append(result[0][0])
+                    Intercept[j][i].append(result[0][1])
 
-                    # 乱数生成器にメルセンヌ・ツイスタを使う
-                    # rg_mt = Generator(MT19937())
-                    # comparator = rg_mt.random(100)
+                    F[j][i].append(Slope[j][i][k] * datax + Intercept[j][i][k])
 
-                    plt.figure(figsize=(5, 5), dpi=300)
+                    # MSEで最小化（J+D）
+                    # result = optimize.minimize(fit_func_2nd_mse, parameter0, args=(datax, datax_dot, datay))
+                    # print(result)
+                    # # print(result.x)
+                    # J[j][i].append(result.x[0])
+                    # D[j][i].append(result.x[1])
 
+                    # LSMで最小化（J+D）
+                    # result = optimize.leastsq(fit_func_2nd, parameter0, args=(datax, datax_dot, datay))
+                    # J[j][i].append(result[0][0])
+                    # D[j][i].append(result[0][1])
+                    # print(result)
 
-                    # yhist, edges = combine.myhistogram(comparator, 1000)
-                    # plt.bar(edges, yhist, label='random', color=(1, 0, 0, 0.5), width=0.001)
-                    # plt.show()
+                    # F[j][i].append(J[j][i][k] * datax + D[j][i][k] * datax_dot)
 
-                    # p_x = np.full(len(datax), 0.5)
+                    # 決定係数の計算
+                    sy2 = np.var(datay)  # データの分散
+                    error = F[j][i][k] - datay  # 誤差
+                    syx2 = np.mean(error ** 2)  # 誤差の二乗平均
+                    sr2 = sy2 - syx2  # 回帰の分散
+                    r2 = sr2 / sy2  # 決定係数
+                    print("決定係数 = ", r2)
 
-
-                    # while n_uniq < size:
-                    #     x = self.rand(size - n_uniq)
-                    #     if n_uniq > 0:
-                    #         p[flat_found[0:n_uniq]] = 0
-                    #     cdf = np.cumsum(p)
-                    #     cdf /= cdf[-1]
-                    #     new = cdf.searchsorted(x, side='right')
-                    #     _, unique_indices = np.unique(new, return_index=True)
-                    #     unique_indices.sort()
-                    #     new = new.take(unique_indices)
-                    #     flat_found[n_uniq:n_uniq + new.size] = new
-                    #     n_uniq += new.size
-                    # idx = found
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    selection = np.where(comparator > p_x_, True, False)
-                    true_num = np.count_nonzero(selection == True)
-                    false_num = np.count_nonzero(selection == False)
-                    print(true_num)
-                    print(false_num)
-
-                    plt.figure(figsize=(5, 5), dpi=300)
-                    plt.bar(edges, yhist, label='histogram', color='orange')
-                    # plt.bar(xx, selection, label='selection', color='red')
-                    plt.plot(xx, p_x_, label='frozen pdf', color='blue')
-                    plt.legend()
-                    # plt.show()
-
-                    data = np.array([datax, datay])
-                    # print(data)
-                    data = data.T
-                    # print(data)
-                    data = data[np.argsort(data[:, 0])]
-                    # print(data)
-                    data = data.T
-                    # print(data)
-
-                    data_choice = data[:, selection]
-                    print(data_choice)
-
-
-                    fit_res_y = beta.fit(datay)
-                    frozen_beta_y = beta.freeze(a=fit_res_y[0], b=fit_res_y[1], loc=fit_res_y[2], scale=fit_res_y[3])
-                    xy = np.linspace(np.min(datay), np.max(datay), len(datay))
-                    # yhist, edges = combine.myhistogram_normalize(datay, 100)
-
-                    p_y = frozen_beta_y.pdf(xy)
-                    p_y = p_y / np.sum(p_y)
-
-
-                    # choice_num = 10000
-                    # datax = np.sort(datax)
-                    # datax_choice = np.random.choice(datax, choice_num, p=p_x)
-                    # datay_choice = np.random.choice(datay, choice_num, p=p_y)
-                    # datax_choice = np.sort(datax_choice)
-                    # datay_choice = np.sort(datay_choice)
-                    # res_choice = scipy.stats.linregress(datax_choice, datay_choice)
-                    # print('choice = ', res_choice)
-
-                    plt.figure(figsize=(5, 5), dpi=300)
-                    # yhist, edges = combine.myhistogram_normalize(datax, 1000)
-                    # plt.bar(edges, yhist, label='histogram_raw', color=(1, 0, 0, 0.5))
-                    plt.hist(datax, label='histogram_raw', color=(1, 0, 0, 0.5), bins=100, density=True)
-                    # yhist, edges = combine.myhistogram_normalize(datax_choice, 1000)
-                    # plt.bar(edges, yhist, label='histogram', color=(0, 1, 0, 0.5))
-                    plt.hist(data_choice[0], label='histogram', color=(0, 1, 0, 0.5), bins=100, density=True)
-                    plt.legend()
-                    plt.show()
-
-
-                    # print(res[0])
-
-                    # plt.scatter(datax, datay, s=0.5)
-                    # plt.scatter(datax_choice, datay_choice, s=0.5)
                     #
-                    # # plt.plot(xx, xx * res[0], label='raw')
-                    # # plt.plot(xx, xx * res_choice[0], label='choice')
+                    # #以下、確率分布にしたがって、データを一様に取得するやつ（問題あり）
+                    # fit_res_x = beta.fit(datax)
+                    # frozen_beta_x = beta.freeze(a=fit_res_x[0], b=fit_res_x[1], loc=fit_res_x[2], scale=fit_res_x[3])
+                    # xx = np.linspace(np.min(datax), np.max(datax), len(datax))
+                    # yhist, edges = combine.myhistogram_normalize(datax, 100)
                     #
+                    # p_x = frozen_beta_x.pdf(xx)
+                    # print(p_x)
+                    # print(np.sum(p_x * (xx[1] - xx[0])))
+                    #
+                    # p_x_ = 1.0 - p_x
+                    # # p_x_ = p_x_ / np.sum(p_x_ * (xx[1] - xx[0]))
+                    # print(p_x_)
+                    #
+                    # # 乱数生成器にPCGを使う
+                    # rg_pcg = Generator(PCG64())
+                    # comparator = rg_pcg.random(len(p_x))
+                    # # print(comparator)
+                    #
+                    # # 乱数生成器にメルセンヌ・ツイスタを使う
+                    # # rg_mt = Generator(MT19937())
+                    # # comparator = rg_mt.random(100)
+                    #
+                    # plt.figure(figsize=(5, 5), dpi=300)
+                    #
+                    #
+                    # # yhist, edges = combine.myhistogram(comparator, 1000)
+                    # # plt.bar(edges, yhist, label='random', color=(1, 0, 0, 0.5), width=0.001)
+                    # # plt.show()
+                    #
+                    # # p_x = np.full(len(datax), 0.5)
+                    #
+                    #
+                    # # while n_uniq < size:
+                    # #     x = self.rand(size - n_uniq)
+                    # #     if n_uniq > 0:
+                    # #         p[flat_found[0:n_uniq]] = 0
+                    # #     cdf = np.cumsum(p)
+                    # #     cdf /= cdf[-1]
+                    # #     new = cdf.searchsorted(x, side='right')
+                    # #     _, unique_indices = np.unique(new, return_index=True)
+                    # #     unique_indices.sort()
+                    # #     new = new.take(unique_indices)
+                    # #     flat_found[n_uniq:n_uniq + new.size] = new
+                    # #     n_uniq += new.size
+                    # # idx = found
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    #
+                    # selection = np.where(comparator > p_x_, True, False)
+                    # true_num = np.count_nonzero(selection == True)
+                    # false_num = np.count_nonzero(selection == False)
+                    # print(true_num)
+                    # print(false_num)
+                    #
+                    # plt.figure(figsize=(5, 5), dpi=300)
+                    # plt.bar(edges, yhist, label='histogram', color='orange')
+                    # # plt.bar(xx, selection, label='selection', color='red')
+                    # plt.plot(xx, p_x_, label='frozen pdf', color='blue')
+                    # plt.legend()
+                    # # plt.show()
+                    #
+                    # data = np.array([datax, datay])
+                    # # print(data)
+                    # data = data.T
+                    # # print(data)
+                    # data = data[np.argsort(data[:, 0])]
+                    # # print(data)
+                    # data = data.T
+                    # # print(data)
+                    #
+                    # data_choice = data[:, selection]
+                    # print(data_choice)
+                    #
+                    #
+                    # fit_res_y = beta.fit(datay)
+                    # frozen_beta_y = beta.freeze(a=fit_res_y[0], b=fit_res_y[1], loc=fit_res_y[2], scale=fit_res_y[3])
+                    # xy = np.linspace(np.min(datay), np.max(datay), len(datay))
+                    # # yhist, edges = combine.myhistogram_normalize(datay, 100)
+                    #
+                    # p_y = frozen_beta_y.pdf(xy)
+                    # p_y = p_y / np.sum(p_y)
+                    #
+                    #
+                    # # choice_num = 10000
+                    # # datax = np.sort(datax)
+                    # # datax_choice = np.random.choice(datax, choice_num, p=p_x)
+                    # # datay_choice = np.random.choice(datay, choice_num, p=p_y)
+                    # # datax_choice = np.sort(datax_choice)
+                    # # datay_choice = np.sort(datay_choice)
+                    # # res_choice = scipy.stats.linregress(datax_choice, datay_choice)
+                    # # print('choice = ', res_choice)
+                    #
+                    # plt.figure(figsize=(5, 5), dpi=300)
+                    # # yhist, edges = combine.myhistogram_normalize(datax, 1000)
+                    # # plt.bar(edges, yhist, label='histogram_raw', color=(1, 0, 0, 0.5))
+                    # plt.hist(datax, label='histogram_raw', color=(1, 0, 0, 0.5), bins=100, density=True)
+                    # # yhist, edges = combine.myhistogram_normalize(datax_choice, 1000)
+                    # # plt.bar(edges, yhist, label='histogram', color=(0, 1, 0, 0.5))
+                    # plt.hist(data_choice[0], label='histogram', color=(0, 1, 0, 0.5), bins=100, density=True)
                     # plt.legend()
                     # plt.show()
+                    #
+                    #
+                    # # print(res[0])
+                    #
+                    # # plt.scatter(datax, datay, s=0.5)
+                    # # plt.scatter(datax_choice, datay_choice, s=0.5)
+                    # #
+                    # # # plt.plot(xx, xx * res[0], label='raw')
+                    # # # plt.plot(xx, xx * res_choice[0], label='choice')
+                    # #
+                    # # plt.legend()
+                    # # plt.show()
 
                     dfpp[j].append(pd.DataFrame({
                         'types': type[i],
                         axis[0]: datay,
                         axis[1]: datax,
+                        'Estimation Force': F[j][i][k],
                         "Group" : k + 1,
                         "porr" : porr[j],
                     })
                     )
-
 
 
 
@@ -871,22 +985,41 @@ class combine:
                 'legend_out':True
             }
 
-            g = sns.lmplot(data=df, x=axis[0], y=axis[1], col='porr', hue="types",
-                       fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
-                       # palette=sns.color_palette('gist_stern_r', 4),
-                       # palette=sns.color_palette('gist_earth', 4),
-                       palette=sns.color_palette('Set2', 4),
-                       height=8, aspect=1, col_wrap=2,
-                       facet_kws=fc_kws,
-                       )
+            # 2つのグラフを並べる
+            # g = sns.lmplot(data=df, x=axis[0], y=axis[1], col='porr', hue="types",
+            #            fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
+            #            # palette=sns.color_palette('gist_stern_r', 4),
+            #            # palette=sns.color_palette('gist_earth', 4),
+            #            palette=sns.color_palette('Set2', 4),
+            #            height=8, aspect=1, col_wrap=2,
+            #            facet_kws=fc_kws,
+            #            )
+            #
+            # g.set(xlim=(-8, 8), ylim=(50, 50), xticks=[-8, 0, 8], yticks=[-50, 0, 50])
 
-            g.set(xlim=(-8, 8), ylim=(50, 50), xticks=[-8, 0, 8], yticks=[-50, 0, 50])
+            # 全部バラバラ
+            xlim = [8, 8]
+            ylim = [40, 40]
+            for i in range(len(porr)):
+                g = sns.lmplot(data=df_[i], x=axis[0], y=axis[1], col='types', hue="types",
+                               fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
+                               # palette=sns.color_palette('gist_stern_r', 4),
+                               # palette=sns.color_palette('gist_earth', 4),
+                               palette=sns.color_palette('Set2', 4),
+                               height=4, aspect=1.5, col_wrap=2,
+                               facet_kws=fc_kws,
+                               )
 
+                g.set(xlim=(-xlim[i], xlim[i]), ylim=(-ylim[i], ylim[i]), xticks=[-xlim[i], 0, xlim[i]], yticks=[-ylim[i], 0, ylim[i]])
+                plt.savefig('fig/estimation_inertia_changeDynamics_' + porr[i] + '.png')
+
+
+            # 力の推定　全部バラバラ
             # xlim = [8, 8]
-            # ylim = [40, 40]
+            # ylim = [8, 8]
             # for i in range(len(porr)):
-            #     g = sns.lmplot(data=df_[i], x=axis[0], y=axis[1], col='types', hue="types",
-            #                    fit_reg=True, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
+            #     g = sns.lmplot(data=df_[i], x=axis[0], y='Estimation Force', col='types', hue="types",
+            #                    fit_reg=False, scatter_kws=sc_kws, line_kws=ln_kws, ci=None,
             #                    # palette=sns.color_palette('gist_stern_r', 4),
             #                    # palette=sns.color_palette('gist_earth', 4),
             #                    palette=sns.color_palette('Set2', 4),
@@ -895,9 +1028,26 @@ class combine:
             #                    )
             #
             #     g.set(xlim=(-xlim[i], xlim[i]), ylim=(-ylim[i], ylim[i]), xticks=[-xlim[i], 0, xlim[i]], yticks=[-ylim[i], 0, ylim[i]])
-            #     plt.savefig('fig/estimation_inertia_' + porr[i] + '.pdf')
+                # plt.savefig('fig/estimation_force_changeDynamics_2nd_' + porr[i] + '.png')
 
-            # plt.tight_layout()
+            # # 散布図のみ
+            # fig = plt.figure(figsize=(18, 8), dpi=100)
+            #
+            # plot = [
+            #     fig.add_subplot(1, 2, 1),
+            #     fig.add_subplot(1, 2, 2),
+            # ]
+            #
+            # for i in range(len(porr)):
+            #     g = sns.scatterplot(data=df_[i], x=axis[0], y=axis[1], hue="types", s=0.04, alpha=0.4, ax=plot[i])
+            #     xlim = [-8, 8]
+            #     ylim = [-50, 50]
+            #     plot[i].set_xlim(xlim[0], xlim[1])
+            #     plot[i].set_xticks([xlim[0], 0, xlim[1]])
+            #     plot[i].set_ylim(ylim[0], ylim[1])
+            #     plot[i].set_yticks([ylim[0], 0, ylim[1]])
+
+            plt.tight_layout()
             # plt.savefig('fig/summation_ave_force.png')
             plt.show()
 
