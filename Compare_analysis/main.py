@@ -67,6 +67,18 @@ if __name__ == '__main__':
         '2023-01-24_y.yoshida_k.kobayashi_Bilateral.npz',
     ]
 
+    #　実験をした順番 -> [PP, AdPD, AdAc, Bi]
+    order = [
+        [3, 4, 1, 2], #b.poitrimol_k.tozuka
+        [1, 2, 3, 4], #h.nishimura_y.inoue
+        [3, 4, 1, 1], #i.kato_ko.kobayashi
+        # [3, 2, 4, 1], #m.nakamura_r.tanaka
+        [3, 4, 1, 2], #t.onogawa_n.ito
+        # [3, 1, 4, 2], #t.oriuchi_s.watanabe
+        [2, 1, 4, 3], #y.yamada_s.tsuchiya
+        [4, 2, 1, 3], #y.yoshida_k.kobayashi
+    ]
+
     PP_npz = npz.select_load(PP_npz_filename)
     AdPD_npz = npz.select_load(AdPD_npz_filename)
     AdAc_npz = npz.select_load(AdAc_npz_filename)
@@ -123,7 +135,7 @@ if __name__ == '__main__':
     # com.AdPD.summation_force(0)
     # com.AdAc.summation_force(0)
     # com.Bi.summation_force(0)
-    com.summation_force_3sec(0)
+    # com.summation_force_3sec(0)
 
     ##位置の差分と力の和のCSV出力
     # df_sum_force = com.summation_force_3sec()
@@ -138,3 +150,7 @@ if __name__ == '__main__':
     # com.AdAc.estimation_task_inertia()
     # com.Bi.estimation_task_inertia()
     # com.estimation_inertia(graph=0)
+
+    ##パフォーマンスの向上
+    df = com.improvement_performance(order)
+    df.to_csv('csv/improvement_performance.csv', index=False)
