@@ -854,17 +854,6 @@ class combine:
                     # # idx = found
                     #
                     #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
-                    #
                     # selection = np.where(comparator > p_x_, True, False)
                     # true_num = np.count_nonzero(selection == True)
                     # false_num = np.count_nonzero(selection == False)
@@ -1068,6 +1057,71 @@ class combine:
     #     b = result[0][1]
     #
     #     print('a = ', a, ' b = ', b)
+
+    def improvement_performance(self, order):
+        error_period_PP, spend_period_PP = self.PP.period_performance()
+        error_period_AdPD, spend_period_AdPD = self.AdPD.period_performance()
+        error_period_AdAc, spend_period_AdAc = self.AdAc.period_performance()
+        error_period_Bi, spend_period_Bi = self.Bi.period_performance()
+
+        type = ['PP', 'Ad(PD)', 'Ad(ABC)', 'Bi']
+
+        axis = ['RMSE on each period (s)',
+                "Spent time on each period (s)",
+                'RMSE on each period (s) Ordered',
+                "Spent time on each period (s) Ordered",
+                ]
+
+        normal_data = [
+            [error_period_PP, error_period_AdPD, error_period_AdAc, error_period_Bi],
+            [spend_period_PP, spend_period_AdPD, spend_period_AdAc, spend_period_Bi],
+        ]
+
+        initial_ave = []
+        for i in range(len(normal_data)):
+            initial_ave.append([])
+            for j in range(len(type)):
+                trans = normal_data[i][j].T
+                ext = trans[0]
+                ave = np.average(ext)
+                initial_ave[i].append(ave)
+
+        ordered_ave = []
+        for i in range(len(normal_data)):
+            ordered_ave.append([])
+            for j in range(len(type)):
+                ave_ = 0
+                for k in range(len(normal_data[0][0])):
+                    ave_ += normal_data[i][order[k][j] - 1][k][0]
+                ordered_ave[i].append(ave_ / len(normal_data[0][0]))
+
+        df_ = []
+        for i in range(len(type)):
+            for j in range(len(normal_data[0][0])):
+                for k in range(len(normal_data[0][0][0])):
+                    # print(order[j][i])
+                    df_.append(pd.DataFrame({
+                        'types': type[i],
+                        axis[0]: normal_data[0][i][j][k] - initial_ave[0][i],
+                        axis[1]: normal_data[1][i][j][k] - initial_ave[1][i],
+                        axis[2]: normal_data[0][i][j][k] - ordered_ave[0][order[j][i] - 1],
+                        axis[3]: normal_data[1][i][j][k] - ordered_ave[1][order[j][i] - 1],
+                        "Group": j,
+                        "Order": order[j][i],
+                        "Period": k + 1,
+                    }, index=[0])
+                    )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        # sns.factorplot(data=df, x="Period", y=axis[0], hue='types')
+        sns.factorplot(data=df, x="Period", y=axis[2], hue='Order')
+
+        plt.show()
+
+        return df
+
 
     def myhistogram(data, bin):
         yhist, edges = np.histogram(data, bins=bin, density=True)
