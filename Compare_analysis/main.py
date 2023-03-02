@@ -25,10 +25,10 @@ if __name__ == '__main__':
     PP_npz_filename = [
         '2023-01-24_b.poitrimol_k.tozuka_PP.npz',
         '2023-01-24_h.nishimura_y.inoue_PP.npz',
-        '2023-01-24_i.kato_ko.kobayashi_PP.npz',
-        # '2023-01-24_m.nakamura_r.tanaka_PP.npz',
-        '2023-01-24_t.onogawa_n.ito_PP.npz',
-        # '2023-01-24_t.oriuchi_s.watanabe_PP.npz',
+        # '2023-01-24_i.kato_ko.kobayashi_PP.npz',
+        # # '2023-01-24_m.nakamura_r.tanaka_PP.npz',
+        # '2023-01-24_t.onogawa_n.ito_PP.npz',
+        # # '2023-01-24_t.oriuchi_s.watanabe_PP.npz',
         '2023-01-24_y.yamada_s.tsuchiya_PP.npz',
         '2023-01-24_y.yoshida_k.kobayashi_PP.npz',
     ]
@@ -36,10 +36,10 @@ if __name__ == '__main__':
     AdPD_npz_filename = [
         '2023-01-24_b.poitrimol_k.tozuka_Admittance(PD).npz',
         '2023-01-24_h.nishimura_y.inoue_Admittance(PD).npz',
-        '2023-01-24_i.kato_ko.kobayashi_Admittance(PD).npz',
-        # '2023-01-24_m.nakamura_r.tanaka_Admittance(PD).npz',
-        '2023-01-24_t.onogawa_n.ito_Admittance(PD).npz',
-        # '2023-01-24_t.oriuchi_s.watanabe_Admittance(PD).npz'x,
+        # '2023-01-24_i.kato_ko.kobayashi_Admittance(PD).npz',
+        # # '2023-01-24_m.nakamura_r.tanaka_Admittance(PD).npz',
+        # '2023-01-24_t.onogawa_n.ito_Admittance(PD).npz',
+        # # '2023-01-24_t.oriuchi_s.watanabe_Admittance(PD).npz'x,
         '2023-01-24_y.yamada_s.tsuchiya_Admittance(PD).npz',
         '2023-01-24_y.yoshida_k.kobayashi_Admittance(PD).npz',
         # '2023-02-13_y.inoue_g.sasaki_Admittance(PD).npz', # テスト用
@@ -48,10 +48,10 @@ if __name__ == '__main__':
     AdAc_npz_filename = [
         '2023-01-24_b.poitrimol_k.tozuka_Admittance(Accel).npz',
         '2023-01-24_h.nishimura_y.inoue_Admittance(Accel).npz',
-        '2023-01-24_i.kato_ko.kobayashi_Admittance(Accel).npz',
-        # '2023-01-24_m.nakamura_r.tanaka_Admittance(Accel).npz',
-        '2023-01-24_t.onogawa_n.ito_Admittance(Accel).npz',
-        # '2023-01-24_t.oriuchi_s.watanabe_Admittance(Accel).npz',
+        # '2023-01-24_i.kato_ko.kobayashi_Admittance(Accel).npz',
+        # # '2023-01-24_m.nakamura_r.tanaka_Admittance(Accel).npz',
+        # '2023-01-24_t.onogawa_n.ito_Admittance(Accel).npz',
+        # # '2023-01-24_t.oriuchi_s.watanabe_Admittance(Accel).npz',
         '2023-01-24_y.yamada_s.tsuchiya_Admittance(Accel).npz',
         '2023-01-24_y.yoshida_k.kobayashi_Admittance(Accel).npz',
     ]
@@ -59,24 +59,36 @@ if __name__ == '__main__':
     Bi_npz_filename = [
         '2023-01-24_b.poitrimol_k.tozuka_Bilateral.npz',
         '2023-01-24_h.nishimura_y.inoue_Bilateral.npz',
-        '2023-01-24_i.kato_ko.kobayashi_Bilateral.npz',
-        # '2023-01-24_m.nakamura_r.tanaka_Bilateral.npz',
-        '2023-01-24_t.onogawa_n.ito_Bilateral.npz',
-        # '2023-01-24_t.oriuchi_s.watanabe_Bilateral.npz',
+        # '2023-01-24_i.kato_ko.kobayashi_Bilateral.npz',
+        # # '2023-01-24_m.nakamura_r.tanaka_Bilateral.npz',
+        # '2023-01-24_t.onogawa_n.ito_Bilateral.npz',
+        # # '2023-01-24_t.oriuchi_s.watanabe_Bilateral.npz',
         '2023-01-24_y.yamada_s.tsuchiya_Bilateral.npz',
         '2023-01-24_y.yoshida_k.kobayashi_Bilateral.npz',
     ]
 
     #　実験をした順番 -> [PP, AdPD, AdAc, Bi]
-    order = [
+    exp_order = [
         [3, 4, 1, 2], #b.poitrimol_k.tozuka
         [1, 2, 3, 4], #h.nishimura_y.inoue
-        [3, 4, 1, 1], #i.kato_ko.kobayashi
-        # [3, 2, 4, 1], #m.nakamura_r.tanaka
-        [3, 4, 1, 2], #t.onogawa_n.ito
-        # [3, 1, 4, 2], #t.oriuchi_s.watanabe
-        [2, 1, 4, 3], #y.yamada_s.tsuchiya
+        # [3, 4, 1, 2], #i.kato_ko.kobayashi
+        # # [3, 2, 4, 1], #m.nakamura_r.tanaka
+        # [3, 4, 1 , 2], #t.onogawa_n.ito
+        # # [3, 1, 4, 2], #t.oriuchi_s.watanabe
+        [2, 1, 3, 4], #y.yamada_s.tsuchiya
         [4, 2, 1, 3], #y.yoshida_k.kobayashi
+    ]
+
+    type_order = [
+    #    1  2  3  4 回目の実験 1->PP, 2->AdPD, 3->AdAc, 4->Bi
+        [3, 4, 1, 2],  # b.poitrimol_k.tozuka
+        [1, 2, 3, 4],  # h.nishimura_y.inoue
+        # [3, 4, 1, 2],  # i.kato_ko.kobayashi
+        # # [4, 2, 1, 3], #m.nakamura_r.tanaka
+        # [3, 4, 1, 2],  # t.onogawa_n.ito
+        # # [2, 4, 1, 3], #t.oriuchi_s.watanabe
+        [2, 1, 3, 4],  # y.yamada_s.tsuchiya
+        [3, 2, 4, 1],  # y.yoshida_k.kobayashi
     ]
 
     PP_npz = npz.select_load(PP_npz_filename)
@@ -152,5 +164,5 @@ if __name__ == '__main__':
     # com.estimation_inertia(graph=0)
 
     ##パフォーマンスの向上
-    df = com.improvement_performance(order)
+    df = com.improvement_performance(exp_order, type_order)
     df.to_csv('csv/improvement_performance.csv', index=False)

@@ -1058,7 +1058,7 @@ class combine:
     #
     #     print('a = ', a, ' b = ', b)
 
-    def improvement_performance(self, order):
+    def improvement_performance(self, exp_order, type_order):
         error_period_PP, spend_period_PP = self.PP.period_performance()
         error_period_AdPD, spend_period_AdPD = self.AdPD.period_performance()
         error_period_AdAc, spend_period_AdAc = self.AdAc.period_performance()
@@ -1087,13 +1087,15 @@ class combine:
                 initial_ave[i].append(ave)
 
         ordered_ave = []
-        for i in range(len(normal_data)):
+        for i in range(len(normal_data)): # 0:RMSE, 1:spend
             ordered_ave.append([])
-            for j in range(len(type)):
+            for j in range(len(type)): # types
                 ave_ = 0
-                for k in range(len(normal_data[0][0])):
-                    ave_ += normal_data[i][order[k][j] - 1][k][0]
+                for k in range(len(normal_data[0][0])): # subjects
+                    ave_ += normal_data[i][type_order[k][j] - 1][k][0]
                 ordered_ave[i].append(ave_ / len(normal_data[0][0]))
+
+        # ordered_ave[パフォーマンス][実験の順番]
 
         df_ = []
         for i in range(len(type)):
@@ -1104,10 +1106,10 @@ class combine:
                         'types': type[i],
                         axis[0]: normal_data[0][i][j][k] - initial_ave[0][i],
                         axis[1]: normal_data[1][i][j][k] - initial_ave[1][i],
-                        axis[2]: normal_data[0][i][j][k] - ordered_ave[0][order[j][i] - 1],
-                        axis[3]: normal_data[1][i][j][k] - ordered_ave[1][order[j][i] - 1],
+                        axis[2]: normal_data[0][i][j][k] - ordered_ave[0][exp_order[j][i] - 1],
+                        axis[3]: normal_data[1][i][j][k] - ordered_ave[1][exp_order[j][i] - 1],
                         "Group": j,
-                        "Order": order[j][i],
+                        "Order": exp_order[j][i],
                         "Period": k + 1,
                     }, index=[0])
                     )
@@ -1115,8 +1117,8 @@ class combine:
         df = pd.concat([i for i in df_], axis=0)
         df.reset_index(drop=True, inplace=True)
 
-        # sns.factorplot(data=df, x="Period", y=axis[0], hue='types')
-        sns.factorplot(data=df, x="Period", y=axis[2], hue='Order')
+        sns.factorplot(data=df, x="Period", y=axis[1], hue='types')
+        # sns.factorplot(data=df, x="Period", y=axis[3], hue='Order')
 
         plt.show()
 
