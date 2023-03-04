@@ -1103,7 +1103,7 @@ class combine:
                 for k in range(len(normal_data[0][0][0])):
                     # print(order[j][i])
                     df_.append(pd.DataFrame({
-                        'types': type[i],
+                        'Controller types': type[i],
                         axis[0]: normal_data[0][i][j][k] - initial_ave[0][i],
                         axis[1]: normal_data[1][i][j][k] - initial_ave[1][i],
                         axis[2]: normal_data[0][i][j][k] - ordered_ave[0][exp_order[j][i] - 1],
@@ -1117,10 +1117,118 @@ class combine:
         df = pd.concat([i for i in df_], axis=0)
         df.reset_index(drop=True, inplace=True)
 
-        sns.factorplot(data=df, x="Period", y=axis[1], hue='types')
-        # sns.factorplot(data=df, x="Period", y=axis[3], hue='Order')
+        # sns.set(font='Times New Roman', font_scale=1.0)
+        # sns.set_style('ticks')
+        # sns.set_context("poster",
+        #                 # font_scale=1.5,
+        #                 rc={
+        #                     "axes.linewidth": 0.5,
+        #                     "legend.fancybox": False,
+        #                     'pdf.fonttype': 42,
+        #                     'xtick.direction': 'in',
+        #                     'ytick.major.width': 1.0,
+        #                     'xtick.major.width': 1.0,
+        #                 })
+        #
+        # sc_kws = {
+        #     'marker': 'o',
+        #     # 'color':'indianred',
+        #     's': 0.04,
+        #     'alpha': 0.4,
+        # }
+        # ln_kws = {
+        #     'linewidth': 3,
+        #     # 'color':'Black'
+        # }
+        # fc_kws = {
+        #     'sharex': False,
+        #     'sharey': False,
+        #     'legend_out': True
+        # }
 
+        fig = plt.figure(figsize=(6, 6), dpi=800)
+
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212, sharex=ax1)
+
+        plot = [
+            ax1,
+            ax2,
+        ]
+
+        for i in range(len(plot)):
+            sns.lineplot(data=df, x="Period", y=axis[i], hue='Controller types',
+                         # style=axis[i], markers = True, dashes = False,
+                         err_style="bars", errorbar=("se", 2),
+                         lw=1.5,
+                         palette=sns.color_palette("Set1", 4),
+                         ax=plot[i]
+                         )
+            plot[i].set_xlabel("Periods")
+            plot[i].set_ylabel(axis[i])
+            plot[i].set_xlim(0.5, 21)
+            plot[i].set_xticks(np.arange(5, 25, 5))
+
+            plot[i].legend(ncol=4)
+
+        plot[0].set_ylim(-0.03, 0.03)
+        plot[0].set_yticks(np.arange(-0.03, 0.04, 0.03))
+
+        plot[1].set_ylim(-0.8, 1.2)
+        plot[1].set_yticks(np.arange(-0.8, 1.3, 0.4))
+        # sns.factorplot(data=df, x="Period", y=axis[1], hue='types')
+
+
+        plt.tight_layout()
+        plt.savefig("fig/improvement_performance.pdf")
         plt.show()
+
+
+
+
+
+        fig = plt.figure(figsize=(6, 6), dpi=400)
+
+        ax1 = fig.add_subplot(211)
+        ax2 = fig.add_subplot(212, sharex=ax1)
+
+        plot = [
+            ax1,
+            ax2,
+        ]
+
+        for i in range(len(plot)):
+            sns.lineplot(data=df, x="Period", y=axis[i + 2], hue='Order',
+                         # style=axis[i], markers = True, dashes = False,
+                         err_style="bars", errorbar=("se", 2),
+                         lw=1.5,
+                         palette=sns.color_palette('Set1', 4),
+                         ax=plot[i]
+                         )
+            plot[i].set_xlabel("Periods")
+            plot[i].set_ylabel(axis[i])
+            plot[i].set_xlim(0.5, 21)
+            plot[i].set_xticks(np.arange(5, 25, 5))
+
+            plot[i].legend(ncol=4)
+
+        plot[0].set_ylim(-0.03, 0.03)
+        plot[0].set_yticks(np.arange(-0.03, 0.04, 0.03))
+
+        plot[1].set_ylim(-0.8, 1.2)
+        plot[1].set_yticks(np.arange(-0.8, 1.3, 0.4))
+        # sns.factorplot(data=df, x="Period", y=axis[1], hue='types')
+
+        plt.tight_layout()
+        plt.savefig("fig/improvement_performance_ordered.pdf")
+        plt.show()
+
+
+
+
+
+
+        # sns.factorplot(data=df, x="Period", y=axis[3], hue='Order')
 
         return df
 
