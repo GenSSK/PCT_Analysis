@@ -23,47 +23,47 @@ if __name__ == '__main__':
     npz = Npz.NPZ()
 
     dyad_npz_filename = [
-        # 'dyad/2022-07-29_i.tsunokuni_k.tozuka_2134_CFO.npz',
-        # 'dyad/2022-07-29_i.tsunokuni_y.inoue_1324_CFO.npz',
-        # 'dyad/2022-07-31_m.sugaya_n.ito_1324_CFO.npz',
-        # 'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
-        # 'dyad/2022-08-26_y.kobayashi_r.yanase_1324_CFO.npz',
-        # 'dyad/2022-09-05_s.watanabe_ko.kobayashi_1324_CFO.npz',
-        # 'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
-        # 'dyad/2022-09-07_k.tozuka_ko.kobayashi_1324_CFO.npz',
-        # 'dyad/2022-09-07_y.inoue_k.kobayashi_1324_CFO.npz',
-
+        # # 'dyad/2022-07-29_i.tsunokuni_k.tozuka_2134_CFO.npz',
+        # # 'dyad/2022-07-29_i.tsunokuni_y.inoue_1324_CFO.npz',
+        # # 'dyad/2022-07-31_m.sugaya_n.ito_1324_CFO.npz',
+        # # 'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
+        # # 'dyad/2022-08-26_y.kobayashi_r.yanase_1324_CFO.npz',
+        # # 'dyad/2022-09-05_s.watanabe_ko.kobayashi_1324_CFO.npz',
+        # # 'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
+        # # 'dyad/2022-09-07_k.tozuka_ko.kobayashi_1324_CFO.npz',
+        # # 'dyad/2022-09-07_y.inoue_k.kobayashi_1324_CFO.npz',
+        #
         'dyad/2022-07-29_i.tsunokuni_k.tozuka_3124_CFO.npz',
         'dyad/2022-07-29_i.tsunokuni_y.inoue_1423_CFO.npz',
-        'dyad/2022-07-31_m.sugaya_n.ito_1234_CFO.npz',
-        'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
+        # 'dyad/2022-07-31_m.sugaya_n.ito_1234_CFO.npz',
+        # 'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
         'dyad/2022-08-26_y.kobayashi_r.yanase_1423_CFO.npz',
-        'dyad/2022-09-05_s.watanabe_ko.kobayashi_1234_CFO.npz',
+        # 'dyad/2022-09-05_s.watanabe_ko.kobayashi_1234_CFO.npz',
         'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
         'dyad/2022-09-07_k.tozuka_ko.kobayashi_1423_CFO.npz',
-        'dyad/2022-09-07_y.inoue_k.kobayashi_1234_CFO.npz',
+        # 'dyad/2022-09-07_y.inoue_k.kobayashi_1234_CFO.npz',
     ]
 
     triad_npz_filename = [
-        # # 'triad/2022-07-31_h.igarashi_ko.kobayashi_t.kassai_1234_CFO.npz', #使えない
-        # 'triad/2022-07-31_k.tozuka_y.inoue_m.nakamura_1234_CFO.npz',
-        # 'triad/2022-07-31_m.sugaya_s.sanuka_m.nakamura_1234_CFO.npz',
-        # 'triad/2022-08-23_s.watanabe_t.kassai_h.nishimura_2134_CFO.npz',
-        # 'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_1234_CFO.npz',
-        # 'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_1234_CFO.npz',
-        # 'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_1234_CFO.npz',
-        # 'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_1234_CFO.npz',
-        # 'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_1234_CFO.npz',
-        # 'triad/2022-09-07_r.yanase_k.kobayashi_s.kamioka_1234_CFO.npz',
-
+        # # # 'triad/2022-07-31_h.igarashi_ko.kobayashi_t.kassai_1234_CFO.npz', #使えない
+        # # 'triad/2022-07-31_k.tozuka_y.inoue_m.nakamura_1234_CFO.npz',
+        # # 'triad/2022-07-31_m.sugaya_s.sanuka_m.nakamura_1234_CFO.npz',
+        # # 'triad/2022-08-23_s.watanabe_t.kassai_h.nishimura_2134_CFO.npz',
+        # # 'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_1234_CFO.npz',
+        # # 'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_1234_CFO.npz',
+        # # 'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_1234_CFO.npz',
+        # # 'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_1234_CFO.npz',
+        # # 'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_1234_CFO.npz',
+        # # 'triad/2022-09-07_r.yanase_k.kobayashi_s.kamioka_1234_CFO.npz',
+        #
         'triad/2022-07-31_k.tozuka_y.inoue_m.nakamura_1234_CFO.npz',
         'triad/2022-07-31_m.sugaya_s.sanuka_m.nakamura_2134_CFO.npz',
         'triad/2022-08-23_s.watanabe_t.kassai_h.nishimura_3214_CFO.npz',
         'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_1234_CFO.npz',
-        'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_2314_CFO.npz',
-        'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_3421_CFO.npz',
-        'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_4132_CFO.npz',
-        'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_3412_CFO.npz',
+        # 'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_2314_CFO.npz',
+        # 'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_3421_CFO.npz',
+        # 'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_4132_CFO.npz',
+        # 'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_3412_CFO.npz',
         'triad/2022-09-07_r.yanase_k.kobayashi_s.kamioka_1234_CFO.npz',
     ]
 
@@ -80,16 +80,16 @@ if __name__ == '__main__':
         # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_1234_CFO.npz',
 
         # 'tetrad/2022-07-30_k.ohya_r.tanaka_y.baba_m.nakamura_1234_CFO.npz',
-        # 'tetrad/2022-07-30_r.tanaka_h.nishimura_k.tozuka_b.poitrimol_4123_CFO.npz',
+        'tetrad/2022-07-30_r.tanaka_h.nishimura_k.tozuka_b.poitrimol_4123_CFO.npz',
         # 'tetrad/2022-07-30_s.watanabe_h.nishimura_y.baba_y.yoshida_3421_CFO.npz',
-        # 'tetrad/2022-07-30_s.watanabe_ko.kobayashi_y.baba_k.tozuka_1324_CFO.npz',
+        'tetrad/2022-07-30_s.watanabe_ko.kobayashi_y.baba_k.tozuka_1324_CFO.npz',
         # 'tetrad/2022-07-30_y.inoue_y.yoshida_n.ito_s.sanuka_1234_CFO.npz',
-        # 'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421_CFO.npz',
-        # 'tetrad/2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234_CFO.npz',
-        # 'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413_CFO.npz',
+        'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421_CFO.npz',
+        'tetrad/2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234_CFO.npz',
+        'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413_CFO.npz',
         # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341_CFO.npz',
 
-        'tetrad/2022-10-07_t.test_t.test_t.test_t.test_1234_CFO.npz',
+        # 'tetrad/2022-10-07_t.test_t.test_t.test_t.test_1234_CFO.npz',
     ]
 
     dyad_npz = npz.select_load(dyad_npz_filename)
@@ -118,6 +118,10 @@ if __name__ == '__main__':
     # com.triad_cfo.cfo_sub()
     # com.tetrad_cfo.cfo_sub()
 
+    # 時系列データすべて確認
+    # com.dyad_cfo.plot_time_series('p')
+    # com.triad_cfo.plot_time_series('p')
+
     ##和のCFOを確認
     # com.dyad_cfo.summation_cfo(0) #和のCFOの時系列重ね
     # com.triad_cfo.summation_cfo(0) #和のCFOの時系列重ね
@@ -125,6 +129,12 @@ if __name__ == '__main__':
     # com.summation_cfo(0) #和のCFOの人数間比較
     # com.summation_cfo(0, 'b_abs') #和のCFOの人数間比較、前絶対値
     # com.summation_cfo(0, 'a_abs') #和のCFOの人数間比較、後絶対値
+
+    ##差のCFOの確認
+    # com.dyad_cfo.subtraction_cfo(0)
+    # com.triad_cfo.subtraction_cfo(0)
+    # com.tetrad_cfo.subtraction_cfo(0)
+    # com.subtraction_cfo(0)
 
     ##パフォーマンスの確認
     # com.performance_show() #パフォーマンスの時系列重ね
@@ -150,12 +160,6 @@ if __name__ == '__main__':
     # com.triad_cfo.ocfo_performance()
     # com.tetrad_cfo.ocfo_performance()
 
-    ##差のCFOの確認
-    # com.dyad_cfo.subtraction_cfo(0)
-    # com.triad_cfo.subtraction_cfo(0)
-    # com.tetrad_cfo.subtraction_cfo(0)
-    # com.subtraction_cfo(0)
-
     ##差のCFOとパフォーマンスの確認
     # com.dyad_cfo.subtraction_performance()
     # com.triad_cfo.subtraction_performance()
@@ -174,6 +178,11 @@ if __name__ == '__main__':
 
     ##和のCFOと差のCFOとパフォーマンスの関係
     # com.dyad_cfo.sum_sub_performance()
+
+    ##和のCFOと差のCFOの関係
+    # com.dyad_cfo.sum_sub()
+    # com.triad_cfo.sum_sub()
+    # com.tetrad_cfo.sum_sub()
 
     ##パフォーマンス同士の相関
     # com.performance_relation()
@@ -231,10 +240,11 @@ if __name__ == '__main__':
 
     # com.performance_deviation()
 
-    # com.dyad_cfo.fcfo_valiance()
-    # com.tetrad_cfo.fcfo_valiance(0)
+    ##CFOの分散
+    # com.dyad_cfo.fcfo_valiance()  #グループごとの分散
+    # com.tetrad_cfo.fcfo_valiance(0)  #グループごとの分散
 
-    # com.variance_analysis('noabs')
+    # com.variance_analysis('no_abs')
     # com.variance_analysis('b_abs')
     # com.variance_analysis('a_abs')
 
@@ -252,4 +262,50 @@ if __name__ == '__main__':
     # com.tetrad_cfo.work_diff(0)
 
     # com.dyad_cfo.work_calc_rs()
-    com.dyad_cfo.work_diff_rs(0)
+    # com.dyad_cfo.work_diff_rs(0)
+
+    # com.dyad_cfo.estimation_plate_accel(graph=0)
+
+    # com.dyad_cfo.get_summation_force(mode='b_abs',graph=0)
+
+    ##有効な力の割合（時間経過）
+    # com.dyad_cfo.get_force_ratio(graph=0)
+    # com.triad_cfo.get_force_ratio(graph=0)
+    # com.tetrad_cfo.get_force_ratio(graph=0)
+    ##有効な力の割合（ピリオド経過）
+    # com.dyad_cfo.get_force_ratio_3sec(graph=0)
+    # com.triad_cfo.get_force_ratio_3sec(graph=0)
+    # com.tetrad_cfo.get_force_ratio_3sec(graph=0)
+    ##有効な力の割合の比較
+    # com.force_ratio_3sec()
+
+    ##pitchとrollを合わせた有効な力の割合（時間経過）
+    # com.dyad_cfo.get_force_ratio_combine(graph=0)
+    # com.triad_cfo.get_force_ratio_combine(graph=0)
+    # com.tetrad_cfo.get_force_ratio_combine(graph=0)
+    ##pitchとrollを合わせた有効な力の割合（ピリオド経過）
+    # com.dyad_cfo.get_force_ratio_combine_3sec(graph=0)
+    # com.triad_cfo.get_force_ratio_combine_3sec(graph=0)
+    # com.tetrad_cfo.get_force_ratio_combine_3sec(graph=0)
+    ##pitchとrollを合わせた有効な力の割合の比較
+    # com.force_ratio_3sec_combine()
+
+    ## 有効な力の割合とCFOの和の比較
+    # com.dyad_cfo.summationCFO_ratio('no_abs')
+    # com.dyad_cfo.summationCFO_ratio('b_abs')
+    # com.dyad_cfo.summationCFO_ratio('a_abs')
+
+    ## 有効な力の割合とCFOの和の比較（ピリオド）
+    # com.dyad_cfo.summationCFO_ratio_3sec('no_abs')
+    # com.dyad_cfo.summationCFO_ratio_3sec('b_abs')
+    # com.dyad_cfo.summationCFO_ratio_3sec('a_abs')
+
+    # com.triad_cfo.summationCFO_ratio('no_abs')
+    # com.triad_cfo.summationCFO_ratio('b_abs')
+    # com.triad_cfo.summationCFO_ratio_3sec('a_abs')
+
+    ## 有効な力の割合とCFOの差の比較
+    # com.dyad_cfo.subtractionCFO_ratio()
+
+    ## 有効な力の割合とCFOの差の比較（ピリオド）
+    # com.dyad_cfo.subtractionCFO_ratio_3sec()

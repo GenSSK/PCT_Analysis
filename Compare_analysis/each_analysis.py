@@ -453,7 +453,7 @@ class each:
 
         return ptext_summation_3sec, rtext_summation_3sec
 
-    def estimation_task_inertia(self, graph=1):
+    def estimation_plate_accel(self, graph=1):
         pitch_sum_force, roll_sum_force = each.summation_force(self, mode='no_abs')
 
         if graph == 0:

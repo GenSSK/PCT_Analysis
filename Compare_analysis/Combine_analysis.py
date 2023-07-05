@@ -699,10 +699,10 @@ class combine:
         AdAc_ptext, AdAc_rtext = self.AdAc.summation_force(mode = 'noabs')
         Bi_ptext, Bi_rtext = self.Bi.summation_force(mode = 'noabs')
 
-        PP_pddot, PP_rddot = self.PP.estimation_task_inertia()
-        AdPD_pddot, AdPD_rddot = self.AdPD.estimation_task_inertia()
-        AdAc_pddot, AdAc_rddot = self.AdAc.estimation_task_inertia()
-        Bi_pddot, Bi_rddot = self.Bi.estimation_task_inertia()
+        PP_pddot, PP_rddot = self.PP.estimation_plate_accel()
+        AdPD_pddot, AdPD_rddot = self.AdPD.estimation_plate_accel()
+        AdAc_pddot, AdAc_rddot = self.AdAc.estimation_plate_accel()
+        Bi_pddot, Bi_rddot = self.Bi.estimation_plate_accel()
 
         PP_pdot, PP_rdot = self.PP.get_plate_dot()
         AdPD_pdot, AdPD_rdot = self.AdPD.get_plate_dot()
