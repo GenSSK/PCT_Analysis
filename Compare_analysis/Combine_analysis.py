@@ -15,7 +15,7 @@ import sys
 # sys.path.append(os.path.abspath("../statistics"))
 # import histogram
 
-sys.path.append('../statistics')
+sys.path.append('../mypackage/mystatistics')
 import myhistogram
 
 
