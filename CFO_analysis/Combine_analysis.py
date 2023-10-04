@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,8 +15,12 @@ import sys
 # sys.path.append(os.path.abspath("../statistics"))
 # import histogram
 
-sys.path.append('../statistics')
-import myhistogram
+# sys.path.append('../mypackage/mystatistics')
+# import myhistogram
+
+def plot_scatter(x, y, color, **kwargs):
+    ax = plt.gca()
+    ax.scatter(x, y, c=color, **kwargs)
 
 class combine:
     def __init__(self, dyad_npz, triad_npz, tetrad_npz):
@@ -51,7 +57,7 @@ class combine:
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
 
-    def summation_cfo(self, graph=1, mode='no_abs'):
+    def summation_cfo(self, graph=False, mode='no_abs'):
         dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec(mode)
         triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo_3sec(mode)
         tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo_3sec(mode)
@@ -62,7 +68,7 @@ class combine:
             [dyad_rf, triad_rf, tetrad_rf],
         ]
 
-        if graph == 0:
+        if graph == True:
             # sns.set()
             # sns.set_style('whitegrid')
             # sns.set_palette('Set3')
@@ -176,7 +182,7 @@ class combine:
 
         return summation_3sec_datas
 
-    def subtraction_cfo(self, graph=1):
+    def subtraction_cfo(self, graph=False):
         dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.subtraction_cfo_3sec()
         triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.subtraction_cfo_3sec()
         tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.subtraction_cfo_3sec()
@@ -188,7 +194,7 @@ class combine:
             [dyad_rf, triad_rf, tetrad_rf],
         ]
 
-        if graph == 0:
+        if graph == True:
             # sns.set()
             # sns.set_style('whitegrid')
             # sns.set_palette('Set3')
@@ -671,7 +677,7 @@ class combine:
 
 
 
-    def summation_ave_cfo(self, graph=1, mode='no_abs'):
+    def summation_ave_cfo(self, graph=False, mode='no_abs'):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
         triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
         tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
@@ -682,7 +688,7 @@ class combine:
             [dyad_fa, triad_fa, tetrad_fa],
         ]
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
@@ -751,7 +757,7 @@ class combine:
 
         return summation_3sec_datas
 
-    def subtraction_ave_cfo(self, graph=1):
+    def subtraction_ave_cfo(self, graph=False):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
         triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
         tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
@@ -762,7 +768,7 @@ class combine:
             [dyad_fa, triad_fa, tetrad_fa],
         ]
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
@@ -816,7 +822,7 @@ class combine:
 
         return subtraction_3sec_datas
 
-    def summation_ave_cfo_bs(self, graph=1, mode='no_abs'):
+    def summation_ave_cfo_bs(self, graph=False, mode='no_abs'):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
         triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo_3sec(mode)
         tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo_3sec(mode)
@@ -835,7 +841,7 @@ class combine:
             for j in range(len(summation_3sec_datas[i])):
                 summation_3sec_datas_bs[i].append(combine.bootstrap(self, summation_3sec_datas[i][j], R))
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
@@ -896,7 +902,7 @@ class combine:
         return summation_3sec_datas
 
 
-    def subtraction_ave_cfo_bs(self, graph=1):
+    def subtraction_ave_cfo_bs(self, graph=False):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
         triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
         tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo_3sec()
@@ -915,7 +921,7 @@ class combine:
             for j in range(len(subtraction_3sec_datas[i])):
                 subtraction_3sec_datas_bs[i].append(combine.bootstrap(self, subtraction_3sec_datas[i][j], R))
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
@@ -1056,7 +1062,7 @@ class combine:
                 std[i].append(np.std(data_use[i][j]))
                 mean[i].append(np.mean(data_use[i][j]))
 
-        period = [i+1 for i in range(len(std[0]))] * 3
+        period = [i + 1 for i in range(len(std[0]))] * 3
         df_period = pd.DataFrame(period, columns=['Period'])
 
         df_error_ = pd.DataFrame({
@@ -1326,27 +1332,39 @@ class combine:
         return (ssb / (ssb + ssw))**.5
 
 
-    def force_ratio_3sec(self, graph=0):
-        dyad_p, dyad_r = self.dyad_cfo.get_force_ratio_3sec()
-        triad_p, triad_r = self.triad_cfo.get_force_ratio_3sec()
-        tetrad_p, tetrad_r = self.tetrad_cfo.get_force_ratio_3sec()
+    def ftr_3sec(self, graph=True, source='human'):
+        dyad_p, dyad_r = self.dyad_cfo.get_ftr_3sec(source=source)
+        triad_p, triad_r = self.triad_cfo.get_ftr_3sec(source=source)
+        tetrad_p, tetrad_r = self.tetrad_cfo.get_ftr_3sec(source=source)
 
         ratio_3sec_datas = [
             [dyad_p, triad_p, tetrad_p],
             [dyad_r, triad_r, tetrad_r],
         ]
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
 
             size = ['Dyad', 'Triad', 'Tetrad']
 
-            types = ['Pitch force ratio (Avg)',
-                     'Roll force ratio (Avg)',
+            types = ['Pitch FTR (Avg)',
+                     'Roll FTR (Avg)',
                      ]
             ranges = [1.0, 1.0]
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
 
 
 
@@ -1374,7 +1392,7 @@ class combine:
                 df = pd.concat([i for i in dfpp_melt], axis=0)
 
                 xlabel = 'Group size'
-                ylabel = 'Force ratio (Avg)'
+                ylabel = 'FTR (Avg)'
 
                 df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
@@ -1398,21 +1416,25 @@ class combine:
                 # combine.anova(self, data=df, variable='variable', value='value')
 
             plt.tight_layout()
-            plt.savefig('fig/ForceRatio/Compare_ForceRatio_3sec.png')
+            os.makedirs('fig/FTR', exist_ok=True)
+            if source == 'human':
+                plt.savefig('fig/FTR/Compare_FTR_3sec.png')
+            else:
+                plt.savefig('fig/FTR/Compare_FTR_3sec_model.png')
             plt.show()
 
         return ratio_3sec_datas
 
-    def force_ratio_3sec_combine(self, graph=0):
-        dyad_ratio = self.dyad_cfo.get_force_ratio_combine_3sec()
-        triad_ratio = self.triad_cfo.get_force_ratio_combine_3sec()
-        tetrad_ratio = self.tetrad_cfo.get_force_ratio_combine_3sec()
+    def ftr_3sec_combine(self, graph=True, source='human'):
+        dyad_ftr = self.dyad_cfo.get_ftr_combine_3sec(source=source)
+        triad_ftr = self.triad_cfo.get_ftr_combine_3sec(source=source)
+        tetrad_ftr = self.tetrad_cfo.get_ftr_combine_3sec(source=source)
 
-        ratio_3sec_datas = [
-            dyad_ratio, triad_ratio, tetrad_ratio,
+        ftr_3sec_datas = [
+            dyad_ftr, triad_ftr, tetrad_ftr,
         ]
 
-        if graph == 0:
+        if graph == True:
             sns.set()
             # sns.set_style('whitegrid')
             sns.set_palette('Set3')
@@ -1421,13 +1443,26 @@ class combine:
 
             plt.figure(figsize=(10, 10), dpi=150)
 
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
             dfpp = []
             dfpp_melt = []
-            for i in range(len(dyad_ratio)):
+            for i in range(len(dyad_ftr)):
                 dfpp.append(pd.DataFrame({
-                    'Dyad': ratio_3sec_datas[0][i],
-                    'Triad': ratio_3sec_datas[1][i],
-                    'Tetrad': ratio_3sec_datas[2][i],
+                    'Dyad': ftr_3sec_datas[0][i],
+                    'Triad': ftr_3sec_datas[1][i],
+                    'Tetrad': ftr_3sec_datas[2][i],
                 })
                 )
 
@@ -1437,7 +1472,7 @@ class combine:
             df = pd.concat([i for i in dfpp_melt], axis=0)
 
             xlabel = 'Group size'
-            ylabel = 'Force ratio (Avg)'
+            ylabel = 'FTR (Avg)'
 
             df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
@@ -1446,7 +1481,7 @@ class combine:
             #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
 
             plt.legend = None
-            plt.ylabel('Force ratio (Avg)')
+            plt.ylabel('FTR (Avg)')
             # plot[j].axes.xaxis.set_visible(False)
             plt.ylim(0.0, 1.0)
 
@@ -1462,10 +1497,613 @@ class combine:
 
 
             plt.tight_layout()
-            plt.savefig('fig/ForceRatio/Compare_ForceRatio_3sec_combine.png')
+            os.makedirs('fig/FTR', exist_ok=True)
+            if source == 'human':
+                plt.savefig('fig/FTR/Compare_FTR_3sec_combine.png')
+            else:
+                plt.savefig('fig/FTR/Compare_FTR_3sec_combine_model.png')
+            plt.show()
+
+        return ftr_3sec_datas
+
+    def ftr_3sec_diff(self, graph=True):
+        dyad_p, dyad_r = self.dyad_cfo.get_ftr_3sec_diff()
+        triad_p, triad_r = self.triad_cfo.get_ftr_3sec_diff()
+        tetrad_p, tetrad_r = self.tetrad_cfo.get_ftr_3sec_diff()
+
+        ftr_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_r, triad_r, tetrad_r],
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            types = ['Pitch FTR (Avg)',
+                     'Roll FTR (Avg)',
+                     ]
+            ranges = [1.0, 1.0]
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            fig = plt.figure(figsize=(10, 5), dpi=150)
+
+            plot = [
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': ftr_3sec_datas[j][0][i],
+                        'Triad': ftr_3sec_datas[j][1][i],
+                        'Tetrad': ftr_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                xlabel = 'Group size'
+                ylabel = 'Cooperative FTR (Avg)'
+
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+
+                ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
+                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-1.0, ranges[j])
+
+
+                pairs = [
+                    {size[1], size[2]},
+                    {size[0], size[1]},
+                    {size[0], size[2]},
+                ]
+
+                combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+                # combine.anova(self, data=df, variable='variable', value='value')
+
+
+
+            plt.tight_layout()
+            os.makedirs('fig/FTR', exist_ok=True)
+            plt.savefig('fig/FTR/Compare_Cooperative_FTR_3sec.png')
+
+            plt.show()
+
+        return ftr_3sec_datas
+
+    def ftr_3sec_combine_diff(self, graph=True):
+        dyad_ftr = self.dyad_cfo.get_ftr_combine_3sec_diff()
+        triad_ftr = self.triad_cfo.get_ftr_combine_3sec_diff()
+        tetrad_ftr = self.tetrad_cfo.get_ftr_combine_3sec_diff()
+
+        ftr_3sec_datas = [
+            dyad_ftr, triad_ftr, tetrad_ftr,
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            plt.figure(figsize=(10, 10), dpi=150)
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            dfpp = []
+            dfpp_melt = []
+            for i in range(len(dyad_ftr)):
+                dfpp.append(pd.DataFrame({
+                    'Dyad': ftr_3sec_datas[0][i],
+                    'Triad': ftr_3sec_datas[1][i],
+                    'Tetrad': ftr_3sec_datas[2][i],
+                })
+                )
+
+                dfpp_melt.append(pd.melt(dfpp[i]))
+                dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+            df = pd.concat([i for i in dfpp_melt], axis=0)
+
+            xlabel = 'Group size'
+            ylabel = 'Cooperative FTR (Avg)'
+
+            df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+            ax = sns.boxplot(x=xlabel, y=ylabel, data=df, sym="")
+            # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+            #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+            plt.legend = None
+            plt.ylabel('Cooperative FTR (Avg)')
+            # plot[j].axes.xaxis.set_visible(False)
+            plt.ylim(-1.0, 0.4)
+
+
+            pairs = [
+                {size[1], size[2]},
+                {size[0], size[1]},
+                {size[0], size[2]},
+            ]
+
+            combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+            # combine.anova(self, data=df, variable=xlabel, value=ylabel)
+
+
+            plt.tight_layout()
+            os.makedirs('fig/FTR', exist_ok=True)
+            plt.savefig('fig/FTR/Compare_Cooperative_FTR_3sec_combine.png')
+            plt.show()
+
+        return ftr_3sec_datas
+
+
+    def performance_ftr(self, mode='h-m'):
+        ftr_dyad = self.dyad_cfo.get_ftr_combine_3sec(self)
+        ftr_triad = self.triad_cfo.get_ftr_combine_3sec(self)
+        ftr_tetrad = self.tetrad_cfo.get_ftr_combine_3sec(self)
+
+        error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
+        error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
+        error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
+        if mode == 'h-h':
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_human()
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_human()
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_human()
+
+
+        ftr = [
+            ftr_dyad, ftr_triad, ftr_tetrad
+        ]
+
+        performance = [
+            [error_period_dyad, spend_period_dyad],
+            [error_period_triad, spend_period_triad],
+            [error_period_tetrad, spend_period_tetrad],
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        performance_label = ['RMSE', 'Time']
+
+        df_ = []
+        for i in range(len(size)):
+            for j in range(len(performance_label)):
+                for k in range(len(performance[0][0])):
+                    df_.append(pd.DataFrame({
+                        'FTR': ftr[i][k],
+                        'Performance': performance[i][j][k],
+                        'Performance_type': performance_label[j],
+                        'Group Size': size[i],
+                        'Group': str(k + 1)
+                    })
+                    )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="Performance_type", row="Group Size", hue="Group", height=4, aspect=1.2, sharey=False, sharex=False)
+        g.map(plot_scatter, "Performance", "FTR")
+
+        ylims = [(0, 1)]
+
+        xlims = [(-0.015, 0.015), (-0.1, 0.5),
+                 (-0.015, 0.015), (-0.1, 0.5),
+                 (-0.015, 0.015), (-0.1, 0.5)]
+
+        if mode == 'h-h':
+            xlims = [(0.0, 0.1), (0.0, 3.0),
+                     (0.0, 0.1), (0.0, 3.0),
+                     (0.0, 0.1), (0.0, 3.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num,ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[0])
+
+
+        if mode == 'h-h':
+            os.makedirs("fig/FTR-Performance/h-h/", exist_ok=True)
+            plt.savefig("fig/FTR-Performance/h-h/FTR-Performance_h-h.png")
+        else:
+            os.makedirs("fig/FTR-Performance/", exist_ok=True)
+            plt.savefig("fig/FTR-Performance/FTR-Performance_.png")
+
+        plt.show()
+
+
+    def ief_3sec(self, graph=True, source='human'):
+        dyad_p, dyad_r = self.dyad_cfo.get_ief_3sec(source=source)
+        triad_p, triad_r = self.triad_cfo.get_ief_3sec(source=source)
+        tetrad_p, tetrad_r = self.tetrad_cfo.get_ief_3sec(source=source)
+
+        ratio_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_r, triad_r, tetrad_r],
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            types = ['Pitch IEF (Avg)',
+                     'Roll IEF (Avg)',
+                     ]
+            ranges = [6.0, 6.0]
+            if source == 'model':
+                ranges = [1.0, 1.0]
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            fig = plt.figure(figsize=(10, 5), dpi=150)
+
+            plot = [
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': ratio_3sec_datas[j][0][i],
+                        'Triad': ratio_3sec_datas[j][1][i],
+                        'Tetrad': ratio_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                xlabel = 'Group size'
+                ylabel = 'IEF (Avg)'
+
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+
+                ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
+                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(0.0, ranges[j])
+
+
+                pairs = [
+                    {size[1], size[2]},
+                    {size[0], size[1]},
+                    {size[0], size[2]},
+                ]
+
+                combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+                # combine.anova(self, data=df, variable='variable', value='value')
+
+
+
+            plt.tight_layout()
+            os.makedirs('fig/IEF', exist_ok=True)
+            if source == 'human':
+                plt.savefig('fig/IEF/Compare_IEF_3sec.png')
+            else:
+                plt.savefig('fig/IEF/Compare_IEF_3sec_model.png')
+
             plt.show()
 
         return ratio_3sec_datas
+
+    def ief_3sec_diff(self, graph=True, source='human'):
+        dyad_p, dyad_r = self.dyad_cfo.get_ief_3sec_diff()
+        triad_p, triad_r = self.triad_cfo.get_ief_3sec_diff()
+        tetrad_p, tetrad_r = self.tetrad_cfo.get_ief_3sec_diff()
+
+        ratio_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_r, triad_r, tetrad_r],
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            types = ['Pitch IEF (Avg)',
+                     'Roll IEF (Avg)',
+                     ]
+            ranges = [8.0, 8.0]
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            fig = plt.figure(figsize=(10, 5), dpi=150)
+
+            plot = [
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
+            ]
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': ratio_3sec_datas[j][0][i],
+                        'Triad': ratio_3sec_datas[j][1][i],
+                        'Tetrad': ratio_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+
+                xlabel = 'Group size'
+                ylabel = 'Cooperative IEF (Avg)'
+
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+
+                ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
+                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-1.0, ranges[j])
+
+
+                pairs = [
+                    {size[1], size[2]},
+                    {size[0], size[1]},
+                    {size[0], size[2]},
+                ]
+
+                combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+                # combine.anova(self, data=df, variable='variable', value='value')
+
+
+
+            plt.tight_layout()
+            os.makedirs('fig/IEF', exist_ok=True)
+            plt.savefig('fig/IEF/Compare_Cooperative_IEF_3sec.png')
+
+            plt.show()
+
+        return ratio_3sec_datas
+
+    def ief_3sec_combine(self, graph=True, source='human'):
+        dyad_ief = self.dyad_cfo.get_ief_combine_3sec(source=source)
+        triad_ief = self.triad_cfo.get_ief_combine_3sec(source=source)
+        tetrad_ief = self.tetrad_cfo.get_ief_combine_3sec(source=source)
+
+        ief_3sec_datas = [
+            dyad_ief, triad_ief, tetrad_ief,
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            plt.figure(figsize=(10, 10), dpi=300)
+
+            sns.set(font='Times New Roman', font_scale=2.0)
+            sns.set_style('ticks')
+            sns.set_context("poster",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            dfpp = []
+            dfpp_melt = []
+            for i in range(len(dyad_ief)):
+                dfpp.append(pd.DataFrame({
+                    'Dyad': ief_3sec_datas[0][i],
+                    'Triad': ief_3sec_datas[1][i],
+                    'Tetrad': ief_3sec_datas[2][i],
+                })
+                )
+
+                dfpp_melt.append(pd.melt(dfpp[i]))
+                dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+            df = pd.concat([i for i in dfpp_melt], axis=0)
+
+            xlabel = 'Group size'
+            ylabel = 'IEF (Avg)'
+
+            df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+            ax = sns.boxplot(x=xlabel, y=ylabel, data=df, sym="")
+            # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+            #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+            plt.legend = None
+            plt.ylabel('IEF (Avg)')
+            # plot[j].axes.xaxis.set_visible(False)
+            plt.ylim(0.0, 8.0)
+            if source == 'model':
+                plt.ylim(0.0, 1.4)
+
+
+            pairs = [
+                {size[1], size[2]},
+                {size[0], size[1]},
+                {size[0], size[2]},
+            ]
+
+            combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+            # combine.anova(self, data=df, variable=xlabel, value=ylabel)
+
+
+            plt.tight_layout()
+            os.makedirs('fig/IEF', exist_ok=True)
+            if source == 'human':
+                plt.savefig('fig/IEF/Compare_IEF_3sec_combine.png')
+            else:
+                plt.savefig('fig/IEF/Compare_IEF_3sec_combine_model.png')
+            plt.show()
+
+        return ief_3sec_datas
+
+    def ief_3sec_combine_diff(self, graph=True):
+        dyad_ief = self.dyad_cfo.get_ief_combine_3sec_diff()
+        triad_ief = self.triad_cfo.get_ief_combine_3sec_diff()
+        tetrad_ief = self.tetrad_cfo.get_ief_combine_3sec_diff()
+
+        ief_3sec_datas = [
+            dyad_ief, triad_ief, tetrad_ief,
+        ]
+
+        if graph == True:
+            sns.set()
+            # sns.set_style('whitegrid')
+            sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            plt.figure(figsize=(10, 10), dpi=150)
+
+            sns.set(font='Times New Roman', font_scale=1.0)
+            sns.set_style('ticks')
+            sns.set_context("paper",
+                            rc = {
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+
+            dfpp = []
+            dfpp_melt = []
+            for i in range(len(dyad_ief)):
+                dfpp.append(pd.DataFrame({
+                    'Dyad': ief_3sec_datas[0][i],
+                    'Triad': ief_3sec_datas[1][i],
+                    'Tetrad': ief_3sec_datas[2][i],
+                })
+                )
+
+                dfpp_melt.append(pd.melt(dfpp[i]))
+                dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+            df = pd.concat([i for i in dfpp_melt], axis=0)
+
+            xlabel = 'Group size'
+            ylabel = 'Cooperative IEF (Avg)'
+
+            df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+            ax = sns.boxplot(x=xlabel, y=ylabel, data=df, sym="")
+            # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+            #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+            plt.legend = None
+            plt.ylabel('Cooperative IEF (Avg)')
+            # plot[j].axes.xaxis.set_visible(False)
+            plt.ylim(-1.0, 6.0)
+
+            pairs = [
+                {size[1], size[2]},
+                {size[0], size[1]},
+                {size[0], size[2]},
+            ]
+
+            combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
+            # combine.anova(self, data=df, variable=xlabel, value=ylabel)
+
+
+            plt.tight_layout()
+            os.makedirs('fig/IEF', exist_ok=True)
+            plt.savefig('fig/IEF/Compare_Cooperative_IEF_3sec_combine.png')
+            plt.show()
+
+        return ief_3sec_datas
 
 
 
@@ -1493,8 +2131,16 @@ class combine:
         anova = sm.stats.anova_lm(model, typ=1)
         print(anova)
 
+        ## Partial Eta_squared
+        partial_eta_squared = anova['sum_sq'][0] / (anova['sum_sq'][0] + anova['sum_sq'][1])
+        print(f"Partial Eta squared: {partial_eta_squared}")
+
         ## Eta_squared
-        coef = combine.correlation_ratio(self, data[variable], data[value])
-        print('Eta_squared: {:.4f}\nEta: {:.4f}'.format(coef**2, coef))
+        n_groups = len(anova.index)
+        ss_treatment = anova['sum_sq'][0]
+        ss_total = anova['sum_sq'][n_groups]
+        eta_squared = ss_treatment / ss_total
+        print(f"Eta squared: {eta_squared}")
+
 
 

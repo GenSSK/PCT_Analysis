@@ -1,12 +1,28 @@
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
-import math
+import matplotlib as mpl
+import matplotlib.patheffects as path_effects
+from matplotlib.colors import Normalize
 
 import pandas as pd
 import seaborn as sns
 import os
-from scipy import signal, optimize
+import time
+
+from scipy import optimize
+from scipy import signal
+from scipy.ndimage import gaussian_filter
+
+import statsmodels.api as sm
+from statsmodels.formula.api import ols
+
+from sklearn.preprocessing import StandardScaler
+
+from mypackage.mystatistics import myHilbertTransform as HT
+from mypackage.mystatistics import mySTFT as STFT
+from mypackage.mystatistics import myhistogram as hist
+from mypackage.mystatistics import myFilter as Filter
+from mypackage import ParallelExecutor
 
 def fit_func_2nd(parameter, *args):
     accel, velo, y = args
@@ -14,6 +30,12 @@ def fit_func_2nd(parameter, *args):
     b = parameter[1]
     residual = y - (a * accel + b * velo)
     return residual
+
+
+def plot_scatter(x, y, color, **kwargs):
+    ax = plt.gca()
+    ax.scatter(x, y, c=color, s=100, **kwargs)
+
 
 class CFO:
     def __init__(self, cfo_data, group_type):
@@ -24,7 +46,7 @@ class CFO:
         self.smp = 0.0001  # サンプリング時間
         self.time = 3.0  # ターゲットの移動時間
         self.eliminationtime = 0.0  # 消去時間
-        self.starttime = 20.0  # タスク開始時間
+        self.starttime = 41.0  # タスク開始時間
         self.endtime = 80.0  # タスク終了時間
         self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int((self.tasktime - self.eliminationtime) / self.time)  # 回数
@@ -64,8 +86,6 @@ class CFO:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
-
-
     def graph_sub(self):
         for j in range(len(self.cfo)):
             fig, (rthm, pthm, rtext, ptext) = plt.subplots(4, 1, figsize=(10, 20), dpi=80, sharex=True)
@@ -81,31 +101,34 @@ class CFO:
                 thmname = interfacenum + '_r_thm'
                 thm_prename = interfacenum + '_r_thm_pre'
                 thm_prename_solo = interfacenum + '_r_thm_pre_solo'
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                          label='P' + str(i + 1) + '_act')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
-
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                          label='P' + str(i + 1) + '_act')
 
                 thmname = interfacenum + '_p_thm'
                 thm_prename = interfacenum + '_p_thm_pre'
                 thm_prename_solo = interfacenum + '_p_thm_pre_solo'
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                          label='P' + str(i + 1) + '_act')
                 # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
                 # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text'
                 text_prename = interfacenum + '_r_text_pre'
                 text_prename_solo = interfacenum + '_r_text_pre_solo'
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1) + '_act')
                 # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
-
 
                 textname = interfacenum + '_p_text'
                 text_prename = interfacenum + '_p_text_pre'
                 text_prename_solo = interfacenum + '_p_text_pre_solo'
-                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1) + '_act')
                 # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
                 # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
@@ -147,25 +170,31 @@ class CFO:
 
             fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10], label='Target')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx_act'][self.start_num:self.end_num:10], label='Target_act')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10], label='Ball(H-H)')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10],
+                   label='Target')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx_act'][self.start_num:self.end_num:10],
+                   label='Target_act')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10],
+                   label='Ball(H-H)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10],
+                   label='Ball(M-M)')
             # x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
             x.set_ylabel('X-axis Position (m)')
             x.legend(ncol=2, columnspacing=1, loc='upper left')
             x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
-
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10], label='Target')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety_act'][self.start_num:self.end_num:10], label='Target_act')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10], label='Ball(H-H)')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10],
+                   label='Target')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety_act'][self.start_num:self.end_num:10],
+                   label='Target_act')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10],
+                   label='Ball(H-H)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10],
+                   label='Ball(M-M)')
             # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
             y.set_ylabel('Y-axis Position (m)')
             y.legend(ncol=2, columnspacing=1, loc='upper left')
             y.set_ylim([-0.2, 0.2])  # y軸の範囲
-
 
             # plt.ylabel(r'Position (m)')
             # plt.legend()
@@ -187,31 +216,39 @@ class CFO:
 
             fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10], label='Target')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10],
+                   label='Target')
             # x.plot(data['time'][self.start_num:self.end_num:10], data['targetx_act'][self.start_num:self.end_num:10], label='Target_act')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10], label='Ball(H-H)')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10],
+                   label='Ball(H-H)')
+            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx_pre'][self.start_num:self.end_num:10],
+                   label='Ball(M-M)')
             for j in range(self.join):
-                x.plot(data['time'][self.start_num:self.end_num:10], data['i'+str(j+1)+'_ballx_solo'][self.start_num:self.end_num:10], label='Ball(solo'+str(j + 1)+')')
-
+                x.plot(data['time'][self.start_num:self.end_num:10],
+                       data['i' + str(j + 1) + '_ballx_solo'][self.start_num:self.end_num:10],
+                       label='Ball(solo' + str(j + 1) + ')')
 
             # x.plot(data['pre_time'], data['pre_ball_x'], label='pre_ballx')
             x.set_ylabel('X-axis Position (m)')
             x.legend(ncol=2, columnspacing=1, loc='upper left')
             x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
-
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10], label='Target')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety_act'][self.start_num:self.end_num:10], label='Target_act')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10], label='Ball(H-H)')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10], label='Ball(M-M)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10],
+                   label='Target')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['targety_act'][self.start_num:self.end_num:10],
+                   label='Target_act')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10],
+                   label='Ball(H-H)')
+            y.plot(data['time'][self.start_num:self.end_num:10], data['bally_pre'][self.start_num:self.end_num:10],
+                   label='Ball(M-M)')
             for j in range(self.join):
-                y.plot(data['time'][self.start_num:self.end_num:10], data['i'+str(j+1)+'_bally_solo'][self.start_num:self.end_num:10], label='Ball(solo'+str(j + 1)+')')
+                y.plot(data['time'][self.start_num:self.end_num:10],
+                       data['i' + str(j + 1) + '_bally_solo'][self.start_num:self.end_num:10],
+                       label='Ball(solo' + str(j + 1) + ')')
             # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
             y.set_ylabel('Y-axis Position (m)')
             y.legend(ncol=2, columnspacing=1, loc='upper left')
             y.set_ylim([-0.2, 0.2])  # y軸の範囲
-
 
             # plt.ylabel(r'Position (m)')
             # plt.legend()
@@ -239,58 +276,64 @@ class CFO:
             # plt.plot(data['time'], data['ballx'], label='ballx_'+str(i))
             # plt.plot(data['time'], data['bally'], label='bally_'+str(i))
 
-            plt.plot(data[i]['time'][self.start_num:self.end_num:10], data[i]['targetx'][self.start_num:self.end_num:10], label= 'targetx_'+str(i))
-            plt.plot(data[i]['time'][self.start_num:self.end_num:10], data[i]['targety'][self.start_num:self.end_num:10], label= 'targety_'+str(i))
+            plt.plot(data[i]['time'][self.start_num:self.end_num:10],
+                     data[i]['targetx'][self.start_num:self.end_num:10], label='targetx_' + str(i))
+            plt.plot(data[i]['time'][self.start_num:self.end_num:10],
+                     data[i]['targety'][self.start_num:self.end_num:10], label='targety_' + str(i))
             plt.legend()
 
         plt.tight_layout()
         # plt.savefig("First_time_target_movement.png")
         plt.show()
 
-    def plot_time_series(self, mode = 'r'):
-        rorp = 0 # 0:pitch, 1:roll
+    def plot_time_series(self, mode='r'):
+        rorp = 0  # 0:pitch, 1:roll
         if mode == 'p':
             rorp = 1
         data_name_r_p = [
             # [select_graph, 'data_name', 'label']
-            [0, 'thm',              'Cooperation'],
-            [0, 'thm_pre',          'Solo(Prediction)'],
+            [0, 'thm', 'Cooperation'],
+            [0, 'thm_pre', 'Solo(Prediction)'],
             # [0, 'thm_pre_solo',     'Solo(Solo prediction)'],
 
             # [5, 'text',             'Cooperation'],
             # [5, 'text_pre',         'Solo(Prediction)'],
             # [5, 'text_pre_solo',    'Solo(Solo prediction)'],
 
-            [1, 'pcfo',            'PCFO'],
+            [1, 'pcfo', 'PCFO'],
             # [13, 'fcfo',            'FCFO'],
 
         ]
 
         data_name = [
             # [select_graph, 'data_name', 'label']
-            [10, 'targetx',     'Target'],
+            [10, 'targetx', 'Target'],
             [10, 'targetx_act', 'Target'],
-            [10, 'ballx',       'Ball(H-H)'],
-            [10, 'ballx_pre',   'Ball(M-M)'],
+            [10, 'ballx', 'Ball(H-H)'],
+            [10, 'ballx_pre', 'Ball(M-M)'],
 
-            [11, 'targety',     'Target'],
+            [11, 'targety', 'Target'],
             [11, 'targety_act', 'Target'],
-            [11, 'bally',       'Ball(H-H)'],
-            [11, 'bally_pre',   'Ball(M-M)'],
+            [11, 'bally', 'Ball(H-H)'],
+            [11, 'bally_pre', 'Ball(M-M)'],
         ]
 
-
-        ppcfo_summation_no_abs, rpcfo_summation_no_abs, pfcfo_summation_no_abs, rfcfo_summation_no_abs = CFO.summation_cfo(self, graph=1, mode='no_abs')
-        ppcfo_summation_babs, rpcfo_summation_babs, pfcfo_summation_babs, rfcfo_summation_babs = CFO.summation_cfo(self, graph=1, mode='b_abs')
-        ppcfo_summation_aabs, rpcfo_summation_aabs, pfcfo_summation_aabs, rfcfo_summation_aabs = CFO.summation_cfo(self, graph=1, mode='a_abs')
+        ppcfo_summation_no_abs, rpcfo_summation_no_abs, pfcfo_summation_no_abs, rfcfo_summation_no_abs = CFO.summation_cfo(
+            self, graph=False, mode='no_abs')
+        ppcfo_summation_babs, rpcfo_summation_babs, pfcfo_summation_babs, rfcfo_summation_babs = CFO.summation_cfo(self,
+                                                                                                                   graph=False,
+                                                                                                                   mode='b_abs')
+        ppcfo_summation_aabs, rpcfo_summation_aabs, pfcfo_summation_aabs, rfcfo_summation_aabs = CFO.summation_cfo(self,
+                                                                                                                   graph=False,
+                                                                                                                   mode='a_abs')
         ppcfo_subtraction, rpcfo_subtraction, pfcfo_subtraction, rfcfo_subtraction = CFO.subtraction_cfo(self)
 
         cfo_name = [
             # [select_graph, roll_data, pitch_data 'label']
             # [2, rpcfo_summation_no_abs,  ppcfo_summation_no_abs,  'PCFO_sum (no abs)'],
-            [2, rpcfo_summation_babs,  ppcfo_summation_babs,    'PCFO_sum (b abs)'],
-            [3, rpcfo_summation_aabs,  ppcfo_summation_aabs,    'PCFO_sum (a abs)'],
-            [4, rpcfo_subtraction,     ppcfo_subtraction,       'PCFO_sub'],
+            [2, rpcfo_summation_babs, ppcfo_summation_babs, 'PCFO_sum (b abs)'],
+            [3, rpcfo_summation_aabs, ppcfo_summation_aabs, 'PCFO_sum (a abs)'],
+            [4, rpcfo_subtraction, ppcfo_subtraction, 'PCFO_sub'],
 
             # [6, rfcfo_summation_no_abs,  pfcfo_summation_no_abs,  'FCFO_sum (no abs)'],
             # [7, rfcfo_summation_babs,  pfcfo_summation_babs,    'FCFO_sum (b abs)'],
@@ -321,10 +364,13 @@ class CFO:
                 for i in range(self.join):
                     inum = 'i' + str(i + 1)
                     plot_name = inum + '_' + mode + '_' + k[1]
-                    ax[k[0]].plot(data['time'][self.start_num:self.end_num:10], data[plot_name][self.start_num:self.end_num:10], label=k[2] + ' (P' + str(i + 1) + ')')
+                    ax[k[0]].plot(data['time'][self.start_num:self.end_num:10],
+                                  data[plot_name][self.start_num:self.end_num:10],
+                                  label=k[2] + ' (P' + str(i + 1) + ')')
 
             for k in cfo_name:
-                ax[k[0]].plot(data['time'][self.start_num:self.end_num:10], k[rorp+1][j][self.start_num:self.end_num:10], label=k[3])
+                ax[k[0]].plot(data['time'][self.start_num:self.end_num:10],
+                              k[rorp + 1][j][self.start_num:self.end_num:10], label=k[3])
 
             # for k in data_name:
             #     ax[k[0]].plot(data['time'][self.start_num:self.end_num:10], data[k[1]][self.start_num:self.end_num:10], label=k[2])
@@ -335,17 +381,14 @@ class CFO:
                 ax[k].set_ylim(plot_info[k]['ylim'])
                 ax[k].set_ylabel(plot_info[k]['ylabel'])
 
-
             plt.tight_layout()
             plt.savefig('fig/CFO/CFO_description_' + self.group_type + '.pdf')
             plt.show()
-
 
             # rthm.set_ylabel('Roll angle (rad)')
             # rthm.legend(ncol=2, columnspacing=1, loc='upper left')
             # rthm.set_yticks(np.arange(-10, 10, 0.5))
             # rthm.set_ylim([-1.5, 1.5])  # y軸の範囲
-
 
     def cfo_sub(self):
 
@@ -363,15 +406,18 @@ class CFO:
                 pcfoname = interfacenum + '_p_pcfo'
                 fcfoname = interfacenum + '_p_fcfo'
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
 
                 pcfoname = interfacenum + '_r_pcfo'
                 fcfoname = interfacenum + '_r_fcfo'
 
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
-
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
 
             ppcfo.set_ylabel('Pitch PCFO (rad)')
             ppcfo.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -417,7 +463,8 @@ class CFO:
         plt.show()
 
     def summation_cfo_3sec(self, mode='no_abs'):
-        ppcfo_summation, rpcfo_summation, pfcfo_summation, rfcfo_summation = CFO.summation_cfo(self, graph=1, mode=mode)
+        ppcfo_summation, rpcfo_summation, pfcfo_summation, rfcfo_summation = CFO.summation_cfo(self, graph=False,
+                                                                                               mode=mode)
 
         ppcfo_summation_3sec = ppcfo_summation.reshape([len(self.cfo), -1, self.num])
         ppcfo_summation_3sec = np.average(ppcfo_summation_3sec, axis=2)
@@ -433,7 +480,7 @@ class CFO:
 
         return ppcfo_summation_3sec, rpcfo_summation_3sec, pfcfo_summation_3sec, rfcfo_summation_3sec
 
-    def summation_cfo(self, graph=1, mode='no_abs'):
+    def summation_cfo(self, graph=False, mode='no_abs'):
         summation = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
         types = ['_p_pcfo', '_r_pcfo', '_p_fcfo', '_r_fcfo']
         for type in types:
@@ -458,7 +505,7 @@ class CFO:
         if mode == 'a_abs':
             summation = np.abs(summation)
 
-        if graph == 0:
+        if graph == True:
             fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
@@ -501,7 +548,6 @@ class CFO:
             plt.savefig('fig/summation_cfo_' + str(self.group_type) + '.png')
             plt.show()
 
-
         return summation[0], summation[1], summation[2], summation[3]
 
     def performance_calc(self, data, ballx, bally):
@@ -513,28 +559,25 @@ class CFO:
         spent = np.where(error < target_size, 1, 0)
         # spent = numpy.where(error < self.data['targetsize'], 1, 0)
 
-
         return error, spent
 
-    def period_performance_human(self, graph=1):
+    def period_performance_human(self, graph=False):
         error_period = []
         spent_period = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
 
             error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
-            error_reshape = error.reshape([self.period, self.num]) #[回数][データ]にわける
+            error_reshape = error.reshape([self.period, self.num])  # [回数][データ]にわける
             # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
             error_period.append(np.sum(error_reshape, axis=1) / self.num)
-
 
             spent_reshape = spent.reshape([self.period, self.num])
             spent_period_ = np.sum(spent_reshape, axis=1)
             # spent_period = spent_period_ * self.smp
             spent_period.append(spent_period_ * self.smp)
 
-            if graph == 0:
-
+            if graph == True:
                 fig, (error_fig, spend_fig) = plt.subplots(2, 1, figsize=(5, 3), dpi=150, sharex=True)
                 plt.xticks(np.arange(1, self.period + 1, 1))
                 error_fig.plot(np.arange(self.period) + 1, error_period[i])
@@ -549,22 +592,21 @@ class CFO:
 
                 spend_fig.set_xlabel('Period')
 
-        if graph == 0:
+        if graph == True:
             plt.tight_layout()
             plt.show()
             plt.show()
 
-
         return error_period, spent_period
 
-    def period_performance_model(self, graph=1):
+    def period_performance_model(self, graph=False):
         error_period = []
         spent_period = []
         for i in range(len(self.cfo)):
             data = self.cfo[i]
 
             error, spent = CFO.performance_calc(self, data, data['ballx_pre'], data['bally_pre'])
-            error_reshape = error.reshape([self.period, self.num]) #[回数][データ]にわける
+            error_reshape = error.reshape([self.period, self.num])  # [回数][データ]にわける
             # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
             error_period.append(np.sum(error_reshape, axis=1) / self.num)
 
@@ -573,7 +615,7 @@ class CFO:
             # spent_period = spent_period_ * self.smp
             spent_period.append(spent_period_ * self.smp)
 
-            if graph == 0:
+            if graph == True:
                 fig, (error_fig, spend_fig) = plt.subplots(2, 1, figsize=(5, 3), dpi=150, sharex=True)
                 plt.xticks(np.arange(1, self.period + 1, 1))
                 error_fig.plot(np.arange(self.period) + 1, error_period[i])
@@ -588,19 +630,18 @@ class CFO:
 
                 spend_fig.set_xlabel('Period')
 
-        if graph == 0:
+        if graph == True:
             plt.tight_layout()
             plt.show()
             plt.show()
 
         return error_period, spent_period
 
-    def period_performance_human_model(self, graph=1):
+    def period_performance_human_model(self, graph=False):
         error_period_human, spent_period_human = CFO.period_performance_human(self)
         error_period_model, spent_period_model = CFO.period_performance_model(self)
 
         for i in range(len(self.cfo)):
-
             fig, (error_fig, spend_fig) = plt.subplots(2, 1, figsize=(5, 3), dpi=150, sharex=True)
             plt.xticks(np.arange(1, self.period + 1, 1))
             error_fig.plot(np.arange(self.period) + 1, error_period_human[i], label='H-H')
@@ -641,10 +682,9 @@ class CFO:
         spenty = np.where(errory < target_size, 1, 0)
         # spent = numpy.where(error < self.data['targetsize'], 1, 0)
 
-
         return errorx, errory, spentx, spenty
 
-    def period_performance_human_each_axis(self, graph=1):
+    def period_performance_human_each_axis(self, graph=False):
         errorx_period = []
         errory_period = []
         spentx_period = []
@@ -653,64 +693,6 @@ class CFO:
             data = self.cfo[i]
 
             errorx, errory, spentx, spenty = CFO.performance_calc_each_axis(self, data, data['ballx'], data['bally'])
-            errorx_reshape = errorx.reshape([self.period, self.num]) #[回数][データ]にわける
-            errory_reshape = errory.reshape([self.period, self.num]) #[回数][データ]にわける
-            # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
-            errorx_period.append(np.sum(errorx_reshape, axis=1) / self.num)
-            errory_period.append(np.sum(errory_reshape, axis=1) / self.num)
-
-
-            spentx_reshape = spentx.reshape([self.period, self.num])
-            spenty_reshape = spenty.reshape([self.period, self.num])
-            spentx_period_ = np.sum(spentx_reshape, axis=1)
-            spenty_period_ = np.sum(spenty_reshape, axis=1)
-            # spent_period = spent_period_ * self.smp
-            spentx_period.append(spentx_period_ * self.smp)
-            spenty_period.append(spenty_period_ * self.smp)
-
-            if graph == 0:
-
-                fig, (errorx_fig, errory_fig, spendx_fig, spendy_fig) = plt.subplots(4, 1, figsize=(5, 3), dpi=150, sharex=True)
-                plt.xticks(np.arange(1, self.period + 1, 1))
-                errorx_fig.plot(np.arange(self.period) + 1, errorx_period[i])
-                errorx_fig.scatter(np.arange(self.period) + 1, errorx_period[i], s=5, marker='x')
-                errorx_fig.set_ylabel('Error (m)')
-                errorx_fig.set_ylim([0, 0.06])
-
-                plt.xticks(np.arange(1, self.period + 1, 1))
-                errory_fig.plot(np.arange(self.period) + 1, errory_period[i])
-                errory_fig.scatter(np.arange(self.period) + 1, errory_period[i], s=5, marker='x')
-                errory_fig.set_ylabel('Error (m)')
-                errory_fig.set_ylim([0, 0.06])
-
-                spendx_fig.plot(np.arange(self.period) + 1, spentx_period[i])
-                spendx_fig.scatter(np.arange(self.period) + 1, spentx_period[i], s=5, marker='x')
-                spendx_fig.set_ylabel('Spend (sec)')
-                spendx_fig.set_ylim([0, 3.0])
-
-                spendy_fig.plot(np.arange(self.period) + 1, spenty_period[i])
-                spendy_fig.scatter(np.arange(self.period) + 1, spenty_period[i], s=5, marker='x')
-                spendy_fig.set_ylabel('Spend (sec)')
-                spendy_fig.set_ylim([0, 3.0])
-
-                spendy_fig.set_xlabel('Period')
-        if graph == 0:
-            plt.tight_layout()
-            plt.show()
-            plt.show()
-
-
-        return errorx_period, errory_period, spentx_period, spenty_period
-
-    def period_performance_model_each_axis(self, graph=1):
-        errorx_period = []
-        errory_period = []
-        spentx_period = []
-        spenty_period = []
-        for i in range(len(self.cfo)):
-            data = self.cfo[i]
-
-            errorx, errory, spentx, spenty = CFO.performance_calc_each_axis(self, data, data['ballx_pre'], data['bally_pre'])
             errorx_reshape = errorx.reshape([self.period, self.num])  # [回数][データ]にわける
             errory_reshape = errory.reshape([self.period, self.num])  # [回数][データ]にわける
             # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
@@ -725,7 +707,7 @@ class CFO:
             spentx_period.append(spentx_period_ * self.smp)
             spenty_period.append(spenty_period_ * self.smp)
 
-            if graph == 0:
+            if graph == True:
                 fig, (errorx_fig, errory_fig, spendx_fig, spendy_fig) = plt.subplots(4, 1, figsize=(5, 3), dpi=150,
                                                                                      sharex=True)
                 plt.xticks(np.arange(1, self.period + 1, 1))
@@ -751,20 +733,79 @@ class CFO:
                 spendy_fig.set_ylim([0, 3.0])
 
                 spendy_fig.set_xlabel('Period')
-        if graph == 0:
+        if graph == True:
             plt.tight_layout()
             plt.show()
             plt.show()
 
         return errorx_period, errory_period, spentx_period, spenty_period
 
-    def period_performance_human_model_each_axis(self, graph=1):
-        errorx_period_human, errory_period_human, spentx_period_human, spenty_period_human = CFO.period_performance_human_each_axis(self)
-        errorx_period_model, errory_period_model, spentx_period_model, spenty_period_model = CFO.period_performance_model_each_axis(self)
+    def period_performance_model_each_axis(self, graph=False):
+        errorx_period = []
+        errory_period = []
+        spentx_period = []
+        spenty_period = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+
+            errorx, errory, spentx, spenty = CFO.performance_calc_each_axis(self, data, data['ballx_pre'],
+                                                                            data['bally_pre'])
+            errorx_reshape = errorx.reshape([self.period, self.num])  # [回数][データ]にわける
+            errory_reshape = errory.reshape([self.period, self.num])  # [回数][データ]にわける
+            # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
+            errorx_period.append(np.sum(errorx_reshape, axis=1) / self.num)
+            errory_period.append(np.sum(errory_reshape, axis=1) / self.num)
+
+            spentx_reshape = spentx.reshape([self.period, self.num])
+            spenty_reshape = spenty.reshape([self.period, self.num])
+            spentx_period_ = np.sum(spentx_reshape, axis=1)
+            spenty_period_ = np.sum(spenty_reshape, axis=1)
+            # spent_period = spent_period_ * self.smp
+            spentx_period.append(spentx_period_ * self.smp)
+            spenty_period.append(spenty_period_ * self.smp)
+
+            if graph == True:
+                fig, (errorx_fig, errory_fig, spendx_fig, spendy_fig) = plt.subplots(4, 1, figsize=(5, 3), dpi=150,
+                                                                                     sharex=True)
+                plt.xticks(np.arange(1, self.period + 1, 1))
+                errorx_fig.plot(np.arange(self.period) + 1, errorx_period[i])
+                errorx_fig.scatter(np.arange(self.period) + 1, errorx_period[i], s=5, marker='x')
+                errorx_fig.set_ylabel('Error (m)')
+                errorx_fig.set_ylim([0, 0.06])
+
+                plt.xticks(np.arange(1, self.period + 1, 1))
+                errory_fig.plot(np.arange(self.period) + 1, errory_period[i])
+                errory_fig.scatter(np.arange(self.period) + 1, errory_period[i], s=5, marker='x')
+                errory_fig.set_ylabel('Error (m)')
+                errory_fig.set_ylim([0, 0.06])
+
+                spendx_fig.plot(np.arange(self.period) + 1, spentx_period[i])
+                spendx_fig.scatter(np.arange(self.period) + 1, spentx_period[i], s=5, marker='x')
+                spendx_fig.set_ylabel('Spend (sec)')
+                spendx_fig.set_ylim([0, 3.0])
+
+                spendy_fig.plot(np.arange(self.period) + 1, spenty_period[i])
+                spendy_fig.scatter(np.arange(self.period) + 1, spenty_period[i], s=5, marker='x')
+                spendy_fig.set_ylabel('Spend (sec)')
+                spendy_fig.set_ylim([0, 3.0])
+
+                spendy_fig.set_xlabel('Period')
+        if graph == True:
+            plt.tight_layout()
+            plt.show()
+            plt.show()
+
+        return errorx_period, errory_period, spentx_period, spenty_period
+
+    def period_performance_human_model_each_axis(self, graph=False):
+        errorx_period_human, errory_period_human, spentx_period_human, spenty_period_human = CFO.period_performance_human_each_axis(
+            self)
+        errorx_period_model, errory_period_model, spentx_period_model, spenty_period_model = CFO.period_performance_model_each_axis(
+            self)
 
         for i in range(len(self.cfo)):
-
-            fig, (errorx_fig, errory_fig, spendx_fig, spendy_fig) = plt.subplots(4, 1, figsize=(5, 3), dpi=150, sharex=True)
+            fig, (errorx_fig, errory_fig, spendx_fig, spendy_fig) = plt.subplots(4, 1, figsize=(5, 3), dpi=150,
+                                                                                 sharex=True)
             plt.xticks(np.arange(1, self.period + 1, 1))
             errorx_fig.plot(np.arange(self.period) + 1, errorx_period_human[i], label='H-H')
             errorx_fig.scatter(np.arange(self.period) + 1, errorx_period_human[i], s=5, marker='x')
@@ -804,8 +845,10 @@ class CFO:
         plt.show()
 
     def period_performance_cooperation_each_axis(self):
-        errorx_period_human, errory_period_human, spendx_period_human, spendy_period_human = CFO.period_performance_human_each_axis(self)
-        errorx_period_model, errory_period_model, spendx_period_model, spendy_period_model = CFO.period_performance_model_each_axis(self)
+        errorx_period_human, errory_period_human, spendx_period_human, spendy_period_human = CFO.period_performance_human_each_axis(
+            self)
+        errorx_period_model, errory_period_model, spendx_period_model, spendy_period_model = CFO.period_performance_model_each_axis(
+            self)
         errorx_period = np.subtract(errorx_period_human, errorx_period_model)
         errory_period = np.subtract(errory_period_human, errory_period_model)
         spendx_period = np.subtract(spendx_period_human, spendx_period_model)
@@ -839,11 +882,10 @@ class CFO:
         xdata = ['ECFO', 'Ineffective CFO']
         ydata = ['error', 'spend']
 
-        xlim = [[-1.5, 1.5],    #ECOF
-                [ 0.0, 4.0]]    #InECFO
-        ylim = [[-0.015, 0.015],    #error
-                [-0.3, 0.4]]    #spend
-
+        xlim = [[-1.5, 1.5],  # ECOF
+                [0.0, 4.0]]  # InECFO
+        ylim = [[-0.015, 0.015],  # error
+                [-0.3, 0.4]]  # spend
 
         for i in range(2):
             for j in range(2):
@@ -888,7 +930,8 @@ class CFO:
             ax = fig.add_subplot(1, 2, i + 1)
             ax.set_xlim(0.0, 3.0)
             ax.set_ylim(-3.0, 3.0)
-            points = ax.scatter(df_all['Ineffective CFO'], df_all['Effective CFO'], c=df_all[performance[i]], s=marker_size, cmap="Blues")
+            points = ax.scatter(df_all['Ineffective CFO'], df_all['Effective CFO'], c=df_all[performance[i]],
+                                s=marker_size, cmap="Blues")
             plt.colorbar(points, ax=ax, label=label[i])
             ax.set_xlabel('Ineffective CFO')
             ax.set_ylabel('Effective CFO')
@@ -898,11 +941,14 @@ class CFO:
 
     def sum_sub_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self)
-        ppcof_babs_summation_3sec, rpcof_babs_summation_3sec, pfcof_babs_summation_3sec, rfcof_babs_summation_3sec = CFO.summation_cfo_3sec(self, 'b_abs')
-        ppcof_aabs_summation_3sec, rpcof_aabs_summation_3sec, pfcof_aabs_summation_3sec, rfcof_aabs_summation_3sec = CFO.summation_cfo_3sec(self, 'a_abs')
-        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(self)
-
+        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(
+            self)
+        ppcof_babs_summation_3sec, rpcof_babs_summation_3sec, pfcof_babs_summation_3sec, rfcof_babs_summation_3sec = CFO.summation_cfo_3sec(
+            self, 'b_abs')
+        ppcof_aabs_summation_3sec, rpcof_aabs_summation_3sec, pfcof_aabs_summation_3sec, rfcof_aabs_summation_3sec = CFO.summation_cfo_3sec(
+            self, 'a_abs')
+        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(
+            self)
 
         df = []
         for i in range(len(self.cfo)):
@@ -940,10 +986,12 @@ class CFO:
         cmap = ['Blues_r', 'Blues']
         ylabel = [
             ['Pitch summation PCFO', 'Roll summation PCFO', 'Pitch summation FCFO', 'Roll summation FCFO'],
-            ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO', 'Before abs. Roll summation FCFO'],
-            ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO', 'After abs. Roll summation FCFO'],
+            ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO',
+             'Before abs. Roll summation FCFO'],
+            ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO',
+             'After abs. Roll summation FCFO'],
         ]
-        xlabel = ['Pitch subtraction PCFO', 'Roll subtraction PCFO', 'Pitch subtraction FCFO','Roll subtraction FCFO']
+        xlabel = ['Pitch subtraction PCFO', 'Roll subtraction PCFO', 'Pitch subtraction FCFO', 'Roll subtraction FCFO']
 
         xlim = [0.2, 0.2, 4.0, 3.0]
 
@@ -968,7 +1016,6 @@ class CFO:
             ]
         ]
 
-
         for i in range(3):
             fig = plt.figure(figsize=(30, 15), dpi=80)
             for j in range(2):
@@ -976,7 +1023,8 @@ class CFO:
                     ax = fig.add_subplot(2, 4, 4 * j + k + 1)
                     ax.set_xlim(0, xlim[k])
                     ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
-                    points = ax.scatter(df_all[xlabel[k]], df_all[ylabel[i][k]], c=df_all[performance[j]], s=marker_size, cmap=cmap[j])
+                    points = ax.scatter(df_all[xlabel[k]], df_all[ylabel[i][k]], c=df_all[performance[j]],
+                                        s=marker_size, cmap=cmap[j])
                     plt.colorbar(points, ax=ax, label=performance[j])
                     ax.set_xlabel(xlabel[k])
                     ax.set_ylabel(ylabel[i][k])
@@ -986,11 +1034,14 @@ class CFO:
         plt.show()
 
     def sum_sub(self):
-        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self)
-        ppcof_babs_summation_3sec, rpcof_babs_summation_3sec, pfcof_babs_summation_3sec, rfcof_babs_summation_3sec = CFO.summation_cfo_3sec(self, 'b_abs')
-        ppcof_aabs_summation_3sec, rpcof_aabs_summation_3sec, pfcof_aabs_summation_3sec, rfcof_aabs_summation_3sec = CFO.summation_cfo_3sec(self, 'a_abs')
-        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(self)
-
+        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(
+            self)
+        ppcof_babs_summation_3sec, rpcof_babs_summation_3sec, pfcof_babs_summation_3sec, rfcof_babs_summation_3sec = CFO.summation_cfo_3sec(
+            self, 'b_abs')
+        ppcof_aabs_summation_3sec, rpcof_aabs_summation_3sec, pfcof_aabs_summation_3sec, rfcof_aabs_summation_3sec = CFO.summation_cfo_3sec(
+            self, 'a_abs')
+        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(
+            self)
 
         df = []
         for i in range(len(self.cfo)):
@@ -1025,10 +1076,12 @@ class CFO:
         cmap = ['Blues']
         ylabel = [
             ['Pitch summation PCFO', 'Roll summation PCFO', 'Pitch summation FCFO', 'Roll summation FCFO'],
-            ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO', 'Before abs. Roll summation FCFO'],
-            ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO', 'After abs. Roll summation FCFO'],
+            ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO',
+             'Before abs. Roll summation FCFO'],
+            ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO',
+             'After abs. Roll summation FCFO'],
         ]
-        xlabel = ['Pitch subtraction PCFO', 'Roll subtraction PCFO', 'Pitch subtraction FCFO','Roll subtraction FCFO']
+        xlabel = ['Pitch subtraction PCFO', 'Roll subtraction PCFO', 'Pitch subtraction FCFO', 'Roll subtraction FCFO']
 
         xlim = [0.3, 0.3, 5.0, 5.0]
 
@@ -1053,7 +1106,6 @@ class CFO:
             ]
         ]
 
-
         for i in range(3):
             fig = plt.figure(figsize=(8, 8), dpi=100)
             for k in range(4):
@@ -1074,7 +1126,8 @@ class CFO:
             data = self.cfo[i]
             if mode == 'error':
                 error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
-                ecfo.append(CFO.period_calculation_consider_error(self, data['ecfo'][self.start_num:self.end_num], spent))
+                ecfo.append(
+                    CFO.period_calculation_consider_error(self, data['ecfo'][self.start_num:self.end_num], spent))
             else:
                 ecfo.append(CFO.calc_period_calculator(self, data['ecfo'][self.start_num:self.end_num]))
 
@@ -1086,7 +1139,9 @@ class CFO:
             data = self.cfo[i]
             if mode == 'error':
                 error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
-                inecfo.append(CFO.period_calculation_consider_error(self, np.abs(data['inecfo'][self.start_num:self.end_num]), spent))
+                inecfo.append(
+                    CFO.period_calculation_consider_error(self, np.abs(data['inecfo'][self.start_num:self.end_num]),
+                                                          spent))
             else:
                 inecfo.append(CFO.calc_period_calculator(self, np.abs(data['inecfo'][self.start_num:self.end_num])))
         return inecfo
@@ -1116,7 +1171,7 @@ class CFO:
 
         return data_period
 
-    def subtraction_cfo(self, graph=1):
+    def subtraction_cfo(self, graph=False):
         subtraction = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
         types = ['p_pcfo', 'r_pcfo', 'p_fcfo', 'r_fcfo']
         for type in types:
@@ -1124,24 +1179,45 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
                 if self.group_type == 'dyad':
-                    sub_cfo1 = np.abs(np.subtract(data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]))
-                    sub_cfo2 = np.abs(np.subtract(data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]))
+                    sub_cfo1 = np.abs(np.subtract(data['i1_' + type][self.start_num:self.end_num],
+                                                  data['i2_' + type][self.start_num:self.end_num]))
+                    sub_cfo2 = np.abs(np.subtract(data['i2_' + type][self.start_num:self.end_num],
+                                                  data['i1_' + type][self.start_num:self.end_num]))
                     sub_cfo_ave = np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)) / 2
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
                 elif self.group_type == 'triad':
-                    sub_cfo1 = np.subtract(np.subtract(2 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo2 = np.subtract(np.subtract(2 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo3 = np.subtract(np.subtract(2 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num])
+                    sub_cfo1 = np.subtract(np.subtract(2 * data['i1_' + type][self.start_num:self.end_num],
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(2 * data['i2_' + type][self.start_num:self.end_num],
+                                                       data['i1_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(2 * data['i3_' + type][self.start_num:self.end_num],
+                                                       data['i1_' + type][self.start_num:self.end_num]),
+                                           data['i2_' + type][self.start_num:self.end_num])
                     sub_cfo_ave = np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)) / 3
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
                 elif self.group_type == 'tetrad':
-                    sub_cfo1 = np.subtract(np.subtract(np.subtract(3 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo2 = np.subtract(np.subtract(np.subtract(3 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo3 = np.subtract(np.subtract(np.subtract(3 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo4 = np.subtract(np.subtract(np.subtract(3 * data['i4_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo_ave = np.add(np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)), np.abs(sub_cfo4)) / 4
+                    sub_cfo1 = np.subtract(np.subtract(np.subtract(3 * data['i1_' + type][self.start_num:self.end_num],
+                                                                   data['i2_' + type][self.start_num:self.end_num]),
+                                                       data['i3_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(np.subtract(3 * data['i2_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i3_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(np.subtract(3 * data['i3_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo4 = np.subtract(np.subtract(np.subtract(3 * data['i4_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo_ave = np.add(np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)),
+                                         np.abs(sub_cfo4)) / 4
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
             subtraction_ = np.delete(subtraction_, 0, 0)
@@ -1149,7 +1225,7 @@ class CFO:
         subtraction = np.delete(subtraction, 0, 0)
         subtraction = subtraction.reshape([4, len(self.cfo), -1])
 
-        if graph == 0:
+        if graph == True:
             fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
@@ -1159,10 +1235,14 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10], label='Group' + str(i + 1))
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10], label='Group' + str(i + 1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[2][i][::10], label='Group' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[3][i][::10], label='Group' + str(i + 1))
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10],
+                           label='Group' + str(i + 1))
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10],
+                           label='Group' + str(i + 1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[2][i][::10],
+                           label='Group' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[3][i][::10],
+                           label='Group' + str(i + 1))
 
             ppcfo.set_ylabel('Subtraction\nPitch PCFO (rad)')
             rpcfo.set_ylabel('Subtraction\nRoll PCFO (rad)')
@@ -1188,7 +1268,6 @@ class CFO:
             plt.savefig('fig/subtraction_cfo_' + str(self.group_type) + '.png')
             plt.show()
 
-
         return subtraction[0], subtraction[1], subtraction[2], subtraction[3]
 
     def subtraction_cfo_3sec(self):
@@ -1210,7 +1289,8 @@ class CFO:
 
     def subtraction_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(self)
+        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(
+            self)
 
         df = []
         for i in range(len(self.cfo)):
@@ -1261,7 +1341,8 @@ class CFO:
 
     def summation_performance(self, mode='no_abs'):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self, mode)
+        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(
+            self, mode)
         if mode == 'no_abs':
             xlabel = ['Pitch summation PCFO', 'Roll summation PCFO', 'Pitch summation FCFO', 'Roll summation FCFO']
             xlim = [
@@ -1271,8 +1352,9 @@ class CFO:
                 [-0.2, 0.2],
             ]
         elif mode == 'b_abs':
-            xlabel = ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO', 'Before abs. Pitch summation FCFO',
-             'Before abs. Roll summation FCFO']
+            xlabel = ['Before abs. Pitch summation PCFO', 'Before abs. Roll summation PCFO',
+                      'Before abs. Pitch summation FCFO',
+                      'Before abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.15],
                 [0.0, 0.15],
@@ -1280,8 +1362,9 @@ class CFO:
                 [0.0, 1.25],
             ]
         elif mode == 'a_abs':
-            xlabel = ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO', 'After abs. Pitch summation FCFO',
-             'After abs. Roll summation FCFO']
+            xlabel = ['After abs. Pitch summation PCFO', 'After abs. Roll summation PCFO',
+                      'After abs. Pitch summation FCFO',
+                      'After abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.12],
                 [0.0, 0.12],
@@ -1332,7 +1415,8 @@ class CFO:
 
     def subtraction_performance_each_axis(self):
         errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
-        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(self)
+        ppcof_subtraction_3sec, rpcof_subtraction_3sec, pfcof_subtraction_3sec, rfcof_subtraction_3sec = CFO.subtraction_cfo_3sec(
+            self)
 
         df = []
         for i in range(len(self.cfo)):
@@ -1371,13 +1455,13 @@ class CFO:
                 ax = fig.add_subplot(2, 4, 4 * i + j + 1)
                 ax.set_xlim(0, xlim[j])
                 # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
-                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j%2], hue='Group', s=marker_size)
+                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j % 2], hue='Group', s=marker_size)
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
                     lh._sizes = [10]
 
                 ax.set_xlabel(xlabel[j])
-                ax.set_ylabel(performance[i][j%2])
+                ax.set_ylabel(performance[i][j % 2])
 
         plt.tight_layout()
         plt.savefig('fig/subtraction_performance_each_axis_' + str(self.group_type) + '.png')
@@ -1385,7 +1469,8 @@ class CFO:
 
     def summation_performance_each_axis(self, mode='no_abs'):
         errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
-        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(self, mode)
+        ppcof_summation_3sec, rpcof_summation_3sec, pfcof_summation_3sec, rfcof_summation_3sec = CFO.summation_cfo_3sec(
+            self, mode)
         if mode == 'no_abs':
             xlabel = [
                 'Pitch summation PCFO',
@@ -1402,7 +1487,7 @@ class CFO:
                 'Before abs. Pitch summation PCFO',
                 'Before abs. Roll summation PCFO',
                 'Before abs. Pitch summation FCFO',
-             'Before abs. Roll summation FCFO']
+                'Before abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.15],
                 [0.0, 0.15],
@@ -1414,7 +1499,7 @@ class CFO:
                 'After abs. Pitch summation PCFO',
                 'After abs. Roll summation PCFO',
                 'After abs. Pitch summation FCFO',
-             'After abs. Roll summation FCFO']
+                'After abs. Roll summation FCFO']
             xlim = [
                 [0.0, 0.12],
                 [0.0, 0.12],
@@ -1452,14 +1537,14 @@ class CFO:
                 ax = fig.add_subplot(2, 4, 4 * i + j + 1)
                 ax.set_xlim(xlim[j][0], xlim[j][1])
                 # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
-                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j%2], hue='Group', s=marker_size)
+                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j % 2], hue='Group', s=marker_size)
                 # g.set(yscale="log")
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
                     lh._sizes = [10]
 
                 ax.set_xlabel(xlabel[j])
-                ax.set_ylabel(performance[i][j%2])
+                ax.set_ylabel(performance[i][j % 2])
 
         plt.tight_layout()
         plt.savefig('fig/summation_performance_each_axis_' + str(self.group_type) + '.png')
@@ -1470,12 +1555,12 @@ class CFO:
         for i in range(len(self.cfo)):
             data = self.cfo[i]
             for j in range(self.join):
-                interface = 'i'+str(j+1)
+                interface = 'i' + str(j + 1)
                 df_each = pd.DataFrame({
-                    'Pitch PCFO': data[interface+'_p_pcfo'][self.start_num:self.end_num:1000],
-                    'Roll PCFO': data[interface+'_r_pcfo'][self.start_num:self.end_num:1000],
-                    'Pitch FCFO': data[interface+'_p_fcfo'][self.start_num:self.end_num:1000],
-                    'Roll FCFO': data[interface+'_r_fcfo'][self.start_num:self.end_num:1000],
+                    'Pitch PCFO': data[interface + '_p_pcfo'][self.start_num:self.end_num:1000],
+                    'Roll PCFO': data[interface + '_r_pcfo'][self.start_num:self.end_num:1000],
+                    'Pitch FCFO': data[interface + '_p_fcfo'][self.start_num:self.end_num:1000],
+                    'Roll FCFO': data[interface + '_r_fcfo'][self.start_num:self.end_num:1000],
                 })
                 df_list.append(df_each)
         df = pd.concat([i for i in df_list], axis=0)
@@ -1489,7 +1574,7 @@ class CFO:
             kind='hist',
             # kind="kde",
             # kind="scatter",
-            )
+        )
 
         kwargs_PCFO = dict(
             xlim=(-0.25, 0.25),
@@ -1541,11 +1626,14 @@ class CFO:
             data = self.cfo[i]
             for j in range(self.join):
                 interface = 'i' + str(j + 1)
-                period_ppcfo = CFO.calc_period_calculator(self, data[interface + '_p_pcfo'][self.start_num:self.end_num])
-                period_rpcfo = CFO.calc_period_calculator(self, data[interface + '_r_pcfo'][self.start_num:self.end_num])
-                period_pfcfo = CFO.calc_period_calculator(self, data[interface + '_p_fcfo'][self.start_num:self.end_num])
-                period_rfcfo = CFO.calc_period_calculator(self, data[interface + '_r_fcfo'][self.start_num:self.end_num])
-
+                period_ppcfo = CFO.calc_period_calculator(self,
+                                                          data[interface + '_p_pcfo'][self.start_num:self.end_num])
+                period_rpcfo = CFO.calc_period_calculator(self,
+                                                          data[interface + '_r_pcfo'][self.start_num:self.end_num])
+                period_pfcfo = CFO.calc_period_calculator(self,
+                                                          data[interface + '_p_fcfo'][self.start_num:self.end_num])
+                period_rfcfo = CFO.calc_period_calculator(self,
+                                                          data[interface + '_r_fcfo'][self.start_num:self.end_num])
 
                 df_each = pd.DataFrame({
                     'Pitch PCFO': period_ppcfo,
@@ -1613,7 +1701,8 @@ class CFO:
 
     def summation_ave_performance(self, mode='no_abs'):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        pcfo_summation_3sec, fcfo_summation_3sec, pcfo_abs_summation_3sec, fcfo_abs_summation_3sec = CFO.summation_cfo_3sec(self, mode)
+        pcfo_summation_3sec, fcfo_summation_3sec, pcfo_abs_summation_3sec, fcfo_abs_summation_3sec = CFO.summation_cfo_3sec(
+            self, mode)
         if mode == 'no_abs':
             xlabel = ['Summation PCFO',
                       'Summation FCFO',
@@ -1688,12 +1777,13 @@ class CFO:
                 ax.set_ylabel(performance[i])
 
         plt.tight_layout()
-        plt.savefig('fig/summation_ave_performance_' + str(mode) + '_' +str(self.group_type) + '.png')
+        plt.savefig('fig/summation_ave_performance_' + str(mode) + '_' + str(self.group_type) + '.png')
         plt.show()
 
     def subtraction_ave_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
-        pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec = CFO.subtraction_ave_cfo_3sec(self)
+        pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec = CFO.subtraction_ave_cfo_3sec(
+            self)
 
         xlabel = ['Subtraction PCFO', 'Subtraction PCFO', 'Subtraction abs. FCFO', 'Subtraction abs. FCFO']
 
@@ -1743,7 +1833,7 @@ class CFO:
         plt.savefig('fig/subtraction_ave_performance_' + str(self.group_type) + '.png')
         plt.show()
 
-    def summation_ave_cfo(self, graph=1, mode='no_abs'):
+    def summation_ave_cfo(self, graph=False, mode='no_abs'):
         summation = self.cfo[0]['i1_pcfo_sum'][self.start_num:self.end_num]
         types = ['_pcfo_sum', '_fcfo_sum', '_pcfo_sum_abs', '_fcfo_sum_abs']
         for type in types:
@@ -1768,7 +1858,7 @@ class CFO:
         if mode == 'a_abs':
             summation = np.abs(summation)
 
-        if graph == 0:
+        if graph == True:
             fig, (pcfo, fcfo, pcfoave, fcfoave) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
@@ -1779,13 +1869,13 @@ class CFO:
                 data = self.cfo[i]
 
                 pcfo.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
-                           label='Group' + str(i + 1))
+                          label='Group' + str(i + 1))
                 fcfo.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
-                           label='Group' + str(i + 1))
+                          label='Group' + str(i + 1))
                 pcfoave.plot(data['time'][self.start_num:self.end_num:10], summation[2][i][::10],
-                           label='Group' + str(i + 1))
+                             label='Group' + str(i + 1))
                 fcfoave.plot(data['time'][self.start_num:self.end_num:10], summation[3][i][::10],
-                           label='Group' + str(i + 1))
+                             label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Summation\nPCFO (rad)')
             pcfo.set_ylabel('Summation\nFCFO (Nm)')
@@ -1811,10 +1901,9 @@ class CFO:
             # plt.savefig(savename)
             plt.show()
 
-
         return summation[0], summation[1], summation[2], summation[3]
 
-    def subtraction_ave_cfo(self, graph=1):
+    def subtraction_ave_cfo(self, graph=False):
         subtraction = self.cfo[0]['i1_pcfo_sum'][self.start_num:self.end_num]
         types = ['pcfo_sum', 'fcfo_sum', 'pcfo_sum_abs', 'fcfo_sum_abs']
         for type in types:
@@ -1822,24 +1911,45 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
                 if self.group_type == 'dyad':
-                    sub_cfo1 = np.abs(np.subtract(data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]))
-                    sub_cfo2 = np.abs(np.subtract(data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]))
+                    sub_cfo1 = np.abs(np.subtract(data['i1_' + type][self.start_num:self.end_num],
+                                                  data['i2_' + type][self.start_num:self.end_num]))
+                    sub_cfo2 = np.abs(np.subtract(data['i2_' + type][self.start_num:self.end_num],
+                                                  data['i1_' + type][self.start_num:self.end_num]))
                     sub_cfo_ave = np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)) / 2
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
                 elif self.group_type == 'triad':
-                    sub_cfo1 = np.subtract(np.subtract(2 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo2 = np.subtract(np.subtract(2 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo3 = np.subtract(np.subtract(2 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num])
+                    sub_cfo1 = np.subtract(np.subtract(2 * data['i1_' + type][self.start_num:self.end_num],
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(2 * data['i2_' + type][self.start_num:self.end_num],
+                                                       data['i1_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(2 * data['i3_' + type][self.start_num:self.end_num],
+                                                       data['i1_' + type][self.start_num:self.end_num]),
+                                           data['i2_' + type][self.start_num:self.end_num])
                     sub_cfo_ave = np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)) / 3
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
                 elif self.group_type == 'tetrad':
-                    sub_cfo1 = np.subtract(np.subtract(np.subtract(3 * data['i1_' + type][self.start_num:self.end_num], data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo2 = np.subtract(np.subtract(np.subtract(3 * data['i2_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo3 = np.subtract(np.subtract(np.subtract(3 * data['i3_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i4_' + type][self.start_num:self.end_num])
-                    sub_cfo4 = np.subtract(np.subtract(np.subtract(3 * data['i4_' + type][self.start_num:self.end_num], data['i1_' + type][self.start_num:self.end_num]), data['i2_' + type][self.start_num:self.end_num]), data['i3_' + type][self.start_num:self.end_num])
-                    sub_cfo_ave = np.add(np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)), np.abs(sub_cfo4)) / 4
+                    sub_cfo1 = np.subtract(np.subtract(np.subtract(3 * data['i1_' + type][self.start_num:self.end_num],
+                                                                   data['i2_' + type][self.start_num:self.end_num]),
+                                                       data['i3_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo2 = np.subtract(np.subtract(np.subtract(3 * data['i2_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i3_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo3 = np.subtract(np.subtract(np.subtract(3 * data['i3_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i4_' + type][self.start_num:self.end_num])
+                    sub_cfo4 = np.subtract(np.subtract(np.subtract(3 * data['i4_' + type][self.start_num:self.end_num],
+                                                                   data['i1_' + type][self.start_num:self.end_num]),
+                                                       data['i2_' + type][self.start_num:self.end_num]),
+                                           data['i3_' + type][self.start_num:self.end_num])
+                    sub_cfo_ave = np.add(np.add(np.add(np.abs(sub_cfo1), np.abs(sub_cfo2)), np.abs(sub_cfo3)),
+                                         np.abs(sub_cfo4)) / 4
                     subtraction_ = np.vstack((subtraction_, sub_cfo_ave))
 
             subtraction_ = np.delete(subtraction_, 0, 0)
@@ -1847,7 +1957,7 @@ class CFO:
         subtraction = np.delete(subtraction, 0, 0)
         subtraction = subtraction.reshape([4, len(self.cfo), -1])
 
-        if graph == 0:
+        if graph == True:
             fig, (pcfo, fcfo, pcfoave, fcfoave) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
@@ -1857,10 +1967,14 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                pcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10], label='Group' + str(i + 1))
-                fcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10], label='Group' + str(i + 1))
-                pcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[2][i][::10], label='Group' + str(i + 1))
-                fcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[3][i][::10], label='Group' + str(i + 1))
+                pcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10],
+                          label='Group' + str(i + 1))
+                fcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10],
+                          label='Group' + str(i + 1))
+                pcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[2][i][::10],
+                             label='Group' + str(i + 1))
+                fcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[3][i][::10],
+                             label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Subtraction\nPCFO (rad)')
             fcfo.set_ylabel('Subtraction\nFCFO (Nm)')
@@ -1889,7 +2003,9 @@ class CFO:
         return subtraction[0], subtraction[1], subtraction[2], subtraction[3]
 
     def summation_ave_cfo_3sec(self, mode='no_abs'):
-        pcfo_summation, fcfo_summation, pcfo_abs_summation, fcfo_abs_summation = CFO.summation_ave_cfo(self, graph=1, mode=mode)
+        pcfo_summation, fcfo_summation, pcfo_abs_summation, fcfo_abs_summation = CFO.summation_ave_cfo(self,
+                                                                                                       graph=False,
+                                                                                                       mode=mode)
 
         pcfo_summation_3sec = pcfo_summation.reshape([len(self.cfo), -1, self.num])
         pcfo_summation_3sec = np.average(pcfo_summation_3sec, axis=2)
@@ -1922,7 +2038,7 @@ class CFO:
 
         return pcfo_subtraction_3sec, fcfo_subtraction_3sec, pcfo_abs_subtraction_3sec, fcfo_abs_subtraction_3sec
 
-    def fcfo_valiance(self, graph=1):
+    def fcfo_valiance(self, graph=False):
         label = ['_p_fcfo', '_r_fcfo']
         ylabel = ['pitch', 'roll']
         valiance = []
@@ -1934,21 +2050,22 @@ class CFO:
             for j in range(len(label)):
                 valiance[i].append([])
                 valiance_period[i].append([])
-                stack = np.stack([data['i' + str(_ + 1) + label[j]][self.start_num:self.end_num] for _ in range(self.join)], axis=0)
+                stack = np.stack(
+                    [data['i' + str(_ + 1) + label[j]][self.start_num:self.end_num] for _ in range(self.join)], axis=0)
                 valiance_ = CFO.variance_calculation(self, stack)
                 valiance[i][j] = valiance_
 
                 valiance_period_ = CFO.calc_period_calculator(self, valiance_)
                 valiance_period[i][j] = valiance_period_
 
-        if graph == 0:
+        if graph == True:
             for i in range(len(self.cfo)):
                 fig = plt.figure(figsize=(5, 3), dpi=300)
                 for j in range(len(label)):
                     ax = fig.add_subplot(2, 1, j + 1)
                     ax.set_ylim(0, 4)
                     ax.plot(data['time'][self.start_num:self.end_num:10], valiance[i][j][::10])
-                    ax.set_ylabel('Variance of '+ylabel[j]+' FCFO (Nm)')
+                    ax.set_ylabel('Variance of ' + ylabel[j] + ' FCFO (Nm)')
                     ax.set_xlabel('time (s)')
 
                 plt.tight_layout()
@@ -1975,30 +2092,37 @@ class CFO:
                 thmname = interfacenum + '_r_thm_tf'
                 thm_prename = interfacenum + '_r_thm_pre_tf'
                 thm_prename_solo = interfacenum + '_r_thm_pre_solo_tf'
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                          label='P' + str(i + 1) + '_act')
+                rthm.plot(data['time'][self.start_num:self.end_num:10],
+                          data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 thmname = interfacenum + '_p_thm_tf'
                 thm_prename = interfacenum + '_p_thm_pre_tf'
                 thm_prename_solo = interfacenum + '_p_thm_pre_solo_tf'
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                          label='P' + str(i + 1) + '_act')
+                pthm.plot(data['time'][self.start_num:self.end_num:10],
+                          data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text_tf'
                 text_prename = interfacenum + '_r_text_pre_tf'
                 text_prename_solo = interfacenum + '_r_text_pre_solo_tf'
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_act')
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
+                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1) + '_act')
+                rtext.plot(data['time'][self.start_num:self.end_num:10],
+                           data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
-
 
                 textname = interfacenum + '_p_text_tf'
                 text_prename = interfacenum + '_p_text_pre_tf'
                 text_prename_solo = interfacenum + '_p_text_pre_solo_tf'
-                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10], label='P'+str(i+1)+'_act')
-                ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre')
+                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1) + '_act')
+                ptext.plot(data['time'][self.start_num:self.end_num:10],
+                           data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
                 # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
             rthm.set_ylabel('Roll angle (rad)')
@@ -2041,15 +2165,18 @@ class CFO:
                 pcfoname = interfacenum + '_p_pcfo_tf'
                 fcfoname = interfacenum + '_p_fcfo_tf'
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P'+str(i+1))
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
 
                 pcfoname = interfacenum + '_r_pcfo_tf'
                 fcfoname = interfacenum + '_r_fcfo_tf'
 
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10], label='P' + str(i + 1))
-
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                           label='P' + str(i + 1))
 
             ppcfo.set_ylabel('Pitch PCFO (rad)')
             ppcfo.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -2076,7 +2203,8 @@ class CFO:
         plt.show()
 
     def tf_summation_cfo_3sec(self, mode='no_abs'):
-        ppcfo_summation, rpcfo_summation, pfcfo_summation, rfcfo_summation = CFO.tf_summation_cfo(self, graph=1, mode=mode)
+        ppcfo_summation, rpcfo_summation, pfcfo_summation, rfcfo_summation = CFO.tf_summation_cfo(self, graph=False,
+                                                                                                  mode=mode)
 
         ppcfo_summation_3sec = ppcfo_summation.reshape([len(self.cfo), -1, self.num])
         ppcfo_summation_3sec = np.average(ppcfo_summation_3sec, axis=2)
@@ -2092,7 +2220,7 @@ class CFO:
 
         return ppcfo_summation_3sec, rpcfo_summation_3sec, pfcfo_summation_3sec, rfcfo_summation_3sec
 
-    def tf_summation_cfo(self, graph=1, mode='no_abs'):
+    def tf_summation_cfo(self, graph=False, mode='no_abs'):
         summation = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
         types = ['_p_pcfo_tf', '_r_pcfo_tf', '_p_fcfo_tf', '_r_fcfo_tf']
         for type in types:
@@ -2117,7 +2245,7 @@ class CFO:
         if mode == 'a_abs':
             summation = np.abs(summation)
 
-        if graph == 0:
+        if graph == True:
             fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 7), dpi=150, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
@@ -2160,7 +2288,6 @@ class CFO:
             plt.savefig('fig/tf_summation_cfo_' + str(self.group_type) + '.png')
             plt.show()
 
-
         return summation[0], summation[1], summation[2], summation[3]
 
     def work_calc(self, mode='human'):
@@ -2175,7 +2302,7 @@ class CFO:
             flabel = ['_p_text_pre', '_r_text_pre']
             plabel = ['_p_thm_pre', '_r_thm_pre']
 
-        omegac =10.0
+        omegac = 10.0
         Ts = 0.0001
 
         work = []
@@ -2212,7 +2339,7 @@ class CFO:
             flabel = ['_p_text_pre', '_r_text_pre']
             plabel = ['_p_thm_pre', '_r_thm_pre']
 
-        omegac =10.0
+        omegac = 10.0
         Ts = 0.0001
 
         work = []
@@ -2231,7 +2358,7 @@ class CFO:
                     text_data_lpf = CFO.calc_lpf_1st_order(self, text_data, omegac, Ts)
 
                     diff.append(np.abs(thm_diff * text_data_lpf))
-                rs = np.sqrt(diff[0]**2 + diff[1]**2)
+                rs = np.sqrt(diff[0] ** 2 + diff[1] ** 2)
 
                 work.append(rs)
 
@@ -2239,13 +2366,13 @@ class CFO:
         work_np = work_np_.reshape([len(self.cfo), self.join, -1])
         return work_np
 
-    def work_diff(self, graph=1):
+    def work_diff(self, graph=False):
         work_human = self.work_calc(mode='human')
         work_model = self.work_calc(mode='model')
 
         work_diff = work_human - work_model
 
-        if graph == 0:
+        if graph == True:
             for j in range(len(self.cfo)):
                 data = self.cfo[j]
 
@@ -2257,12 +2384,16 @@ class CFO:
 
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
-                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][0][::10], label='P' + str(i + 1) + 'Human')
-                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][0][::10], label='P' + str(i + 1) + 'Model')
+                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][0][::10],
+                               label='P' + str(i + 1) + 'Human')
+                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][0][::10],
+                               label='P' + str(i + 1) + 'Model')
                     # pwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
 
-                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][1][::10], label='P' + str(i + 1) + 'Human')
-                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][1][::10], label='P' + str(i + 1) + 'Model')
+                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][1][::10],
+                               label='P' + str(i + 1) + 'Human')
+                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][1][::10],
+                               label='P' + str(i + 1) + 'Model')
                     # rwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
 
                 pwork.set_ylabel('Pitch work (J)')
@@ -2281,13 +2412,13 @@ class CFO:
 
         return work_diff
 
-    def work_diff_rs(self, graph=1):
+    def work_diff_rs(self, graph=False):
         work_human = self.work_calc_rs(mode='human')
         work_model = self.work_calc_rs(mode='model')
 
         work_diff = work_human - work_model
 
-        if graph == 0:
+        if graph == True:
             for j in range(len(self.cfo)):
                 data = self.cfo[j]
 
@@ -2299,10 +2430,12 @@ class CFO:
 
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][::10], label='P' + str(i + 1) + 'Human')
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][::10], label='P' + str(i + 1) + 'Model')
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][::10], label='P' + str(i + 1) + 'Diff')
-
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][::10],
+                             label='P' + str(i + 1) + 'Human')
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][::10],
+                             label='P' + str(i + 1) + 'Model')
+                    plt.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][::10],
+                             label='P' + str(i + 1) + 'Diff')
 
                 plt.ylabel('Pitch work (J)')
                 plt.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -2315,9 +2448,11 @@ class CFO:
 
         return work_diff
 
-    def get_summation_force(self, graph=1, mode='abs'):
+    def get_summation_force(self, graph=False, mode='abs', source='human'):
         summation = self.cfo[0]['i1_p_text'][self.start_num:self.end_num]
         types = ['_p_text', '_r_text']
+        if source == 'model':
+            types = ['_p_text_pre', '_r_text_pre']
         for type in types:
             for j in range(len(self.cfo)):
                 data = self.cfo[j]
@@ -2341,7 +2476,7 @@ class CFO:
         if mode == 'a_abs':
             summation = np.abs(summation)
 
-        if graph == 0:
+        if graph == True:
             for i in range(len(self.cfo)):
                 fig, (ptext, rtxt) = plt.subplots(2, 1, figsize=(5, 7), dpi=150, sharex=True)
 
@@ -2349,20 +2484,21 @@ class CFO:
                 # plt.xlim([0.28, 0.89])  # x軸の範囲
                 plt.xlabel("Time (sec)")
 
-
                 data = self.cfo[i]
 
                 for j in range(self.join):
                     interfacenum = 'i' + str(j + 1)
-                    ptext.plot(data['time'][self.start_num:self.end_num:10], data[interfacenum + '_p_text'][self.start_num:self.end_num:10],
+                    ptext.plot(data['time'][self.start_num:self.end_num:10],
+                               data[interfacenum + types[0]][self.start_num:self.end_num:10],
                                label='P' + str(j + 1))
-                    rtxt.plot(data['time'][self.start_num:self.end_num:10], data[interfacenum + '_r_text'][self.start_num:self.end_num:10],
+                    rtxt.plot(data['time'][self.start_num:self.end_num:10],
+                              data[interfacenum + types[1]][self.start_num:self.end_num:10],
                               label='P' + str(j + 1))
 
                 ptext.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
-                           label='Summation_'+mode)
+                           label='Summation_' + mode)
                 rtxt.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
-                          label='Summation_'+mode)
+                          label='Summation_' + mode)
 
                 ptext.set_ylabel('force (Nm)')
                 rtxt.set_ylabel('force (Nm)')
@@ -2381,25 +2517,23 @@ class CFO:
                 # plt.savefig('fig/summation_force/' + str(self.group_type) + '.png')
             plt.show()
 
-
         return summation[0], summation[1]
 
+    # def get_summation_force_3sec(self):
+    #     ptext_summation, rtext_summation = CFO.get_summation_force(self)
+    #
+    #     ptext_summation_3sec = ptext_summation.reshape([len(self.cfo), -1, self.num])
+    #     ptext_summation_3sec = np.average(ptext_summation_3sec, axis=2)
+    #
+    #     rtext_summation_3sec = rtext_summation.reshape([len(self.cfo), -1, self.num])
+    #     rtext_summation_3sec = np.average(rtext_summation_3sec, axis=2)
+    #
+    #     return ptext_summation_3sec, rtext_summation_3sec
 
-    def get_summation_force_3sec(self):
-        ptext_summation, rtext_summation = CFO.get_summation_force(self)
-
-        ptext_summation_3sec = ptext_summation.reshape([len(self.cfo), -1, self.num])
-        ptext_summation_3sec = np.average(ptext_summation_3sec, axis=2)
-
-        rtext_summation_3sec = rtext_summation.reshape([len(self.cfo), -1, self.num])
-        rtext_summation_3sec = np.average(rtext_summation_3sec, axis=2)
-
-        return ptext_summation_3sec, rtext_summation_3sec
-
-    def get_plate_accel(self, graph=1):
+    def get_plate_accel(self, graph=False):
         pitch_sum_force, roll_sum_force = CFO.get_summation_force(self, mode='no_abs')
 
-        if graph == 0:
+        if graph == True:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
@@ -2436,7 +2570,7 @@ class CFO:
 
         return pitch_dot, roll_dot
 
-    def get_plate_dyanamics(self, graph=1):
+    def get_plate_dyanamics(self, graph=False):
         pitch_force, roll_force = CFO.get_summation_force(self, mode='no_abs')
         pitch_accel, roll_accel = CFO.get_plate_accel(self)
         pitch_velo, roll_velo = CFO.get_plate_velo(self)
@@ -2504,20 +2638,19 @@ class CFO:
         p = J * velo
         return p
 
-
-    def get_force_ratio(self, graph=1):
-        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs')
-        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs')
+    def get_ftr(self, graph=False, source='human'):
+        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs', source=source)
+        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs', source=source)
 
         force_plate = [pitch_force_plate, roll_force_plate]
         force_all = [pitch_force_all, roll_force_all]
 
-        ratio = []
+        ftr = []
         for i in range(len(force_plate)):
-            ratio.append([])
-            ratio[i] = np.abs(force_plate[i]) / force_all[i]
+            ftr.append([])
+            ftr[i] = np.abs(force_plate[i]) / force_all[i]
 
-        if graph == 0:
+        if graph == True:
             axis = ['pitch', 'roll']
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
@@ -2527,10 +2660,10 @@ class CFO:
                     ax2 = ax[j].twinx()
                     ax[j].plot(data['time'][self.start_num:self.end_num:10], force_all[j][i][::10], label='Total')
                     ax[j].plot(data['time'][self.start_num:self.end_num:10], force_plate[j][i][::10], label='Plate')
-                    ax2.plot(data['time'][self.start_num:self.end_num:10], ratio[j][i][::10], label='Ratio', color='red')
+                    ax2.plot(data['time'][self.start_num:self.end_num:10], ftr[j][i][::10], label='Ratio', color='red')
                     ax[j].set_xlabel('Time (sec)')
-                    ax[j].set_ylabel(axis[j] + 'force')
-                    ax2.set_ylabel('force ratio')
+                    ax[j].set_ylabel(axis[j] + ' force')
+                    ax2.set_ylabel('FTR')
                     ax[j].legend(ncol=2, columnspacing=1, loc='upper left')
                     ax[j].set_ylim([-0, 4])  # y軸の範囲
                     ax2.set_ylim([0, 2])  # y軸の範囲
@@ -2538,39 +2671,96 @@ class CFO:
                 # plt.savefig("First_time_target_movement.png")
             plt.show()
 
-        return ratio[0], ratio[1]
+        return ftr[0], ftr[1]
 
-    def get_force_ratio_3sec(self, graph=1):
-        pitch_ratio, roll_ratio = CFO.get_force_ratio(self)
-        pitch_ratio_3sec = CFO.calc_period_calculator(self, pitch_ratio)
-        roll_ratio_3sec = CFO.calc_period_calculator(self, roll_ratio)
+    def get_ftr_3sec(self, graph=False, source='human'):
+        pitch_ftr, roll_ftr = CFO.get_ftr(self, source=source)
+        pitch_ftr_3sec = CFO.calc_period_calculator(self, pitch_ftr)
+        roll_ftr_3sec = CFO.calc_period_calculator(self, roll_ftr)
 
-        if graph == 0:
+        if graph == True:
             axis = ['pitch', 'roll']
             for i in range(len(self.cfo)):
                 fig = plt.figure(figsize=(5, 3), dpi=300)
 
                 plt.xticks(np.arange(1, self.period + 1, 1))
-                plt.plot(np.arange(self.period) + 1, pitch_ratio_3sec[i], label='pitch')
-                plt.plot(np.arange(self.period) + 1, roll_ratio_3sec[i], label='roll')
-                plt.ylabel('Force ratio')
+                plt.plot(np.arange(self.period) + 1, pitch_ftr_3sec[i], label='pitch')
+                plt.plot(np.arange(self.period) + 1, roll_ftr_3sec[i], label='roll')
+                plt.ylabel('FTR')
                 plt.ylim([0, 1.0])
                 plt.xlabel('Period')
                 plt.legend()
                 plt.tight_layout()
             plt.show()
 
-        return pitch_ratio_3sec, roll_ratio_3sec
+        return pitch_ftr_3sec, roll_ftr_3sec
 
-    def get_force_ratio_combine(self, graph=1):
-        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs')
-        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs')
+    def get_ief(self, graph=False, source='human'):
+        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs', source=source)
+        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs', source=source)
 
-        force_plate = np.sqrt(pitch_force_plate ** 2 + roll_force_plate ** 2 )
+        force_plate = [pitch_force_plate, roll_force_plate]
+        force_all = [pitch_force_all, roll_force_all]
+
+        ief = []
+        for i in range(len(force_plate)):
+            ief.append([])
+            ief[i] = force_all[i] - np.abs(force_plate[i])
+
+        if graph == True:
+            axis = ['pitch', 'roll']
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+                fig, ax = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
+
+                for j in range(len(axis)):
+                    ax2 = ax[j].twinx()
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_all[j][i][::10], label='Total')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_plate[j][i][::10], label='Plate')
+                    ax2.plot(data['time'][self.start_num:self.end_num:10], ief[j][i][::10], label='Ratio', color='red')
+                    ax[j].set_xlabel('Time (sec)')
+                    ax[j].set_ylabel(axis[j] + ' force')
+                    ax2.set_ylabel('Ineffective force')
+                    ax[j].legend(ncol=2, columnspacing=1, loc='upper left')
+                    ax[j].set_ylim([-0, 4])  # y軸の範囲
+                    ax2.set_ylim([0, 2])  # y軸の範囲
+                plt.tight_layout()
+                # plt.savefig("First_time_target_movement.png")
+            plt.show()
+
+        return ief[0], ief[1]
+
+    def get_ief_3sec(self, graph=False, source='human'):
+        pitch_ief, roll_ief = CFO.get_ief(self, source=source)
+        pitch_ief_3sec = CFO.calc_period_calculator(self, pitch_ief)
+        roll_ief_3sec = CFO.calc_period_calculator(self, roll_ief)
+
+        if graph == True:
+            axis = ['pitch', 'roll']
+            for i in range(len(self.cfo)):
+                fig = plt.figure(figsize=(5, 3), dpi=300)
+
+                plt.xticks(np.arange(1, self.period + 1, 1))
+                plt.plot(np.arange(self.period) + 1, pitch_ief_3sec[i], label='pitch')
+                plt.plot(np.arange(self.period) + 1, roll_ief_3sec[i], label='roll')
+                plt.ylabel('Ineffective force')
+                plt.ylim([0, 1.0])
+                plt.xlabel('Period')
+                plt.legend()
+                plt.tight_layout()
+            plt.show()
+
+        return pitch_ief_3sec, roll_ief_3sec
+
+    def get_ief_combine(self, graph=False, source='human'):
+        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs', source=source)
+        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs', source=source)
+
+        force_plate = np.sqrt(pitch_force_plate ** 2 + roll_force_plate ** 2)
         force_all = np.sqrt(pitch_force_all ** 2 + roll_force_all ** 2)
-        ratio = force_plate / force_all
+        ief = force_all - force_plate
 
-        if graph == 0:
+        if graph == True:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
                 plt.figure(figsize=(10, 5), dpi=150)
@@ -2583,35 +2773,207 @@ class CFO:
                 plt.ylim([-0, 6])  # y軸の範囲
 
                 ax2 = plt.twinx()
-                ax2.plot(data['time'][self.start_num:self.end_num:10], ratio[i][::10], label='Ratio', color='red')
-                ax2.set_ylabel('force ratio')
+                ax2.plot(data['time'][self.start_num:self.end_num:10], ief[i][::10], label='Ratio', color='red')
+                ax2.set_ylabel('Ineffective force')
                 ax2.set_ylim([0, 2])  # y軸の範囲
 
                 plt.tight_layout()
                 # plt.savefig("First_time_target_movement.png")
             plt.show()
 
-        return ratio
+        return ief
 
-    def get_force_ratio_combine_3sec(self, graph=1):
-        ratio = CFO.get_force_ratio_combine(self)
-        ratio_3sec = CFO.calc_period_calculator(self, ratio)
+    def get_ief_combine_3sec(self, graph=False, source='human'):
+        ief = CFO.get_ief_combine(self, source=source)
+        ief_3sec = CFO.calc_period_calculator(self, ief)
 
-        if graph == 0:
+        if graph == True:
             for i in range(len(self.cfo)):
                 fig = plt.figure(figsize=(5, 3), dpi=300)
 
                 plt.xticks(np.arange(1, self.period + 1, 1))
-                plt.plot(np.arange(self.period) + 1, ratio_3sec[i])
-                plt.ylabel('Force ratio')
+                plt.plot(np.arange(self.period) + 1, ief_3sec[i])
+                plt.ylabel('Ineffective force')
                 plt.ylim([0, 1.0])
                 plt.xlabel('Period')
                 plt.tight_layout()
             plt.show()
 
-        return ratio_3sec
+        return ief_3sec
 
+    def get_ftr_combine(self, graph=False, source='human'):
+        pitch_force_plate, roll_force_plate = CFO.get_summation_force(self, mode='no_abs', source=source)
+        pitch_force_all, roll_force_all = CFO.get_summation_force(self, mode='b_abs', source=source)
 
+        force_plate = np.sqrt(pitch_force_plate ** 2 + roll_force_plate ** 2)
+        force_all = np.sqrt(pitch_force_all ** 2 + roll_force_all ** 2)
+        ftr = force_plate / force_all
+
+        if graph == True:
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+                plt.figure(figsize=(10, 5), dpi=150)
+
+                plt.plot(data['time'][self.start_num:self.end_num:10], force_all[i][::10], label='Total')
+                plt.plot(data['time'][self.start_num:self.end_num:10], force_plate[i][::10], label='Plate')
+                plt.xlabel('Time (sec)')
+                plt.ylabel('force')
+                plt.legend(ncol=2, columnspacing=1, loc='upper left')
+                plt.ylim([-0, 6])  # y軸の範囲
+
+                ax2 = plt.twinx()
+                ax2.plot(data['time'][self.start_num:self.end_num:10], ftr[i][::10], label='Ratio', color='red')
+                ax2.set_ylabel('FTR')
+                ax2.set_ylim([0, 2])  # y軸の範囲
+
+                plt.tight_layout()
+                # plt.savefig("First_time_target_movement.png")
+            plt.show()
+
+        return ftr
+
+    def get_ftr_combine_3sec(self, graph=False, source='human'):
+        ftr = CFO.get_ftr_combine(self, source=source)
+        ftr_3sec = CFO.calc_period_calculator(self, ftr)
+
+        if graph == True:
+            for i in range(len(self.cfo)):
+                fig = plt.figure(figsize=(5, 3), dpi=300)
+
+                plt.xticks(np.arange(1, self.period + 1, 1))
+                plt.plot(np.arange(self.period) + 1, ftr_3sec[i])
+                plt.ylabel('FTR')
+                plt.ylim([0, 1.0])
+                plt.xlabel('Period')
+                plt.tight_layout()
+            plt.show()
+
+        return ftr_3sec
+
+    def get_ftr_3sec_diff(self):
+        ftr_3sec = CFO.get_ftr_3sec(self, source='human')
+        ftr_3sec_model = CFO.get_ftr_3sec(self, source='model')
+        ftr_3sec_diff = np.subtract(ftr_3sec, ftr_3sec_model)
+        return ftr_3sec_diff
+
+    def get_ftr_combine_3sec_diff(self):
+        ftr_3sec = CFO.get_ftr_combine_3sec(self, source='human')
+        ftr_3sec_model = CFO.get_ftr_combine_3sec(self, source='model')
+        ftr_3sec_diff = ftr_3sec - ftr_3sec_model
+        return ftr_3sec_diff
+
+    def get_ief_3sec_diff(self):
+        ief_3sec = CFO.get_ief_3sec(self, source='human')
+        ief_3sec_model = CFO.get_ief_3sec(self, source='model')
+        ief_3sec_diff = np.subtract(ief_3sec, ief_3sec_model)
+        return ief_3sec_diff
+
+    def get_ief_combine_3sec_diff(self):
+        ief_3sec = CFO.get_ief_combine_3sec(self, source='human')
+        ief_3sec_model = CFO.get_ief_combine_3sec(self, source='model')
+        ief_3sec_diff = ief_3sec - ief_3sec_model
+        return ief_3sec_diff
+
+    def performance_ftr_diff(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ftr = CFO.get_ftr_combine_3sec_diff(self)
+
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+
+        df_ = []
+        for i in range(len(performance)):
+            for j in range(len(self.cfo)):
+                df_.append(pd.DataFrame({
+                    'Performance': performance[i][j],
+                    'Cooperative FTR': ftr[j],
+                    'Performance_types': performance_label[i],
+                    'Group': str(j + 1)
+                }))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="Performance_types", hue="Group", height=4, aspect=1.2, sharey=False, sharex=False)
+        g.map(plot_scatter, "Performance", "Cooperative FTR")
+
+        ylims = [(-0.8, 0.2), (-0.8, 0.2)]
+
+        if self.group_type == "dyad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+        if self.group_type == "triad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+        if self.group_type == "tetrad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/FTR-Performance/", exist_ok=True)
+        plt.savefig("fig/FTR-Performance/Cooperative FTR-Performance_" + self.group_type + ".png")
+
+        plt.show()
+
+    def performance_ief_diff(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ief = CFO.get_ief_combine_3sec_diff(self)
+
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+
+        df_ = []
+        for i in range(len(performance)):
+            for j in range(len(self.cfo)):
+                df_.append(pd.DataFrame({
+                    'Performance': performance[i][j],
+                    'Cooperative IEF': ief[j],
+                    'Performance_types': performance_label[i],
+                    'Group': str(j + 1)
+                }))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="Performance_types", hue="Group", height=4, aspect=1.2, sharey=False, sharex=False)
+        g.map(plot_scatter, "Performance", "Cooperative IEF")
+
+        if self.group_type == "dyad":
+            ylims = [(-0.5, 3.0), (-0.5, 3.0)]
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+        if self.group_type == "triad":
+            ylims = [(0.0, 5.0), (0.0, 5.0)]
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+        if self.group_type == "tetrad":
+            ylims = [(0.0, 5.0), (0.0, 5.0)]
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/IEF-Performance/", exist_ok=True)
+        plt.savefig("fig/IEF-Performance/Cooperative IEF-Performance_" + self.group_type + ".png")
+
+        plt.show()
 
     def calc_lpf_1st_order(self, data, omegac, Ts):
         T = omegac * Ts
@@ -2624,16 +2986,16 @@ class CFO:
         data_lpf = np.zeros(len(data))
         for l in range(len(data)):
             data_now = data[l]
-            data_lpf_now = (2-T)/(2+T)*data_lpf_old + T/(2+T)*(data_now + data_old)
+            data_lpf_now = (2 - T) / (2 + T) * data_lpf_old + T / (2 + T) * (data_now + data_old)
             data_lpf[l] = data_lpf_now
             data_lpf_old = data_lpf_now
             data_old = data_now
 
         return data_lpf
-    
-    def summationCFO_ratio(self, mode='no_abs'):
+
+    def summationCFO_ftr(self, mode='no_abs'):
         pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.summation_cfo(self, mode=mode)
-        ratio_p, ratio_r = CFO.get_force_ratio(self)
+        ratio_p, ratio_r = CFO.get_ftr(self)
 
         axis = ['pitch', 'roll']
         cfo = ['PCFO', 'FCFO']
@@ -2643,7 +3005,7 @@ class CFO:
             [fcfo_p, fcfo_r]
         ]
 
-        ratio_data =[
+        ratio_data = [
             ratio_p, ratio_r
         ]
 
@@ -2652,11 +3014,11 @@ class CFO:
             for j in range(len(cfo)):
                 for k in range(len(self.cfo)):
                     df_.append(pd.DataFrame({
-                        'CFO':cfo_data[i][j][k][::100],
-                        'Ratio':ratio_data[i][k][::100],
-                        'axis':axis[i],
-                        'CFO_types':cfo[j],
-                        'Group':k + 1
+                        'CFO': cfo_data[i][j][k][::100],
+                        'FTR': ratio_data[j][k][::100],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
                     })
                     )
 
@@ -2664,19 +3026,60 @@ class CFO:
         df.reset_index(drop=True, inplace=True)
         # print(df)
 
-        # fig = plt.figure(figsize=(5, 3), dpi=300)
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=4, aspect=1.2, sharey=False,
+                          sharex=False)
+        g.map(plot_scatter, "CFO", "FTR")
 
-        sns.lmplot(x="Ratio", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
-                   x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
-                   )
+        ylims = [(0, 1), (0, 1), (0, 1), (0, 1)]
 
-        plt.savefig("fig/ForceRatio-CFO/Time/ForceRatio-SummationCFO("+mode+")_"+self.group_type+".png")
+        if self.group_type == "dyad":
+            xlims = [(0, 0.6), (0.0, 2.0),
+                     (0, 0.6), (0.0, 2.0)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.6), (0.0, 3.0),
+                         (0, 0.6), (0.0, 3.0)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.6), (0.0, 2.0),
+                         (0, 0.6), (0.0, 2.0)]
+
+        if self.group_type == "triad":
+            xlims = [(0, 0.6), (0.0, 2.0),
+                     (0, 0.6), (0.0, 2.0)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.6), (0.0, 3.0),
+                         (0, 0.6), (0.0, 3.0)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.6), (0.0, 2.0),
+                         (0, 0.6), (0.0, 2.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(0, 0.6), (0.0, 2.0),
+                     (0, 0.6), (0.0, 2.0)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.6), (0.0, 3.0),
+                         (0, 0.6), (0.0, 3.0)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.6), (0.0, 2.0),
+                         (0, 0.6), (0.0, 2.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/FTR-CFO/Time", exist_ok=True)
+        plt.savefig("fig/FTR-CFO/Time/FTR-SummationCFO(" + mode + ")_" + self.group_type + ".png")
 
         plt.show()
 
-    def summationCFO_ratio_3sec(self, mode='no_abs'):
+    def summationCFO_ftr_3sec(self, mode='no_abs'):
         pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.summation_cfo_3sec(self, mode=mode)
-        ratio_p, ratio_r = CFO.get_force_ratio_3sec(self)
+        ftr_p, ftr_r = CFO.get_ftr_3sec(self)
 
         axis = ['pitch', 'roll']
         cfo = ['PCFO', 'FCFO']
@@ -2686,8 +3089,8 @@ class CFO:
             [fcfo_p, fcfo_r]
         ]
 
-        ratio_data =[
-            ratio_p, ratio_r
+        ftr_data = [
+            ftr_p, ftr_r
         ]
 
         df_ = []
@@ -2695,11 +3098,11 @@ class CFO:
             for j in range(len(cfo)):
                 for k in range(len(self.cfo)):
                     df_.append(pd.DataFrame({
-                        'CFO':cfo_data[i][j][k],
-                        'Ratio':ratio_data[i][k],
-                        'axis':axis[i],
-                        'CFO_types':cfo[j],
-                        'Group':k + 1
+                        'CFO': cfo_data[i][j][k],
+                        'FTR': ftr_data[j][k],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
                     })
                     )
 
@@ -2709,18 +3112,162 @@ class CFO:
 
         # fig = plt.figure(figsize=(5, 3), dpi=300)
 
-        sns.lmplot(x="Ratio", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
-                   x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
-                   )
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=4, aspect=1.2, sharey=False,
+                          sharex=False)
+        g.map(plot_scatter, "CFO", "FTR")
 
-        plt.savefig("fig/ForceRatio-CFO/Period/ForceRatio-SummationCFO("+mode+")_"+self.group_type+".png")
+        ylims = [(0, 1), (0, 1), (0, 1), (0, 1)]
+
+        if self.group_type == "dyad":
+            xlims = [(0, 0.04), (0.0, 0.1),
+                     (0, 0.04), (0.0, 0.1)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.25), (0.0, 2.0),
+                         (0, 0.25), (0.0, 3.0)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.25), (0.0, 0.5),
+                         (0, 0.25), (0.0, 0.8)]
+
+        if self.group_type == "triad":
+            xlims = [(0, 0.04), (0.0, 0.2),
+                     (0, 0.04), (0.0, 0.2)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.2), (0.0, 1.5),
+                         (0, 0.2), (0.0, 1.5)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.25), (0.0, 0.5),
+                         (0, 0.25), (0.0, 0.8)]
+
+        if self.group_type == "tetrad":
+            xlims = [(0, 0.03), (0.0, 0.1),
+                     (0, 0.03), (0.0, 0.1)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.15), (0.0, 1.5),
+                         (0, 0.15), (0.0, 1.5)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.15), (0.0, 0.5),
+                         (0, 0.15), (0.0, 0.5)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/FTR-CFO/Period", exist_ok=True)
+        plt.savefig("fig/FTR-CFO/Period/FTR-SummationCFO(" + mode + ")_" + self.group_type + ".png")
 
         plt.show()
 
+    def summationCFO_ief_3sec(self, mode='no_abs'):
+        pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.summation_cfo_3sec(self, mode=mode)
+        ief_p, ief_r = CFO.get_ief_3sec(self)
 
-    def subtractionCFO_ratio(self):
+        axis = ['pitch', 'roll']
+        cfo = ['PCFO', 'FCFO']
+
+        cfo_data = [
+            [pcfo_p, pcfo_r],
+            [fcfo_p, fcfo_r]
+        ]
+
+        ief_data = [
+            ief_p, ief_r
+        ]
+
+        df_ = []
+        for i in range(len(axis)):
+            for j in range(len(cfo)):
+                for k in range(len(self.cfo)):
+                    df_.append(pd.DataFrame({
+                        'CFO': cfo_data[i][j][k],
+                        'IEF': ief_data[j][k],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
+                    })
+                    )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+        # print(df)
+
+        # fig = plt.figure(figsize=(5, 3), dpi=300)
+
+        sns.set(font='Times New Roman', font_scale=2.0)
+        sns.set_style('ticks')
+        sns.set_context("poster",
+                        rc={
+                            "axes.linewidth": 0.5,
+                            "legend.fancybox": False,
+                            'pdf.fonttype': 42,
+                            'xtick.direction': 'in',
+                            'ytick.major.width': 1.0,
+                            'xtick.major.width': 1.0,
+                        })
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=8, aspect=1.2, sharey=False,
+                          sharex=False)
+        g.map(plot_scatter, "CFO", "IEF")
+
+        if self.group_type == "dyad":
+            ylims = [(0.0, 1.5), (0, 1.5),
+                     (0.0, 4.0), (0, 4.0)]
+            xlims = [(0, 0.04), (0.0, 0.1),
+                     (0, 0.04), (0.0, 0.1)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.25), (0.0, 2.0),
+                         (0, 0.25), (0.0, 3.0)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.25), (0.0, 0.5),
+                         (0, 0.25), (0.0, 0.8)]
+
+        if self.group_type == "triad":
+            ylims = [(0.0, 3.0), (0, 3.0),
+                     (0.0, 4.0), (0, 4.0)]
+            xlims = [(0, 0.04), (0.0, 0.2),
+                     (0, 0.04), (0.0, 0.2)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.2), (0.0, 1.5),
+                         (0, 0.2), (0.0, 1.5)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.25), (0.0, 0.5),
+                         (0, 0.25), (0.0, 0.8)]
+
+        if self.group_type == "tetrad":
+            ylims = [(0.0, 6.0), (0, 6.0),
+                     (0.0, 6.0), (0, 6.0)]
+            xlims = [(0, 0.03), (0.0, 0.1),
+                     (0, 0.03), (0.0, 0.1)]
+
+            if mode == 'b_abs':
+                xlims = [(0, 0.15), (0.0, 1.5),
+                         (0, 0.15), (0.0, 1.5)]
+            if mode == 'a_abs':
+                xlims = [(0, 0.15), (0.0, 0.5),
+                         (0, 0.15), (0.0, 0.5)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/IEF-CFO/Period", exist_ok=True)
+        plt.savefig("fig/IEF-CFO/Period/IEF-SummationCFO(" + mode + ")_" + self.group_type + ".png")
+
+        plt.show()
+
+    def subtractionCFO_ftr(self):
         pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.subtraction_cfo(self)
-        ratio_p, ratio_r = CFO.get_force_ratio(self)
+        ftr_p, ftr_r = CFO.get_ftr(self)
 
         axis = ['pitch', 'roll']
         cfo = ['PCFO', 'FCFO']
@@ -2730,8 +3277,8 @@ class CFO:
             [fcfo_p, fcfo_r]
         ]
 
-        ratio_data =[
-            ratio_p, ratio_r
+        ftr_data = [
+            ftr_p, ftr_r
         ]
 
         df_ = []
@@ -2739,11 +3286,11 @@ class CFO:
             for j in range(len(cfo)):
                 for k in range(len(self.cfo)):
                     df_.append(pd.DataFrame({
-                        'CFO':cfo_data[i][j][k][::100],
-                        'Ratio':ratio_data[i][k][::100],
-                        'axis':axis[i],
-                        'CFO_types':cfo[j],
-                        'Group':k + 1
+                        'CFO': cfo_data[i][j][k][::100],
+                        'FTR': ftr_data[j][k][::100],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
                     })
                     )
 
@@ -2753,18 +3300,38 @@ class CFO:
 
         # fig = plt.figure(figsize=(5, 3), dpi=300)
 
-        sns.lmplot(x="Ratio", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
-                   x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=4, aspect=1.2, sharex=False)
+        g.map(plot_scatter, "CFO", "FTR")
 
-                   )
+        ylims = [(0, 1), (0, 1), (0, 1), (0, 1)]
 
-        plt.savefig("fig/ForceRatio-CFO/Time/ForceRatio-SubtractionCFO_"+self.group_type+".png")
+        if self.group_type == "dyad":
+            xlims = [(0, 0.5), (0.0, 8.0),
+                     (0, 0.5), (0.0, 8.0)]
+
+        if self.group_type == "triad":
+            xlims = [(0, 1.0), (0.0, 10.0),
+                     (0, 1.0), (0.0, 10.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(0, 1.0), (0.0, 10.0),
+                     (0, 1.0), (0.0, 10.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/FTR-CFO/Time/", exist_ok=True)
+        plt.savefig("fig/FTR-CFO/Time/FTR-SubtractionCFO_" + self.group_type + ".png")
 
         plt.show()
 
-    def subtractionCFO_ratio_3sec(self):
+    def subtractionCFO_ftr_3sec(self):
         pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.subtraction_cfo_3sec(self)
-        ratio_p, ratio_r = CFO.get_force_ratio_3sec(self)
+        ftr_p, ftr_r = CFO.get_ftr_3sec(self)
 
         axis = ['pitch', 'roll']
         cfo = ['PCFO', 'FCFO']
@@ -2774,8 +3341,8 @@ class CFO:
             [fcfo_p, fcfo_r]
         ]
 
-        ratio_data =[
-            ratio_p, ratio_r
+        ftr_data = [
+            ftr_p, ftr_r
         ]
 
         df_ = []
@@ -2783,11 +3350,11 @@ class CFO:
             for j in range(len(cfo)):
                 for k in range(len(self.cfo)):
                     df_.append(pd.DataFrame({
-                        'CFO':cfo_data[i][j][k],
-                        'Ratio':ratio_data[i][k],
-                        'axis':axis[i],
-                        'CFO_types':cfo[j],
-                        'Group':k + 1
+                        'CFO': cfo_data[i][j][k],
+                        'FTR': ftr_data[j][k],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
                     })
                     )
 
@@ -2797,10 +3364,1057 @@ class CFO:
 
         # fig = plt.figure(figsize=(5, 3), dpi=300)
 
-        sns.lmplot(x="Ratio", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
-                   x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
-                   )
+        # sns.lmplot(x="FTR", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
+        #            x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
+        #            )
 
-        plt.savefig("fig/ForceRatio-CFO/Period/ForceRatio-SubtractionCFO_"+self.group_type+".png")
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=4, aspect=1.2, sharey=False,
+                          sharex=False)
+        g.map(plot_scatter, "CFO", "FTR")
+
+        ylims = [(0, 1), (0, 1), (0, 1), (0, 1)]
+
+        if self.group_type == "dyad":
+            xlims = [(0, 0.25), (0.0, 3.0), (0, 0.25), (0.0, 5.0)]
+
+        if self.group_type == "triad":
+            xlims = [(0, 0.25), (0.0, 5.0), (0, 0.25), (0.0, 5.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(0, 0.3), (0.0, 5.0), (0, 0.3), (0.0, 5.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/FTR-CFO/Period/", exist_ok=True)
+        plt.savefig("fig/FTR-CFO/Period/FTR-SubtractionCFO_" + self.group_type + ".png")
 
         plt.show()
+
+    def subtractionCFO_ief_3sec(self):
+        pcfo_p, pcfo_r, fcfo_p, fcfo_r = CFO.subtraction_cfo_3sec(self)
+        ief_p, ief_r = CFO.get_ief_3sec(self)
+
+        axis = ['pitch', 'roll']
+        cfo = ['PCFO', 'FCFO']
+
+        cfo_data = [
+            [pcfo_p, pcfo_r],
+            [fcfo_p, fcfo_r]
+        ]
+
+        ief_data = [
+            ief_p, ief_r
+        ]
+
+        df_ = []
+        for i in range(len(axis)):
+            for j in range(len(cfo)):
+                for k in range(len(self.cfo)):
+                    df_.append(pd.DataFrame({
+                        'CFO': cfo_data[i][j][k],
+                        'IEF': ief_data[j][k],
+                        'axis': axis[j],
+                        'CFO_types': cfo[i],
+                        'Group': k + 1
+                    })
+                    )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+        # print(df)
+
+        # fig = plt.figure(figsize=(5, 3), dpi=300)
+
+        # sns.lmplot(x="IEF", y="CFO", col="CFO_types", row="axis", hue="Group", data=df,
+        #            x_ci=None, fit_reg=False, legend=False, scatter_kws={"s": 10, 'alpha': 0.5},
+        #            )
+
+        sns.set(font='Times New Roman', font_scale=2.0)
+        sns.set_style('ticks')
+        sns.set_context("poster",
+                        rc={
+                            "axes.linewidth": 0.5,
+                            "legend.fancybox": False,
+                            'pdf.fonttype': 42,
+                            'xtick.direction': 'in',
+                            'ytick.major.width': 1.0,
+                            'xtick.major.width': 1.0,
+                        })
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="CFO_types", row="axis", hue="Group", height=8, aspect=1.2, sharey=False,
+                          sharex=False)
+        g.map(plot_scatter, "CFO", "IEF")
+
+        ylims = [(0, 3), (0, 3), (0, 3), (0, 3)]
+
+        if self.group_type == "dyad":
+            xlims = [(0, 0.25), (0.0, 3.0), (0, 0.25), (0.0, 5.0)]
+
+        if self.group_type == "triad":
+            xlims = [(0, 0.25), (0.0, 5.0), (0, 0.25), (0.0, 5.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(0, 0.3), (0.0, 5.0), (0, 0.3), (0.0, 5.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        os.makedirs("fig/IEF-CFO/Period/", exist_ok=True)
+        plt.savefig("fig/IEF-CFO/Period/IEF-SubtractionCFO_" + self.group_type + ".png")
+
+        plt.show()
+
+    def performance_ftr(self, mode='h-m'):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ftr = CFO.get_ftr_combine_3sec(self)
+        if mode == 'h-h':
+            error_period, spend_period = CFO.period_performance_human(self)
+
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+
+        df_ = []
+        for i in range(len(performance)):
+            for j in range(len(self.cfo)):
+                df_.append(pd.DataFrame({
+                    'Performance': performance[i][j],
+                    'FTR': ftr[j],
+                    'Performance_types': performance_label[i],
+                    'Group': str(j + 1)
+                }))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="Performance_types", hue="Group", height=4, aspect=1.2, sharey=False, sharex=False)
+        g.map(plot_scatter, "Performance", "FTR")
+
+        ylims = [(0, 1), (0, 1)]
+
+        if self.group_type == "dyad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        if self.group_type == "triad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        if mode == 'h-h':
+            os.makedirs("fig/FTR-Performance/h-h/", exist_ok=True)
+            plt.savefig("fig/FTR-Performance/h-h/FTR-Performance_" + self.group_type + "_h-h.png")
+        else:
+            os.makedirs("fig/FTR-Performance/", exist_ok=True)
+            plt.savefig("fig/FTR-Performance/FTR-Performance_" + self.group_type + ".png")
+
+        plt.show()
+
+    def performance_ief(self, mode='h-m'):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        ief = CFO.get_ief_combine_3sec(self)
+        if mode == 'h-h':
+            error_period, spend_period = CFO.period_performance_human(self)
+
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+
+        df_ = []
+        for i in range(len(performance)):
+            for j in range(len(self.cfo)):
+                df_.append(pd.DataFrame({
+                    'Performance': performance[i][j],
+                    'IEF': ief[j],
+                    'Performance_types': performance_label[i],
+                    'Group': str(j + 1)
+                }))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        sns.set(font='Times New Roman', font_scale=1.0)
+        sns.set_style('ticks')
+        sns.set_context("poster",
+                        rc={
+                            "axes.linewidth": 0.5,
+                            "legend.fancybox": False,
+                            'pdf.fonttype': 42,
+                            'xtick.direction': 'in',
+                            'ytick.major.width': 1.0,
+                            'xtick.major.width': 1.0,
+                        })
+
+        # FacetGridを作成してグラフを設定
+        g = sns.FacetGrid(df, col="Performance_types", hue="Group", height=8, aspect=1.2, sharey=False, sharex=False)
+        g.map(plot_scatter, "Performance", "IEF")
+
+        if self.group_type == "dyad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            ylims = [(0, 4), (0, 4)]
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        if self.group_type == "triad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            ylims = [(0, 6), (0, 6)]
+
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        if self.group_type == "tetrad":
+            xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+            ylims = [(0, 8), (0, 8)]
+
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0)]
+
+        # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+        for num, ax in enumerate(g.axes.flatten()):
+            # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            ax.set_xlim(xlims[num])
+            ax.set_ylim(ylims[num])
+
+        if mode == 'h-h':
+            os.makedirs("fig/IEF-Performance/h-h/", exist_ok=True)
+            plt.savefig("fig/IEF-Performance/h-h/IEF-Performance_" + self.group_type + "_h-h.png")
+        else:
+            os.makedirs("fig/IEF-Performance/", exist_ok=True)
+            plt.savefig("fig/IEF-Performance/IEF-Performance_" + self.group_type + ".png")
+
+        plt.show()
+
+    def get_force(self, source='human', dec=1, period='false'):
+        types = ['_p_text', '_r_text']
+        if source == 'model':
+            types = ['_p_text_pre', '_r_text_pre']
+
+        force = CFO.get_matrix(self, types, dec, period)
+
+        return force  # [experiment][subject][types][force]
+
+    def get_position(self, source='human', dec=1, period='false'):
+        types = ['_p_thm', '_r_thm']
+        if source == 'model':
+            types = ['_p_thm_pre', '_r_thm_pre']
+
+        position = CFO.get_matrix(self, types, dec, period)
+
+        return position  # [experiment][subject][types][position]
+
+    def get_pcfo(self, dec=1, period='false'):
+        types = ['_p_pcfo', '_r_pcfo']
+        pcfo = CFO.get_matrix(self, types, dec, period)
+
+        return pcfo  # [experiment][subject][types][pcfo]
+
+    def get_fcfo(self, dec=1, period='false'):
+        types = ['_p_fcfo', '_r_fcfo']
+        fcfo = CFO.get_matrix(self, types, dec, period)
+
+        return fcfo  # [experiment][subject][types][fcfo]
+
+    def get_matrix(self, types: list, dec=1, period='false'):
+        matrix_ = []
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            for j in range(self.join):
+                for type in types:
+                    interfacenum = 'i' + str(j + 1)
+                    dataname = interfacenum + type
+                    matrix_.append(data[dataname][self.start_num:self.end_num:dec])
+
+        matrix = np.array([_ for _ in matrix_])
+        if period == 'false':
+            matrix = matrix.reshape([len(self.cfo), self.join, len(types), -1])
+            return matrix  # [experiment][subject][types][data]
+        else:
+            matrix = matrix.reshape([len(self.cfo), self.join, len(types), self.period, -1])
+            return matrix  # [experiment][subject][types][data]
+
+    def calc_hilbert(self, mode='h-h'):
+        if mode == 'h-h':
+            force = self.get_force(source='human')
+            # print(force.shape)
+        env, freq_int, phase_inst = HT.hilbert(force, self.smp)
+        print(env.shape)
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.cfo[0]['time'], env[0][0][0])
+        plt.plot(self.cfo[0]['time'], force[0][0][0])
+        plt.show()
+
+        # return hilbert
+
+    def relative_phase(self, type: str, source: str = 'human', sigma: int = 'none', dec=1, graph=False):
+        if type == 'position':
+            data = self.get_position(source=source, period='true', dec=dec)
+        elif type == 'force':
+            data = self.get_force(source=source, period='true', dec=dec)
+        elif type == 'pcfo':
+            data = self.get_pcfo(period='true', dec=dec)
+        elif type == 'fcfo':
+            data = self.get_fcfo(period='true', dec=dec)
+
+        # normal
+        # env, freq_int, phase_inst = HT.hilbert(data, self.smp)
+        # phase_inst = phase_inst.transpose(1, 0, 2, 3, 4)
+        # rela_phase = HT.relative_phase(phase_inst[0], phase_inst[1], sigma=sigma)
+
+        # parallel
+        pe = ParallelExecutor.ParallelExecutor(HT.hilbert, max_workers=20, args_num=2, return_num=3, para_args_list=[0])
+        env, freq_int, phase_inst = pe.parallel(data, self.smp)
+        phase_inst = phase_inst.transpose(1, 0, 2, 3, 4)
+        pe = ParallelExecutor.ParallelExecutor(HT.calc_relative_phase, max_workers=20, args_num=3, return_num=1, para_args_list=[0, 1])
+        rela_phase = pe.parallel(phase_inst[0], phase_inst[1], sigma)
+
+
+        # plt.plot(self.cfo[0]['time'][0:self.num], rela_phase[0][0][0])
+
+        if graph == True:
+
+            region = np.arange(0, 200, 20)
+            freq, edge = hist.frequency(rela_phase, region)
+            freq = freq.transpose(0, 3, 2, 1)
+            freq = freq.reshape([len(freq), len(freq[0]), -1])
+            freq = np.sum(freq, axis=2)
+
+            freq_normal = freq / np.sum(freq, axis=1, keepdims=True) * 100
+            # print(len(freq_normal))
+            std_error = np.std(freq_normal, axis=0) / np.sqrt(len(freq_normal))
+            # print(std_error.shape)
+
+            freq_ave = np.sum(freq_normal, axis=0) / len(freq_normal)
+            # std_error = np.arange(3, 30, 3)
+            fig = plt.figure(figsize=(10, 10))
+            plt.errorbar(edge, freq_ave, yerr=std_error, fmt='o', capsize=6, ecolor='black', markeredgecolor="black",
+                         color='white')
+            plt.plot(edge, freq_ave, color='black')
+            for i in range(len(freq_normal)):
+                plt.plot(edge, freq_normal[i], color='gray', alpha=0.5)
+            plt.xlim(0, 180)
+            plt.ylim(0, 100)
+            plt.xlabel('Phase region ($^\circ$)')
+            plt.ylabel('Relative phase occurrence')
+
+            os.makedirs("fig/RelativePhase/dyad/error/", exist_ok=True)
+            if type == 'position' or type == 'force':
+                plt.savefig("fig/RelativePhase/dyad/error/RelativePhase_" + type + "_" + source + ".png")
+            else:
+                plt.savefig("fig/RelativePhase/dyad/error/RelativePhase_" + type + ".png")
+
+            plt.show()
+
+        return rela_phase
+
+    def relative_phase_filter(self, type: str, source: str = 'human', sigma: int = 'none', dec=1, graph=False,
+                              min_freq=0, max_freq=0, step=0):
+        if type == 'position':
+            data = self.get_position(source=source, period='true', dec=dec)
+        elif type == 'force':
+            data = self.get_force(source=source, period='true', dec=dec)
+        elif type == 'pcfo':
+            data = self.get_pcfo(period='true', dec=dec)
+        elif type == 'fcfo':
+            data = self.get_fcfo(period='true', dec=dec)
+
+        filter_range = np.arange(min_freq, max_freq + step, step)
+        rela_phase_ = []
+        start = time.time()
+        for i in range(len(filter_range) - 1):
+            # data_filter = Filter.band_pass_filter(data, self.smp * dec, filter_range[i], filter_range[i + 1])
+            # env, freq_int, phase_inst = HT.hilbert(data_filter, self.smp * dec)
+            # phase_inst = phase_inst.transpose(1, 0, 2, 3, 4)
+            # rela_phase_.append(HT.relative_phase(phase_inst[0], phase_inst[1], sigma=sigma))
+
+            pe = ParallelExecutor.ParallelExecutor(Filter.band_pass_filter, max_workers=20, args_num=4, return_num=1, para_args_list=[0])
+            data_filter_ = pe.parallel(data, self.smp * dec, filter_range[i], filter_range[i + 1])
+            pe = ParallelExecutor.ParallelExecutor(HT.hilbert, max_workers=20, args_num=2, return_num=3, para_args_list=[0])
+            env, freq_int, phase_inst = pe.parallel(data_filter_, self.smp * dec)
+            phase_inst = phase_inst.transpose(1, 0, 2, 3, 4)
+            pe = ParallelExecutor.ParallelExecutor(HT.calc_relative_phase, max_workers=20, args_num=3, return_num=1, para_args_list=[0, 1])
+            rela_phase_.append(pe.parallel(phase_inst[0], phase_inst[1], sigma))
+        print('time', time.time() - start)
+
+        rela_phase = np.array([_ for _ in rela_phase_])
+
+        if graph:
+            region = np.arange(0, 200, 20)
+            pe = ParallelExecutor.ParallelExecutor(hist.frequency, max_workers=20, args_num=2, return_num=2, para_args_list=[0])
+            freq, edge = pe.parallel(rela_phase, region)
+            edge = edge[0][0][0][0]
+            # freq, edge = hist.frequency(rela_phase, region)
+            freq = freq.transpose(0, 1, 4, 2, 3)
+            freq = freq.reshape([len(freq), len(freq[0]), len(freq[0][0]), -1])
+            freq = np.sum(freq, axis=3)
+
+            freq_normal = freq / np.sum(freq, axis=2, keepdims=True) * 100
+            # print(len(freq_normal))
+            std_error = np.std(freq_normal, axis=1) / np.sqrt(len(freq_normal[0]))
+            # print(std_error.shape)
+
+            freq_ave = np.sum(freq_normal, axis=1) / len(freq_normal[0])
+            # # std_error = np.arange(3, 30, 3)
+            # nrows, ncols = 10, 10
+            # if (len(filter_range) - 1) <= 5:
+            #     nrows, ncols = 1, 5
+            # elif (len(filter_range) - 1) <= 10:
+            #     nrows, ncols = 2, 5
+            # elif (len(filter_range) - 1) <= 15:
+            #     nrows, ncols = 3, 5
+            # elif (len(filter_range) - 1) <= 20:
+            #     nrows, ncols = 4, 5
+            #
+            nrows, ncols = (len(filter_range) - 1) // 5, 5
+
+            fig, axs = plt.subplots(nrows, ncols, figsize=(10, 1.5 + nrows * 1.6), dpi=100, sharex='all', sharey='all')
+
+
+            for i in range(len(freq_ave)):
+                if nrows == 1:
+                    ax = axs[i]
+                else:
+                    ax = axs[i // ncols, i % ncols]
+                ax.errorbar(edge, freq_ave[i], yerr=std_error[i], fmt='o', capsize=6, ecolor='black', markeredgecolor="black",
+                             color='white')
+                ax.plot(edge, freq_ave[i], color='black', lw=2)
+                for j in range(len(freq_normal[i])):
+                    ax.plot(edge, freq_normal[i][j], color='gray', alpha=0.5)
+                ax.set_xlim(0, 180)
+                ax.set_xticks(np.arange(0, 270, 90))
+                ax.set_ylim(0, 100)
+                ax.set_xlabel('Phase region ($^\circ$)')
+                ax.set_ylabel('Relative phase occurrence')
+                ax.set_title(str('{:.2f}'.format(filter_range[i])) + ' - ' + str('{:.2f}'.format(filter_range[i + 1])) + ' Hz')
+
+            plt.tight_layout()
+            os.makedirs("fig/RelativePhase/dyad/error/filter/", exist_ok=True)
+            if type == 'position' or type == 'force':
+                plt.savefig("fig/RelativePhase/dyad/error/filter/RelativePhase_" + type + "_" + source + ".png")
+            else:
+                plt.savefig("fig/RelativePhase/dyad/error/filter/RelativePhase_" + type + ".png")
+
+            plt.show()
+
+        return rela_phase
+
+    def relative_phase_3sec(self, type: str, source: str = 'human', sigma: int = 'none', dec=1, graph=False):
+        rela_phase = self.relative_phase(type=type, source=source, sigma=sigma, dec=dec)
+
+        region = np.arange(0, 200, 20)
+        freq, edge = hist.frequency(rela_phase, region)
+
+        freq_normal = freq / np.sum(freq, axis=3, keepdims=True) * 100
+
+        cmap = plt.get_cmap('winter')
+        axis = ['Pitch', 'Roll']
+        fig, ax = plt.subplots(len(freq_normal), len(axis), figsize=(10, 20), sharex='all', sharey='all')
+        fig.supxlabel('Phase region ($^\circ$)')
+        fig.supylabel('Relative phase occurrence')
+        plt.xlim(0, 180)
+        plt.ylim(0, 100)
+        plt.xticks(np.arange(0, 200, 20))
+        for i in range(len(freq_normal)):
+            for j in range(len(freq_normal[0][0])):
+                color = cmap(j / (self.period - 1))  # カラーマップの値を0から1に変化
+                for k in range(len(freq_normal[0])):
+                    ax[i, k].plot(edge, freq_normal[i][k][j], lw=0.5, color=color, alpha=0.4 - k * 0.005)
+                    ax[i, k].set_title(axis[k])
+                    ax[i, k].set_ylabel('Group ' + str(i + 1))
+        plt.tight_layout()
+        os.makedirs("fig/RelativePhase/dyad/each/", exist_ok=True)
+        if type == 'position' or type == 'force':
+            plt.savefig("fig/RelativePhase/dyad/each/RelativePhase_" + type + "_" + source + ".png")
+        else:
+            plt.savefig("fig/RelativePhase/dyad/each/RelativePhase_" + type + ".png")
+
+        plt.show()
+
+    def relative_phase_performance(self, type: str, sigma: int = 'none', dec=1, graph=False):
+        rela_phase = self.relative_phase(type=type, sigma=sigma, dec=dec)
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+
+        region = np.arange(0, 200, 20)
+        freq, edge = hist.frequency(rela_phase, region)
+
+        freq_normal = freq / np.sum(freq, axis=3, keepdims=True) * 100
+
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+        axis_label = [
+            'Pitch',
+            'Roll'
+        ]
+
+        df_ = []
+        for i in range(len(performance_label)):  # performance type
+            for j in range(len(self.cfo)):  # group
+                for k in range(len(axis_label)):  # roll and pitch
+                    for l in range(len(freq_normal[0][0][0])):  # phase region
+                        for m in range(self.period):  # region
+                            df_.append(pd.DataFrame({
+                                'Performance': performance[i][j][m],
+                                'Relative phase occurrence': freq_normal[j][k][m][l],
+                                'Performance types': performance_label[i],
+                                'Group': str(j + 1),
+                                'Phase region': str(region[l]) + '$^\circ$ - ' + str(region[l] + 20) + '$^\circ$',
+                                'Period': str(m + 1),
+                                'Axis': axis_label[k]
+                            }, index=[0]))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+            sns.set(font='Times New Roman', font_scale=0.8)
+            sns.set_style('ticks')
+            sns.set_context("talk",
+                            rc={
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+            # FacetGridを作成してグラフを設定
+            g = sns.FacetGrid(df, col="Phase region", row="Performance types", hue="Group", height=10, aspect=1,
+                              sharey=False, sharex=False)
+            g.map(plot_scatter, "Performance", "Relative phase occurrence")
+
+            # プロットのサイズを調整
+            # g.fig.set_size_inches(15, 8)
+
+            if self.group_type == "dyad":
+                xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+                ylims = [(0, 100), (0, 100)]
+
+            if self.group_type == "triad":
+                xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+                ylims = [(0, 6), (0, 6)]
+
+            if self.group_type == "tetrad":
+                xlims = [(-0.015, 0.015), (-0.1, 0.5)]
+                ylims = [(0, 8), (0, 8)]
+
+            # # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+            # for num,ax in enumerate(g.axes.flatten()):
+            #     # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            #     ax.set_xlim(xlims[num])
+            #     ax.set_ylim(ylims[num])
+
+            os.makedirs("fig/RelativePhase-Performance/dyad/", exist_ok=True)
+            plt.savefig("fig/RelativePhase-Performance/dyad/" + type + ".png")
+
+            plt.show()
+
+        return df
+
+    def relative_phase_performance_filter(self, type: str, sigma: int = 'none', dec=1, graph=False,
+                                          min_freq=0, max_freq=0, step=0):
+        rela_phase = self.relative_phase_filter(type=type, sigma=sigma, dec=dec, graph=False,
+                                                min_freq=min_freq, max_freq=max_freq, step=step)
+        filter_range = np.arange(min_freq, max_freq + step, step)
+        region = np.arange(0, 200, 20)
+        pe = ParallelExecutor.ParallelExecutor(hist.frequency, max_workers=20, args_num=2, return_num=2, para_args_list=[0])
+        freq, edge = pe.parallel(rela_phase, region)
+        edge = edge[0][0][0][0]
+        # freq, edge = hist.frequency(rela_phase, region)
+        # freq = freq.transpose(0, 1, 4, 2, 3)
+        # freq = freq.reshape([len(freq), len(freq[0]), len(freq[0][0]), -1])
+        # freq = np.sum(freq, axis=3)
+
+        freq_normal = freq / np.sum(freq, axis=4, keepdims=True) * 100
+        # print(len(freq_normal))
+        # std_error = np.std(freq_normal, axis=1) / np.sqrt(len(freq_normal[0]))
+        # print(std_error.shape)
+
+        # freq_ave = np.sum(freq_normal, axis=1) / len(freq_normal[0])
+
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        performance = [
+            error_period,
+            spend_period,
+        ]
+        performance_label = [
+            "RMSE",
+            "Time"
+        ]
+        axis_label = [
+            'Pitch',
+            'Roll'
+        ]
+
+        df_ = []
+        for i in range(len(performance_label)):  # performance type
+            for j in range(len(self.cfo)):  # group
+                for k in range(len(axis_label)):  # roll and pitch
+                    for l in range(len(region) - 1):  # phase region
+                        for m in range(self.period):  # region
+                            for n in range(len(filter_range) - 1):
+                                df_.append(pd.DataFrame({
+                                    'Performance': performance[i][j][m],
+                                    'Relative phase occurrence': freq_normal[n][j][k][m][l],
+                                    'Performance types': performance_label[i],
+                                    'Group': str(j + 1),
+                                    'Phase region': str(region[l]) + '$^\circ$ - ' + str(region[l] + 20) + '$^\circ$',
+                                    'Period': str(m + 1),
+                                    'Axis': axis_label[k],
+                                    'Filter': str(filter_range[n]) + ' - ' + str(filter_range[n + 1]) + ' Hz'
+                                }, index=[0]))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+
+            sns.set(font='Times New Roman', font_scale=0.8)
+            sns.set_style('ticks')
+            sns.set_context("talk",
+                            rc={
+                                "axes.linewidth": 0.5,
+                                "legend.fancybox": False,
+                                'pdf.fonttype': 42,
+                                'xtick.direction': 'in',
+                                'ytick.major.width': 1.0,
+                                'xtick.major.width': 1.0,
+                            })
+
+            # FacetGridを作成してグラフを設定
+            for per_type in performance_label:
+                g = sns.FacetGrid(df[df['Performance types'] == per_type], col="Phase region", row="Filter", hue="Group", height=10, aspect=1,
+                                  sharey=False, sharex=False)
+                g.map(plot_scatter, "Performance", "Relative phase occurrence")
+
+                os.makedirs("fig/RelativePhase-Performance/dyad/filter/", exist_ok=True)
+                g.savefig("fig/RelativePhase-Performance/dyad/filter/" + type + '_' + per_type +".png")
+
+            # plt.show()
+
+        return df
+
+    def relative_phase_performance_reg_model(self, type: str, sigma: int = 'none', dec=1, graph=False):
+        rela_phase = self.relative_phase(type=type, sigma=sigma, graph=False)
+        region = np.arange(0, 200, 20)
+        freq, edge = hist.frequency(rela_phase, region)
+        freq_normal = freq / np.sum(freq, axis=3, keepdims=True) * 100
+        print(freq_normal.shape)
+
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+
+        axis = ['Pitch', 'Roll']
+        all_label = []
+        label = []
+        for i in range(len(axis)):
+            label.append([])
+            for j in range(len(region) - 1):
+                label[i].append(str(region[j]) + '-' + str(region[j + 1]) + '_' + axis[i])
+                all_label.append(str(region[j]) + '-' + str(region[j + 1]) + '_' + axis[i])
+
+        df_ = []
+        for i in range(len(self.cfo)):
+            for j in range(self.period):
+                for k in range(len(axis)):
+                    for l in range(len(region) - 1):
+                        df_.append(pd.DataFrame({
+                            'RMSE': error_period[i][j],
+                            'Time': spend_period[i][j],
+                            'rela': freq_normal[i][k][j][l],
+                            'label': label[k][l],
+                        }, index=[0]))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        df = df.pivot(index=['RMSE', 'Time'], columns='label', values='rela')
+        df.reset_index(inplace=True)
+        print(df)
+
+
+        # 目的変数(Y)
+        Y = np.array(df['RMSE'])
+
+        # 全要素が1.0の列を説明変数の先頭に追加(おまじない)
+        X = sm.add_constant(df[all_label])
+        X = np.array(X)
+
+        # モデルの設定(OLS:最小二乗法を指定)
+        model = sm.OLS(Y, X)
+
+        # 回帰分析の実行
+        results = model.fit()
+
+        # 結果の詳細を表示
+        print(results.summary())
+
+        Y = np.array(df['Time'])
+        model = sm.OLS(Y, X)
+        results = model.fit()
+        print(results.summary())
+
+    def relative_phase_performance_reg_model_filter(self, type: str, sigma: int = 'none', dec=1, graph=False,
+                                                    min_freq=0, max_freq=0, step=0):
+        rela_phase = self.relative_phase_filter(type=type, sigma=sigma, dec=dec, graph=False,
+                                                min_freq=min_freq, max_freq=max_freq, step=step)
+        filter_range = np.arange(min_freq, max_freq + step, step)
+        region = np.arange(0, 200, 20)
+        pe = ParallelExecutor.ParallelExecutor(hist.frequency, max_workers=20, args_num=2, return_num=2, para_args_list=[0])
+        freq, edge = pe.parallel(rela_phase, region)
+        edge = edge[0][0][0][0]
+        # freq, edge = hist.frequency(rela_phase, region)
+        # freq = freq.transpose(0, 1, 4, 2, 3)
+        # freq = freq.reshape([len(freq), len(freq[0]), len(freq[0][0]), -1])
+        # freq = np.sum(freq, axis=3)
+
+        freq_normal = freq / np.sum(freq, axis=4, keepdims=True) * 100
+
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+
+        axis = ['Pitch', 'Roll']
+        all_label = []
+        label = []
+        for i in range(len(axis)):
+            label.append([])
+            for j in range(len(filter_range) - 1):
+                label[i].append([])
+                for k in range(len(region) - 1):
+                    label_ = str(filter_range[j]) + '-' + str(filter_range[j + 1]) + '_' + str(region[k]) + '-' + str(region[k + 1]) + '_' + axis[i]
+                    label[i][j].append(label_)
+                    all_label.append(label_)
+
+        df_ = []
+        for i in range(len(self.cfo)):
+            for j in range(self.period):
+                for k in range(len(axis)):
+                    for m in range(len(filter_range) - 1):
+                        for l in range(len(region) - 1):
+                            df_.append(pd.DataFrame({
+                                'RMSE': error_period[i][j],
+                                'Time': spend_period[i][j],
+                                'rela': freq_normal[m][i][k][j][l],
+                                'label': label[k][m][l],
+                            }, index=[0]))
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        df = df.pivot(index=['RMSE', 'Time'], columns='label', values='rela')
+        df.reset_index(inplace=True)
+        print(df)
+
+
+        # 目的変数(Y)
+        Y = np.array(df['RMSE'])
+
+        # 全要素が1.0の列を説明変数の先頭に追加(おまじない)
+        X = sm.add_constant(df[all_label])
+        X = np.array(X)
+
+        # モデルの設定(OLS:最小二乗法を指定)
+        model = sm.OLS(Y, X)
+
+        # 回帰分析の実行
+        results = model.fit()
+
+        # 結果の詳細を表示
+        print(results.summary())
+
+        Y = np.array(df['Time'])
+        model = sm.OLS(Y, X)
+        results = model.fit()
+        print(results.summary())
+
+
+    def show_coherence_stft(self):
+        # ウィンドウ幅，STFTを施す数の設定
+        t_wndw = 1000.0e-3  # 100 milisecond
+        n_stft = 1000  # number of STFT
+        freq_upper = 50.0e0  # 表示する周波数の上限
+
+        time = self.cfo[0]['time'][self.start_num:self.end_num:100]
+        fcfo = self.get_fcfo(dec=100)
+
+        fcfo = fcfo.transpose(1, 0, 2, 3)
+
+        tm_sp, freq_sp, sp = STFT.stft(fcfo, time, t_wndw=t_wndw, n_stft=n_stft, wndw='hanning')
+
+        xsp = STFT.cross_spectrogram(sp[0], sp[1])
+
+        coh, phs = STFT.coherence(xsp, sp[0], sp[1])
+
+        fig, ax_ = plt.subplots(2, 10, figsize=(20, 10), sharex='none', sharey='row')
+
+        cmap = mpl.cm.jet
+
+        norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
+        for i in range(2):
+            for j in range(10):
+                ax = ax_[i, j]
+                ax.set_ylim(0, freq_upper)
+                # ax.set_ylabel('frequency\n(Hz)')
+                starttime = self.starttime + 3.0 * (i * 10 + j)
+                ax.set_xlim(starttime, starttime + 3)
+                ax.set_xticks([starttime, starttime + 3])
+                # ax.set_xlabel('')
+                # ax.tick_params(labelbottom=False)
+                # ax.set_ylim(0, freq_upper)
+                # ax.set_ylabel('frequency\n(Hz)')
+
+                ax.contourf(tm_sp[0][0][0], freq_sp[0][0][0], coh[0][0],
+                            norm=norm, levels=10, cmap=cmap)
+
+                # ax.text(0.99, 0.97, "coherence", color='white', ha='right', va='top',
+                #             path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                #                           path_effects.Normal()],
+                #             transform=ax.transAxes)
+
+        cb_coh = fig.add_axes([0.92, 0.10, 0.02, 0.70])
+        mpl.colorbar.ColorbarBase(ax=cb_coh, cmap=cmap, norm=norm,
+                                  # boundaries=np.linspace(0, 1, 11),
+                                  orientation="vertical",
+                                  label='coherence',
+                                  drawedges='False',
+                                  )
+
+        plt.show()
+
+    def calc_STFT(self):
+        # ウィンドウ幅，STFTを施す数の設定
+        t_wndw = 100.0e-3  # 100 milisecond
+        n_stft = 256  # number of STFT
+        freq_upper = 10.0e0  # 表示する周波数の上限
+
+        sig1 = self.cfo[0]['i1_p_fcfo']
+        sig2 = self.cfo[0]['i2_p_fcfo']
+        time = self.cfo[0]['time']
+
+        # STFTを実行
+        tm_sp1, freq_sp1, sp1 = STFT.stft(sig1, time, t_wndw=t_wndw, n_stft=n_stft, wndw='hanning')
+        tm_sp2, freq_sp2, sp2 = STFT.stft(sig2, time, t_wndw=t_wndw, n_stft=n_stft, wndw='hanning')
+        # クロススペクトル
+        xsp = STFT.cross_spectrogram(sp1, sp2)
+        # コヒーレンスとフェイズ
+        coh, phs = STFT.coherence(xsp, sp1, sp2)
+
+        # 結果のプロット
+        # 解析結果の可視化
+        figsize = (210 / 25.4, 294 / 25.4)
+        dpi = 200
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+
+        # 図の設定 (全体)
+        plt.rcParams['xtick.direction'] = 'in'
+        plt.rcParams['xtick.top'] = True
+        plt.rcParams['xtick.major.size'] = 6
+        plt.rcParams['xtick.minor.size'] = 3
+        plt.rcParams['xtick.minor.visible'] = True
+        plt.rcParams['ytick.direction'] = 'in'
+        plt.rcParams['ytick.right'] = True
+        plt.rcParams['ytick.major.size'] = 6
+        plt.rcParams['ytick.minor.size'] = 3
+        plt.rcParams['ytick.minor.visible'] = True
+        plt.rcParams["font.size"] = 14
+        plt.rcParams['font.family'] = 'Helvetica'
+
+        # 窓関数幅をプロット上部に記載
+        fig.text(0.10, 0.95, f't_wndw = {t_wndw} s')
+
+        # プロット枠の設定
+        ax01 = fig.add_axes([0.125, 0.79, 0.70, 0.08])
+        ax02 = fig.add_axes([0.125, 0.59, 0.70, 0.08])
+
+        ax_sp1 = fig.add_axes([0.125, 0.68, 0.70, 0.10])
+        cb_sp1 = fig.add_axes([0.85, 0.68, 0.02, 0.10])
+        ax_sp2 = fig.add_axes([0.125, 0.48, 0.70, 0.10])
+        cb_sp2 = fig.add_axes([0.85, 0.48, 0.02, 0.10])
+
+        ax_xsp = fig.add_axes([0.125, 0.33, 0.70, 0.10])
+        cb_xsp = fig.add_axes([0.85, 0.33, 0.02, 0.10])
+        ax_coh = fig.add_axes([0.125, 0.22, 0.70, 0.10])
+        cb_coh = fig.add_axes([0.85, 0.22, 0.02, 0.10])
+        ax_phs = fig.add_axes([0.125, 0.10, 0.70, 0.10])
+        cb_phs = fig.add_axes([0.85, 0.10, 0.02, 0.10])
+
+        # ---------------------------
+        # テスト信号 sig1 のプロット
+        ax01.set_xlim(self.starttime, self.endtime)
+        ax01.set_xlabel('')
+        ax01.tick_params(labelbottom=False)
+        ax01.set_ylabel('x (sig1)')
+
+        ax01.plot(time, sig1, c='black')
+
+        # ---------------------------
+        # テスト信号 sig2 のプロット
+        ax02.set_xlim(self.starttime, self.endtime)
+        ax02.set_xlabel('')
+        ax02.tick_params(labelbottom=False)
+        ax02.set_ylabel('y (sig2)')
+
+        ax02.plot(time, sig2, c='black')
+
+        # ---------------------------
+        # テスト信号 sig1 のスペクトログラムのプロット
+        ax_sp1.set_xlim(self.starttime, self.endtime)
+        ax_sp1.set_xlabel('')
+        ax_sp1.tick_params(labelbottom=False)
+        ax_sp1.set_ylim(0, freq_upper)
+        ax_sp1.set_ylabel('frequency\n(Hz)')
+
+        norm = mpl.colors.Normalize(vmin=np.log10(np.abs(sp1[freq_sp1 < freq_upper, :]) ** 2).min(),
+                                    vmax=np.log10(np.abs(sp1[freq_sp1 < freq_upper, :]) ** 2).max())
+        cmap = mpl.cm.jet
+
+        ax_sp1.contourf(tm_sp1, freq_sp1, np.log10(np.abs(sp1) ** 2),
+                        norm=norm, levels=256, cmap=cmap)
+
+        ax_sp1.text(0.99, 0.97, "spectrogram", color='white', ha='right', va='top',
+                    path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                                  path_effects.Normal()],
+                    transform=ax_sp1.transAxes)
+
+        mpl.colorbar.ColorbarBase(cb_sp1, cmap=cmap, norm=norm,
+                                  orientation="vertical",
+                                  label='$\log_{10}|X/N|^2$')
+
+        # ---------------------------
+        # テスト信号 sig2 のスペクトログラムのプロット
+        ax_sp2.set_xlim(self.starttime, self.endtime)
+        ax_sp2.set_xlabel('')
+        ax_sp2.tick_params(labelbottom=True)
+        ax_sp2.set_ylim(0, freq_upper)
+        ax_sp2.set_ylabel('frequency\n(Hz)')
+
+        norm = mpl.colors.Normalize(vmin=np.log10(np.abs(sp2[freq_sp2 < freq_upper, :]) ** 2).min(),
+                                    vmax=np.log10(np.abs(sp2[freq_sp2 < freq_upper, :]) ** 2).max())
+        ax_sp2.contourf(tm_sp2, freq_sp2, np.log10(np.abs(sp2) ** 2),
+                        norm=norm, levels=256, cmap=cmap)
+
+        ax_sp2.text(0.99, 0.97, "spectrogram", color='white', ha='right', va='top',
+                    path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                                  path_effects.Normal()],
+                    transform=ax_sp2.transAxes)
+
+        mpl.colorbar.ColorbarBase(cb_sp2, cmap=cmap, norm=norm,
+                                  orientation="vertical",
+                                  label='$\log_{10}|Y/N|^2$')
+
+        # ---------------------------
+        # テスト信号 sig1 と sig2 のクロススペクトルのプロット
+        ax_xsp.set_xlim(self.starttime, self.endtime)
+        ax_xsp.set_xlabel('')
+        ax_xsp.tick_params(labelbottom=False)
+        ax_xsp.set_ylim(0, freq_upper)
+        ax_xsp.set_ylabel('frequency\n(Hz)')
+
+        norm = mpl.colors.Normalize(vmin=np.log10(np.abs(xsp[freq_sp2 < freq_upper, :])).min(),
+                                    vmax=np.log10(np.abs(xsp[freq_sp2 < freq_upper, :])).max())
+
+        ax_xsp.contourf(tm_sp1, freq_sp1, np.log10(np.abs(xsp)),
+                        norm=norm, levels=256, cmap=cmap)
+
+        ax_xsp.text(0.99, 0.97, "cross-spectrum", color='white', ha='right', va='top',
+                    path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                                  path_effects.Normal()],
+                    transform=ax_xsp.transAxes)
+
+        mpl.colorbar.ColorbarBase(cb_xsp, cmap=cmap, norm=norm,
+                                  orientation="vertical",
+                                  label='$\log_{10}|XY^*/N^2|$')
+
+        # ---------------------------
+        # テスト信号 sig1 と sig2 のコヒーレンスのプロット
+        ax_coh.set_xlim(self.starttime, self.endtime)
+        ax_coh.set_xlabel('')
+        ax_coh.tick_params(labelbottom=False)
+        ax_coh.set_ylim(0, freq_upper)
+        ax_coh.set_ylabel('frequency\n(Hz)')
+
+        norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
+        ax_coh.contourf(tm_sp1, freq_sp1, coh,
+                        norm=norm, levels=10, cmap=cmap)
+
+        ax_coh.text(0.99, 0.97, "coherence", color='white', ha='right', va='top',
+                    path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                                  path_effects.Normal()],
+                    transform=ax_coh.transAxes)
+
+        mpl.colorbar.ColorbarBase(cb_coh, cmap=cmap, norm=norm,
+                                  boundaries=np.linspace(0, 1, 11),
+                                  orientation="vertical",
+                                  label='coherence')
+
+        # ---------------------------
+        # テスト信号 sig1 と sig2 のフェイズのプロット
+        ax_phs.set_xlim(self.starttime, self.endtime)
+        ax_phs.set_xlabel('time (s)')
+        ax_phs.tick_params(labelbottom=True)
+        ax_phs.set_ylim(0, freq_upper)
+        ax_phs.set_ylabel('frequency\n(Hz)')
+
+        norm = mpl.colors.Normalize(vmin=-180.0, vmax=180.0)
+        cmap = mpl.cm.hsv
+        ax_phs.contourf(tm_sp1, freq_sp1, np.where(coh >= 0.75, phs, None),
+                        norm=norm, levels=16, cmap=cmap)
+
+        ax_phs.text(0.99, 0.97, "phase", color='white', ha='right', va='top',
+                    path_effects=[path_effects.Stroke(linewidth=2, foreground='black'),
+                                  path_effects.Normal()],
+                    transform=ax_phs.transAxes)
+
+        mpl.colorbar.ColorbarBase(cb_phs, cmap=cmap,
+                                  norm=norm,
+                                  boundaries=np.linspace(-180.0, 180.0, 17),
+                                  orientation="vertical",
+                                  label='phase (deg)')
+        plt.show()
+
+        # # plt.figure(figsize=(10, 5))
+        # coh_ave = np.average(coh, axis=1)
+        # f, Cxy = signal.coherence(x=sig1, y=sig2, fs=1.0/dt, nperseg=2000)
+        #
+        # plt.figure(figsize=(10, 5))
+        # plt.plot(freq_sp1, coh_ave, label='STFT')
+        # # print(freq_sp1)
+        # plt.plot(f, Cxy, label='scipy')
+        # plt.legend()
+        # plt.show()

@@ -3,20 +3,13 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-import numpy as np
-import matplotlib as plt
 import matplotlib.pyplot as plt
-import pandas as pd
+import numpy as np
+
 import Npz
-import PCT
-import CFO_analysis
-from fastdtw import fastdtw
-from scipy.spatial.distance import euclidean
-import seaborn as sns
 import Combine_analysis
 
-
-plt.switch_backend('Qt5Agg')
+# plt.switch_backend('Qt5Agg')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -123,27 +116,27 @@ if __name__ == '__main__':
     # com.triad_cfo.plot_time_series('p')
 
     ##和のCFOを確認
-    # com.dyad_cfo.summation_cfo(0) #和のCFOの時系列重ね
-    # com.triad_cfo.summation_cfo(0) #和のCFOの時系列重ね
-    # com.tetrad_cfo.summation_cfo(0) #和のCFOの時系列重ね
-    # com.summation_cfo(0) #和のCFOの人数間比較
-    # com.summation_cfo(0, 'b_abs') #和のCFOの人数間比較、前絶対値
-    # com.summation_cfo(0, 'a_abs') #和のCFOの人数間比較、後絶対値
+    # com.dyad_cfo.summation_cfo(graph=True) #和のCFOの時系列重ね
+    # com.triad_cfo.summation_cfo(graph=True) #和のCFOの時系列重ね
+    # com.tetrad_cfo.summation_cfo(graph=True) #和のCFOの時系列重ね
+    # com.summation_cfo(graph=True, mode='no_abs') #和のCFOの人数間比較
+    # com.summation_cfo(graph=True, mode='b_abs') #和のCFOの人数間比較、前絶対値
+    # com.summation_cfo(graph=True, mode='a_abs') #和のCFOの人数間比較、後絶対値
 
     ##差のCFOの確認
-    # com.dyad_cfo.subtraction_cfo(0)
-    # com.triad_cfo.subtraction_cfo(0)
-    # com.tetrad_cfo.subtraction_cfo(0)
-    # com.subtraction_cfo(0)
+    # com.dyad_cfo.subtraction_cfo(graph=True)
+    # com.triad_cfo.subtraction_cfo(graph=True)
+    # com.tetrad_cfo.subtraction_cfo(graph=True)
+    # com.subtraction_cfo(graph=True)
 
     ##パフォーマンスの確認
     # com.performance_show() #パフォーマンスの時系列重ね
-    # com.dyad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
-    # com.triad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
-    # com.tetrad_cfo.period_performance_human(0) #H-Hのパフォーマンス、グループごと
-    # com.dyad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
-    # com.triad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
-    # com.tetrad_cfo.period_performance_model(0) #M-Mのパフォーマンス、グループごと
+    # com.dyad_cfo.period_performance_human(graph=True) #H-Hのパフォーマンス、グループごと
+    # com.triad_cfo.period_performance_human(graph=True) #H-Hのパフォーマンス、グループごと
+    # com.tetrad_cfo.period_performance_human(graph=True) #H-Hのパフォーマンス、グループごと
+    # com.dyad_cfo.period_performance_model(graph=True) #M-Mのパフォーマンス、グループごと
+    # com.triad_cfo.period_performance_model(graph=True) #M-Mのパフォーマンス、グループごと
+    # com.tetrad_cfo.period_performance_model(graph=True) #M-Mのパフォーマンス、グループごと
     # com.dyad_cfo.period_performance_human_model() #H-HとM-Mのパフォーマンス比較、グループごと
     # com.triad_cfo.period_performance_human_model()
     # com.tetrad_cfo.period_performance_human_model()
@@ -214,14 +207,14 @@ if __name__ == '__main__':
     # com.tetrad_cfo.subtraction_ave_performance()
 
     ##sum_cfoの比較
-    # com.summation_ave_cfo(graph=0)
-    # com.summation_ave_cfo(graph=0, mode='b_abs')
-    # com.summation_ave_cfo(graph=0, mode='a_abs')
-    # com.summation_ave_cfo_bs(graph=0)
-    # com.summation_ave_cfo_bs(graph=0, mode='b_abs')
-    # com.summation_ave_cfo_bs(graph=0, mode='a_abs')
-    # com.subtraction_ave_cfo(graph=0)
-    # com.subtraction_ave_cfo_bs(graph=0)
+    # com.summation_ave_cfo(graph=True)
+    # com.summation_ave_cfo(graph=True, mode='b_abs')
+    # com.summation_ave_cfo(graph=True, mode='a_abs')
+    # com.summation_ave_cfo_bs(graph=True)
+    # com.summation_ave_cfo_bs(graph=True, mode='b_abs')
+    # com.summation_ave_cfo_bs(graph=True, mode='a_abs')
+    # com.subtraction_ave_cfo(graph=True)
+    # com.subtraction_ave_cfo_bs(graph=True)
 
     ##each axis
     # com.dyad_cfo.summation_performance_each_axis()
@@ -242,7 +235,7 @@ if __name__ == '__main__':
 
     ##CFOの分散
     # com.dyad_cfo.fcfo_valiance()  #グループごとの分散
-    # com.tetrad_cfo.fcfo_valiance(0)  #グループごとの分散
+    # com.tetrad_cfo.fcfo_valiance(graph=True)  #グループごとの分散
 
     # com.variance_analysis('no_abs')
     # com.variance_analysis('b_abs')
@@ -257,55 +250,167 @@ if __name__ == '__main__':
     # com.tetrad_cfo.tf_cfo_sub()
 
     # com.dyad_cfo.work_calc()
-    # com.dyad_cfo.work_diff(0)
-    # com.triad_cfo.work_diff(0)
-    # com.tetrad_cfo.work_diff(0)
+    # com.dyad_cfo.work_diff(graph=True)
+    # com.triad_cfo.work_diff(graph=True)
+    # com.tetrad_cfo.work_diff(graph=True)
 
     # com.dyad_cfo.work_calc_rs()
-    # com.dyad_cfo.work_diff_rs(0)
+    # com.dyad_cfo.work_diff_rs(graph=True)
 
-    # com.dyad_cfo.estimation_plate_accel(graph=0)
+    # com.dyad_cfo.estimation_plate_accel(graph=True)
 
-    # com.dyad_cfo.get_summation_force(mode='b_abs',graph=0)
 
-    ##有効な力の割合（時間経過）
-    # com.dyad_cfo.get_force_ratio(graph=0)
-    # com.triad_cfo.get_force_ratio(graph=0)
-    # com.tetrad_cfo.get_force_ratio(graph=0)
-    ##有効な力の割合（ピリオド経過）
-    # com.dyad_cfo.get_force_ratio_3sec(graph=0)
-    # com.triad_cfo.get_force_ratio_3sec(graph=0)
-    # com.tetrad_cfo.get_force_ratio_3sec(graph=0)
-    ##有効な力の割合の比較
-    # com.force_ratio_3sec()
+    # com.dyad_cfo.get_summation_force(mode='b_abs',graph=True)
+    # com.dyad_cfo.get_summation_force(mode='b_abs',graph=True, source='model')
 
-    ##pitchとrollを合わせた有効な力の割合（時間経過）
-    # com.dyad_cfo.get_force_ratio_combine(graph=0)
-    # com.triad_cfo.get_force_ratio_combine(graph=0)
-    # com.tetrad_cfo.get_force_ratio_combine(graph=0)
-    ##pitchとrollを合わせた有効な力の割合（ピリオド経過）
-    # com.dyad_cfo.get_force_ratio_combine_3sec(graph=0)
-    # com.triad_cfo.get_force_ratio_combine_3sec(graph=0)
-    # com.tetrad_cfo.get_force_ratio_combine_3sec(graph=0)
-    ##pitchとrollを合わせた有効な力の割合の比較
-    # com.force_ratio_3sec_combine()
+    ##FTR(Force Transfer Ratio)の時間経過
+    # com.dyad_cfo.get_ftr(graph=True)
+    # com.triad_cfo.get_ftr(graph=True)
+    # com.tetrad_cfo.get_ftr(graph=True)
+    ##FTR(Force Transfer Ratio)のピリオド経過
+    # com.dyad_cfo.get_ftr_3sec(graph=True)
+    # com.triad_cfo.get_ftr_3sec(graph=True)
+    # com.tetrad_cfo.get_ftr_3sec(graph=True)
+    # com.dyad_cfo.get_ftr_3sec(graph=True, source='model')
+    # com.triad_cfo.get_ftr_3sec(graph=True, source='model')
+    # com.tetrad_cfo.get_ftr_3sec(graph=True, source='model')
 
-    ## 有効な力の割合とCFOの和の比較
-    # com.dyad_cfo.summationCFO_ratio('no_abs')
-    # com.dyad_cfo.summationCFO_ratio('b_abs')
-    # com.dyad_cfo.summationCFO_ratio('a_abs')
+    ##FTR(Force Transfer Ratio)の比較
+    # com.ftr_3sec(source='human')
+    # com.ftr_3sec(source='model')
+    ##pitchとrollを合わせたFTR(Force Transfer Ratio)の比較
+    # com.ftr_3sec_combine(source='human')
+    # com.ftr_3sec_combine(source='model')
+    # com.ftr_3sec_diff()
+    # com.ftr_3sec_combine_diff()
 
-    ## 有効な力の割合とCFOの和の比較（ピリオド）
-    # com.dyad_cfo.summationCFO_ratio_3sec('no_abs')
-    # com.dyad_cfo.summationCFO_ratio_3sec('b_abs')
-    # com.dyad_cfo.summationCFO_ratio_3sec('a_abs')
+    ##pitchとrollを合わせたFTR(Force Transfer Ratio)の時間経過
+    # com.dyad_cfo.get_ftr_combine(graph=True)
+    # com.triad_cfo.get_ftr_combine(graph=True)
+    # com.tetrad_cfo.get_ftr_combine(graph=True)
+    ##pitchとrollを合わせたFTR(Force Transfer Ratio)のピリオド経過
+    # com.dyad_cfo.get_ftr_combine_3sec(graph=True)
+    # com.triad_cfo.get_ftr_combine_3sec(graph=True)
+    # com.tetrad_cfo.get_ftr_combine_3sec(graph=True)
 
-    # com.triad_cfo.summationCFO_ratio('no_abs')
-    # com.triad_cfo.summationCFO_ratio('b_abs')
-    # com.triad_cfo.summationCFO_ratio_3sec('a_abs')
+    ## FTR(Force Transfer Ratio)とCFOの和
+    # com.dyad_cfo.summationCFO_ftr('no_abs')
+    # com.dyad_cfo.summationCFO_ftr('b_abs')
+    # com.dyad_cfo.summationCFO_ftr('a_abs')
+    # com.triad_cfo.summationCFO_ftr('no_abs')
+    # com.triad_cfo.summationCFO_ftr('b_abs')
+    # com.triad_cfo.summationCFO_ftr('a_abs')
+    # com.tetrad_cfo.summationCFO_ftr('no_abs')
+    # com.tetrad_cfo.summationCFO_ftr('b_abs')
+    # com.tetrad_cfo.summationCFO_ftr('a_abs')
 
-    ## 有効な力の割合とCFOの差の比較
-    # com.dyad_cfo.subtractionCFO_ratio()
+    ## FTR(Force Transfer Ratio)とCFOの和（ピリオド）
+    # com.dyad_cfo.summationCFO_ftr_3sec('no_abs')
+    # com.dyad_cfo.summationCFO_ftr_3sec('b_abs')
+    # com.dyad_cfo.summationCFO_ftr_3sec('a_abs')
+    # com.triad_cfo.summationCFO_ftr_3sec('no_abs')
+    # com.triad_cfo.summationCFO_ftr_3sec('b_abs')
+    # com.triad_cfo.summationCFO_ftr_3sec('a_abs')
+    # com.tetrad_cfo.summationCFO_ftr_3sec('no_abs')
+    # com.tetrad_cfo.summationCFO_ftr_3sec('b_abs')
+    # com.tetrad_cfo.summationCFO_ftr_3sec('a_abs')
 
-    ## 有効な力の割合とCFOの差の比較（ピリオド）
-    # com.dyad_cfo.subtractionCFO_ratio_3sec()
+    ## FTR(Force Transfer Ratio)とCFOの差
+    # com.dyad_cfo.subtractionCFO_ftr()
+    # com.triad_cfo.subtractionCFO_ftr()
+    # com.tetrad_cfo.subtractionCFO_ftr()
+
+    ## FTR(Force Transfer Ratio)とCFOの差（ピリオド）
+    # com.dyad_cfo.subtractionCFO_ftr_3sec()
+    # com.triad_cfo.subtractionCFO_ftr_3sec()
+    # com.tetrad_cfo.subtractionCFO_ftr_3sec()
+
+    ## FTRとパフォーマンス
+    # com.dyad_cfo.performance_ftr()
+    # com.triad_cfo.performance_ftr()
+    # com.tetrad_cfo.performance_ftr()
+    # com.dyad_cfo.performance_ftr('h-h')
+    # com.triad_cfo.performance_ftr('h-h')
+    # com.tetrad_cfo.performance_ftr('h-h`')
+
+    # com.dyad_cfo.performance_ftr_diff()
+    # com.triad_cfo.performance_ftr_diff()
+    # com.tetrad_cfo.performance_ftr_diff()
+
+    ## FTRとパフォーマンスの比較
+    # com.performance_ftr()
+    # com.performance_ftr('h-h')
+
+    # IEFとパフォーマンス
+    # com.dyad_cfo.performance_ief()
+    # com.triad_cfo.performance_ief()
+    # com.tetrad_cfo.performance_ief()
+    # com.dyad_cfo.performance_ief('h-h')
+    # com.triad_cfo.performance_ief('h-h')
+    # com.tetrad_cfo.performance_ief('h-h')
+
+    # com.ief_3sec()
+    # com.ief_3sec(source='model')
+    # com.ief_3sec_combine()
+    # com.ief_3sec_combine(source='model')
+    # com.ief_3sec_diff()
+    # com.ief_3sec_combine_diff()
+
+    # com.dyad_cfo.summationCFO_ief_3sec('no_abs')
+    # com.dyad_cfo.summationCFO_ief_3sec('b_abs')
+    # com.dyad_cfo.summationCFO_ief_3sec('a_abs')
+    # com.triad_cfo.summationCFO_ief_3sec('no_abs')
+    # com.triad_cfo.summationCFO_ief_3sec('b_abs')
+    # com.triad_cfo.summationCFO_ief_3sec('a_abs')
+    # com.tetrad_cfo.summationCFO_ief_3sec('no_abs')
+    # com.tetrad_cfo.summationCFO_ief_3sec('b_abs')
+    # com.tetrad_cfo.summationCFO_ief_3sec('a_abs')
+
+    # com.dyad_cfo.subtractionCFO_ief_3sec()
+
+    # com.dyad_cfo.performance_ief_diff()
+    # com.triad_cfo.performance_ief_diff()
+    # com.tetrad_cfo.performance_ief_diff()
+
+    # com.dyad_cfo.calc_hilbert('h-h')
+    # com.dyad_cfo.calc_STFT()
+    com.dyad_cfo.show_coherence_stft()
+
+    # Relative Phase
+    # com.dyad_cfo.relative_phase(type='position', source='human', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase(type='position', source='model', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase(type='force', source='human', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase(type='force', source='model', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase(type='pcfo', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase(type='fcfo', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='position', source='human', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='position', source='model', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='force', source='human', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='force', source='model', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='pcfo', source='human', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_3sec(type='fcfo', source='human', sigma=100, graph=True)
+
+    # com.dyad_cfo.relative_phase_performance(type='pcfo', sigma=10, graph=True, dec=1)
+    # com.dyad_cfo.relative_phase_performance(type='fcfo', sigma=10, graph=True, dec=10)
+
+    # com.dyad_cfo.relative_phase_performance_filter(type='fcfo', sigma=10, graph=True, dec=1)
+
+    # com.dyad_cfo.relative_phase_filter(type='pcfo', source='human', sigma=100, graph=True, min_freq=0, max_freq=50, step=1)
+    # com.dyad_cfo.relative_phase_filter(type='fcfo', source='human', sigma=100, graph=True, min_freq=0, max_freq=10, step=0.2)
+
+
+    # com.dyad_cfo.relative_phase_performance_filter(type='position', sigma=100, graph=True, dec=1, min_freq=0, max_freq=50, step=1)
+    # com.dyad_cfo.relative_phase_performance_filter(type='force', sigma=100, graph=True, dec=1, min_freq=0, max_freq=10, step=0.5)
+    # com.dyad_cfo.relative_phase_performance_filter(type='pcfo', sigma=100, graph=True, dec=1, min_freq=0, max_freq=50, step=1)
+    # com.dyad_cfo.relative_phase_performance_filter(type='fcfo', sigma=100, graph=True, dec=1, min_freq=0, max_freq=10, step=0.5)
+
+    # com.dyad_cfo.relative_phase_performance_reg_model(type='position', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_performance_reg_model(type='force', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_performance_reg_model(type='pcfo', sigma=100, graph=True)
+    # com.dyad_cfo.relative_phase_performance_reg_model(type='fcfo', sigma=100, graph=True)
+
+    # com.dyad_cfo.relative_phase_performance_reg_model_filter(type='position', sigma=100, graph=True, dec=1, min_freq=0, max_freq=50, step=25)
+    # com.dyad_cfo.relative_phase_performance_reg_model_filter(type='force', sigma=100, graph=True, dec=1, min_freq=0, max_freq=10, step=5)
+    # com.dyad_cfo.relative_phase_performance_reg_model_filter(type='pcfo', sigma=100, graph=True, dec=1, min_freq=0, max_freq=50, step=25)
+    # com.dyad_cfo.relative_phase_performance_reg_model_filter(type='fcfo', sigma=100, graph=True, dec=1, min_freq=0, max_freq=10, step=5)
+
