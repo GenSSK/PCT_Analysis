@@ -546,7 +546,10 @@ class CFO:
 
             plt.tight_layout()
             plt.savefig('fig/summation_cfo_' + str(self.group_type) + '.png')
-            plt.show()
+            os.makedirs('fig/summation_cfo_', exist_ok=True)
+            g.savefig("fig/RelativePhase-Performance/dyad/filter/" + type + '_' + per_type +".png")
+
+        plt.show()
 
         return summation[0], summation[1], summation[2], summation[3]
 
@@ -4184,6 +4187,7 @@ class CFO:
         fig, ax_ = plt.subplots(2, 10, figsize=(20, 10), sharex='none', sharey='row')
 
         cmap = mpl.cm.jet
+
 
         norm = mpl.colors.Normalize(vmin=0.0, vmax=1.0)
         for i in range(2):
