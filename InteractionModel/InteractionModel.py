@@ -7,14 +7,9 @@ import numpy as np
 import matplotlib as plt
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.animation import FuncAnimation
 from matplotlib.colors import Normalize
 
 import Npz
-import PCT
-import CFO_analysis
-from fastdtw import fastdtw
-from scipy.spatial.distance import euclidean
 import seaborn as sns
 import os
 

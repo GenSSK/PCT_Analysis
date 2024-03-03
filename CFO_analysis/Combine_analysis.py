@@ -10,24 +10,24 @@ from statannotations.Annotator import Annotator
 from statsmodels.formula.api import ols
 import statsmodels.api as sm
 
-import sys
-# import os
-# sys.path.append(os.path.abspath("../statistics"))
-# import histogram
+from mypackage.mystatistics import myHilbertTransform as HT
+from mypackage.mystatistics import mySTFT as STFT
+from mypackage.mystatistics import myhistogram as hist
+from mypackage.mystatistics import myFilter as Filter
+from mypackage.mystatistics import statistics as mystat
+from mypackage import ParallelExecutor
 
-# sys.path.append('../mypackage/mystatistics')
-# import myhistogram
 
 def plot_scatter(x, y, color, **kwargs):
     ax = plt.gca()
     ax.scatter(x, y, c=color, **kwargs)
+
 
 class combine:
     def __init__(self, dyad_npz, triad_npz, tetrad_npz):
         self.dyad_cfo = CFO_analysis.CFO(dyad_npz, 'dyad')
         self.triad_cfo = CFO_analysis.CFO(triad_npz, 'triad')
         self.tetrad_cfo = CFO_analysis.CFO(tetrad_npz, 'tetrad')
-
 
         plt.rcParams['font.family'] = 'Times New Roman'
         plt.rcParams['mathtext.default'] = 'regular'
@@ -55,7 +55,6 @@ class combine:
         plt.rcParams['savefig.edgecolor'] = 'None'
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
-
 
     def summation_cfo(self, graph=False, mode='no_abs'):
         dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo_3sec(mode)
@@ -110,8 +109,6 @@ class combine:
                          [0.0, 0.6, 1.2],
                          ]
 
-
-
             fig = plt.figure(figsize=(10, 7), dpi=150)
 
             plot = [
@@ -120,6 +117,9 @@ class combine:
                 fig.add_subplot(2, 2, 3),
                 fig.add_subplot(2, 2, 4),
             ]
+
+            xlabel = 'Group size'
+            ylabel = 'CFO'
 
             for j in range(len(plot)):
                 dfpp = []
@@ -136,9 +136,10 @@ class combine:
                     dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
 
                 df = pd.concat([i for i in dfpp_melt], axis=0)
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
-                ax = sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
+                ax = sns.boxplot(data=df, x=xlabel, y=ylabel, ax=plot[j], sym="")
+                # sns.stripplot(data=df, x=xlabel, y=ylabel, hue='Group', dodge=True,
                 #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
 
                 plot[j].legend_ = None
@@ -149,6 +150,105 @@ class combine:
                 if mode == 'b_abs' or mode == 'a_abs':
                     plot[j].set_ylim(0, ranges[j])
 
+                pairs = [
+                    {size[0], size[1]},
+                    {size[0], size[2]},
+                    {size[1], size[2]},
+                ]
+
+                mystat.t_test_multi(ax, pairs, df, x=xlabel, y=ylabel, test='t-test_ind',)
+                mystat.anova(df, variable=xlabel, value=ylabel)
+
+            if mode == 'no_abs':
+                os.makedirs('fig/CFO/Summation/NoABS/Comparison/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/NoABS/Comparison/SummationCFO_NoABS_3sec_comparison.png')
+            elif mode == 'b_abs':
+                os.makedirs('fig/CFO/Summation/BeforeABS/Comparison/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/BeforeABS/Comparison/SummationCFO_BeforeABS_3sec_comparison.png')
+            elif mode == 'a_abs':
+                os.makedirs('fig/CFO/Summation/AfterABS/Comparison/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/AfterABS/Comparison/SummationCFO_AfterABS_3sec_comparison.png')
+            plt.show()
+
+        return summation_3sec_datas
+
+    def summation_cfo_combine(self, graph=False, mode='no_abs'):
+        dyad_p, dyad_f = self.dyad_cfo.summation_cfo_3sec_combine(mode)
+        triad_p, triad_f = self.triad_cfo.summation_cfo_3sec_combine(mode)
+        tetrad_p, tetrad_f = self.tetrad_cfo.summation_cfo_3sec_combine(mode)
+        summation_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+        ]
+
+        if graph == True:
+            # sns.set()
+            # sns.set_style('whitegrid')
+            # sns.set_palette('Set3')
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            types = ['Summation PCFO (Avg)',
+                     'Summation FCFO (Avg)']
+            ranges = [0.1, 0.2]
+            ticks = [[-0.1, 0.0, 0.1],
+                     [-0.2, 0.0, 0.2],
+                     ]
+
+            if mode == 'b_abs':
+                types = ['Before abs. Summation PCFO (Avg)',
+                         'Before abs. Summation FCFO (Avg)']
+                ranges = [0.4, 3.0]
+                ticks = [[0.0, 0.2, 0.4],
+                         [0.0, 1.0, 2.0, 3.0],
+                         ]
+
+            if mode == 'a_abs':
+                types = ['After abs. Summation PCFO (Avg)',
+                         'After abs. Summation FCFO (Avg)']
+                ranges = [0.3, 1.0]
+                ticks = [[0.0, 0.1, 0.2, 0.3],
+                         [0.0, 0.5, 1.0],
+                         ]
+
+            fig = plt.figure(figsize=(10, 6), dpi=150)
+
+            plot = [
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
+            ]
+
+            xlabel = 'Group size'
+            ylabel = 'CFO'
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': summation_3sec_datas[j][0][i],
+                        'Triad': summation_3sec_datas[j][1][i],
+                        'Tetrad': summation_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+                ax = sns.boxplot(data=df, x=xlabel, y=ylabel, ax=plot[j], sym="")
+                # sns.stripplot(data=df, x=xlabel, y=ylabel, hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                plot[j].set_yticks(ticks[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(-ranges[j], ranges[j])
+                if mode == 'b_abs' or mode == 'a_abs':
+                    plot[j].set_ylim(0, ranges[j])
 
                 pairs = [
                     {size[0], size[1]},
@@ -156,28 +256,18 @@ class combine:
                     {size[1], size[2]},
                 ]
 
-                ## t検定
-                annotator = Annotator(ax, pairs, x="variable", y="value", data=df, sym="")
-                annotator.configure(test='t-test_ind', text_format='star', loc='inside')
-                # annotator.apply_and_annotate()
+                mystat.t_test_multi(ax, pairs, df, x=xlabel, y=ylabel, test='t-test_ind',)
+                mystat.anova(df, variable=xlabel, value=ylabel)
 
-                annotator.new_plot(ax=ax, x="variable", y="value", data=df)
-                annotator.configure(comparisons_correction="Bonferroni", verbose=2) # ボンフェローで補正
-                # annotator.configure(comparisons_correction="BH", verbose=2) # BHで補正
-                test_results = annotator.apply_test().annotate()
-
-                ## ANOVA
-                model = ols('value ~ variable', data=df).fit()
-                model.summary()
-                anova = sm.stats.anova_lm(model, typ=1)
-                print(anova)
-
-                ## Eta_squared
-                coef = combine.correlation_ratio(self, df['variable'], df['value'])
-                print('Eta_squared: {:.4f}\nEta: {:.4f}'.format(coef**2, coef))
-
-            plt.tight_layout()
-            # plt.savefig('fig/Summation/summation_3sec_compare_' + str(mode) + '.pdf')
+            if mode == 'no_abs':
+                os.makedirs('fig/CFO/Summation/NoABS/Comparison/Combine/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/NoABS/Comparison/Combine/SummationCFO_NoABS_3sec_combine_comparison.png')
+            elif mode == 'b_abs':
+                os.makedirs('fig/CFO/Summation/BeforeABS/Comparison/Combine/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/BeforeABS/Comparison/Combine/SummationCFO_BeforeABS_3sec_combine_comparison.png')
+            elif mode == 'a_abs':
+                os.makedirs('fig/CFO/Summation/AfterABS/Comparison/Combine/', exist_ok=True)
+                plt.savefig('fig/CFO/Summation/AfterABS/Comparison/Combine/SummationCFO_AfterABS_3sec_combine_comparison.png')
             plt.show()
 
         return summation_3sec_datas
@@ -201,7 +291,7 @@ class combine:
 
             types = ['Subtraction Pitch PCFO (Avg)', 'Subtraction Roll PCFO (Avg)', 'Subtraction Pitch FCFO (Avg)',
                      'Subtraction Roll FCFO (Avg)']
-            ranges = [0.2, 0.2, 3.0, 3.0]
+            ranges = [0.5, 0.5, 10.0, 10.0]
 
             size = ['Dyad', 'Triad', 'Tetrad']
 
@@ -213,6 +303,9 @@ class combine:
                 fig.add_subplot(2, 2, 3),
                 fig.add_subplot(2, 2, 4),
             ]
+
+            xlabel = 'Group size'
+            ylabel = 'CFO'
 
             for j in range(len(plot)):
                 dfpp = []
@@ -231,10 +324,11 @@ class combine:
                     print(dfpp_melt[i])
 
                 df = pd.concat([i for i in dfpp_melt], axis=0)
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
-                ax = sns.boxplot(x="variable", y="value", data=df, ax=plot[j], sym="")
-                # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
-                #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
+                ax = sns.boxplot(data=df, x=xlabel, y=ylabel, ax=plot[j], sym="")
+                # sns.stripplot(data=df, x=xlabel, y=ylabel, ax=plot[j], hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired')
 
                 plot[j].legend_ = None
                 plot[j].set_ylabel(types[j])
@@ -247,28 +341,85 @@ class combine:
                     {size[1], size[2]},
                 ]
 
-                ## t検定
-                annotator = Annotator(ax, pairs, x="variable", y="value", data=df, sym="")
-                annotator.configure(test='t-test_ind', text_format='star', loc='inside')
-                # annotator.apply_and_annotate()
+                mystat.t_test_multi(ax, pairs, df, x=xlabel, y=ylabel, test='t-test_ind',)
+                mystat.anova(df, variable=xlabel, value=ylabel)
 
-                annotator.new_plot(ax=ax, x="variable", y="value", data=df)
-                annotator.configure(comparisons_correction="Bonferroni", verbose=2) # ボンフェローで補正
-                # annotator.configure(comparisons_correction="BH", verbose=2) # BHで補正
-                test_results = annotator.apply_test().annotate()
+            os.makedirs('fig/CFO/Subtraction/Comparison', exist_ok=True)
+            plt.savefig('fig/CFO/Subtraction/Comparison/SubtractionCFO_3sec_comparison.png')
+            plt.show()
 
-                ## ANOVA
-                model = ols('value ~ variable', data=df).fit()
-                model.summary()
-                anova = sm.stats.anova_lm(model, typ=1)
-                print(anova)
+        return subtraction_3sec_datas
 
-                ## Eta_squared
-                coef = combine.correlation_ratio(self, df['variable'], df['value'])
-                print('Eta_squared: {:.4f}\nEta: {:.4f}'.format(coef**2, coef))
+    def subtraction_cfo_combine(self, graph=False):
+        dyad_p, dyad_f = self.dyad_cfo.subtraction_cfo_3sec_combine()
+        triad_p, triad_f = self.triad_cfo.subtraction_cfo_3sec_combine()
+        tetrad_p, tetrad_f = self.tetrad_cfo.subtraction_cfo_3sec_combine()
+        subtraction_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+        ]
 
-            plt.tight_layout()
-            # plt.savefig('fig/Subtraction/subtraction_3sec_compare.pdf')
+        if graph == True:
+            # sns.set()
+            # sns.set_style('whitegrid')
+            # sns.set_palette('Set3')
+
+            types = ['Subtraction PCFO (Avg)', 'Subtraction FCFO (Avg)']
+            ranges = [0.6, 10.0]
+            ticks = [[0.0, 0.2, 0.4, 0.6],
+                     [0.0, 5.0, 10.0]]
+
+            size = ['Dyad', 'Triad', 'Tetrad']
+
+            fig = plt.figure(figsize=(10, 6), dpi=150)
+
+            plot = [
+                fig.add_subplot(1, 2, 1),
+                fig.add_subplot(1, 2, 2),
+            ]
+
+            xlabel = 'Group size'
+            ylabel = 'CFO'
+
+            for j in range(len(plot)):
+                dfpp = []
+                dfpp_melt = []
+                for i in range(len(dyad_p)):
+                    dfpp.append(pd.DataFrame({
+                        'Dyad': subtraction_3sec_datas[j][0][i],
+                        'Triad': subtraction_3sec_datas[j][1][i],
+                        'Tetrad': subtraction_3sec_datas[j][2][i],
+                    })
+                    )
+
+                    dfpp_melt.append(pd.melt(dfpp[i]))
+                    dfpp_melt[i]['Group'] = 'Group' + str(i + 1)
+
+                    print(dfpp_melt[i])
+
+                df = pd.concat([i for i in dfpp_melt], axis=0)
+                df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
+
+                ax = sns.boxplot(data=df, x=xlabel, y=ylabel, ax=plot[j], sym="")
+                # sns.stripplot(data=df, x=xlabel, y=ylabel, ax=plot[j], hue='Group', dodge=True,
+                #               jitter=0.2, color='black', palette='Paired')
+
+                plot[j].legend_ = None
+                plot[j].set_ylabel(types[j])
+                # plot[j].axes.xaxis.set_visible(False)
+                plot[j].set_ylim(0.0, ranges[j])
+
+                pairs = [
+                    {size[0], size[1]},
+                    {size[0], size[2]},
+                    {size[1], size[2]},
+                ]
+
+                mystat.t_test_multi(ax, pairs, df, x=xlabel, y=ylabel, test='t-test_ind',)
+                mystat.anova(df, variable=xlabel, value=ylabel)
+
+            os.makedirs('fig/CFO/Subtraction/Comparison/Combine', exist_ok=True)
+            plt.savefig('fig/CFO/Subtraction/Comparison/Combine/SubtractionCFO_3sec_combine_comparison.png')
             plt.show()
 
         return subtraction_3sec_datas
@@ -280,30 +431,29 @@ class combine:
 
         error_periode = [error_period_dyad, error_period_triad, error_period_tetrad]
         spend_periode = [spend_period_dyad, spend_period_triad, spend_period_tetrad]
+        performance = [error_periode, spend_periode]
 
         types = ['dyad', 'triad', 'tetrad']
+        performance_type = ['Cooperative Error (m)', 'Cooperative Time (s)']
+        labels = ['Error', 'Time']
+        ylim = [[-0.02, 0.02], [-1.0, 1.0]]
 
-        fig_error = plt.figure(figsize=(10, 7), dpi=150)
-        fig_error.suptitle('Error Period')
-        for i in range(3):
-            ax = fig_error.add_subplot(3, 1, i + 1)
-            ax.title.set_text(types[i])
-            for error in error_periode[i]:
-                ax.plot(error, label='Group' + str(i + 1))
+        for i, p in enumerate(performance):
+            fig, axs = plt.subplots(3, 1, figsize=(10, 7), dpi=150, sharex=True, sharey=True)
+            for j, ax in enumerate(axs):
+                ax.title.set_text(types[j])
+                for k, p_ in enumerate(p[j]):
+                    ax.plot(np.arange(1, len(p_) + 1, 1), p_, label='Group' + str(k + 1))
+                    ax.scatter(np.arange(1, len(p_) + 1, 1), p_, s=10, marker='x')
+                ax.legend(ncol=10, columnspacing=1)
 
-        plt.tight_layout()
-        plt.savefig('fig/performance_error.png')
-
-        fig_spend = plt.figure(figsize=(10, 7), dpi=150)
-        fig_spend.suptitle('Spent time Period')
-        for i in range(3):
-            ax = fig_spend.add_subplot(3, 1, i + 1)
-            ax.title.set_text(types[i])
-            for spend in spend_periode[i]:
-                ax.plot(spend, label='Group' + str(i + 1))
-
-        plt.tight_layout()
-        plt.savefig('fig/performance_spend.png')
+            axs[1].set_ylabel(performance_type[i])
+            axs[2].set_xlabel('Period')
+            axs[2].set_xlim(0, len(error_period_dyad[0]) + 1)
+            axs[2].set_xticks(np.arange(1, len(error_period_dyad[0]) + 1, 1))
+            axs[2].set_ylim(ylim[i][0], ylim[i][1])
+            os.makedirs('fig/Performance/TimeSeries/', exist_ok=True)
+            plt.savefig('fig/Performance/TimeSeries/Performance_TimeSeries_Cooperation_' + labels[i] + '.png')
         plt.show()
 
     def performance_comparison(self, mode='h-m'):
@@ -312,16 +462,18 @@ class combine:
             error_period_triad, spend_period_triad = self.triad_cfo.period_performance_cooperation()
             error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_cooperation()
         elif mode == 'h-h':
-            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_human()
-            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_human()
-            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_human()
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance(mode='H-H')
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance(mode='H-H')
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance(mode='H-H')
         elif mode == 'm-m':
-            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_model()
-            error_period_triad, spend_period_triad = self.triad_cfo.period_performance_model()
-            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_model()
+            error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance(mode='M-M')
+            error_period_triad, spend_period_triad = self.triad_cfo.period_performance(mode='M-M')
+            error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance(mode='M-M')
 
         type = ['Dyad', 'Triad', 'Tetrad']
-
+        xlabel = 'Group size'
+        ylabel = ['Error', 'Time']
+        performance_label = ['Error (m)', 'Time (s)']
 
         ep = []
         ep_melt = []
@@ -337,30 +489,7 @@ class combine:
             ep_melt[i]['Group'] = 'Group' + str(i + 1)
 
         df_ep = pd.concat([i for i in ep_melt], axis=0)
-
-        ## for subplot
-        # sns.set()
-        # # sns.set_style('whitegrid')
-        # sns.set_palette('Set3')
-        #
-        # fig_per = plt.figure(figsize=(10, 7), dpi=150)
-        #
-        # ax = fig_per.add_subplot(1, 2, 1)
-        #
-        # if mode == 'h-m':
-        #     ax.set_ylim(-0.02, 0.02)
-        # elif mode == 'h-h':
-        #     ax.set_ylim(0.0, 0.06)
-        # elif mode == 'm-m':
-        #     ax.set_ylim(0.0, 0.06)
-        #
-        # sns.boxplot(x="variable", y="value", data=df_ep, ax=ax, sym="")
-        # sns.stripplot(x='variable', y='value', data=df_ep, hue='Group', dodge=True,
-        #               jitter=0.2, color='black', palette='Paired', ax=ax)
-        #
-        # ax.legend_ = None
-        # ax.set_ylabel('Error Period')
-
+        df_ep.rename(columns={'variable': xlabel, 'value': ylabel[0]}, inplace=True)
 
         sp = []
         sp_melt = []
@@ -376,42 +505,16 @@ class combine:
             sp_melt[i]['Group'] = 'Group' + str(i + 1)
 
         df_sp = pd.concat([i for i in sp_melt], axis=0)
+        df_sp.rename(columns={'variable': xlabel, 'value': ylabel[1]}, inplace=True)
 
-        ## for subplot
-        # ax = fig_per.add_subplot(1, 2, 2)
-        #
-        # if mode == 'h-m':
-        #     ax.set_ylim(-0.5, 0.5)
-        # elif mode == 'h-h':
-        #     ax.set_ylim(1.0, 3.0)
-        # elif mode == 'm-m':
-        #     ax.set_ylim(1.0, 3.0)
-        #
-        # sns.boxplot(x="variable", y="value", data=df_sp, ax=ax, sym="")
-        # sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
-        #               jitter=0.2, color='black', palette='Paired', ax=ax)
-        #
-        # ax.legend_ = None
-        # ax.set_ylabel('Spend Period')
-        # # ax.set_ylim(-0.5, 0.5)
-        #
-        # plt.tight_layout()
-        # plt.savefig('fig/performance_comparison' + str(mode) + '.png')
-        # plt.show()
+        performance = [df_ep, df_sp]
+        ylim = [[[-0.02, 0.03], [-0.2, 0.8]], #h-m
+                [[0.01, 0.06], [1.4, 3.0]], #h-h
+                [[0.01, 0.06], [1.4, 3.0]]] #m-m
 
-        ## for single plot
-        fig_per = plt.figure(figsize=(10, 8), dpi=300)
-        if mode == 'h-m':
-            plt.ylim(-0.5, 1.0)
-            plt.yticks(np.arange(-0.5, 1.5, 0.5))
-        elif mode == 'h-h':
-            plt.ylim(1.0, 3.0)
-        elif mode == 'm-m':
-            plt.ylim(1.0, 3.0)
-
-        ax = sns.boxplot(x="variable", y="value", data=df_sp, sym="")
-        # sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
-        #               jitter=0.2, color='black', palette='Paired')
+        ytixs = [[(-0.02, 0.01, 0.00, 0.01, 0.02, 0.03), (-0.2, 0.0, 0.2, 0.4, 0.6, 0.8)],
+                 [(0.2, 0.3, 0.4), (1.0, 2.0, 3.0, 4.0, 5.0)],
+                 [(-1.0, 0.0, 1.0, 2.0, 3.0), (-1.0, 0.0, 1.0, 2.0, 3.0)]]
 
         pairs = [
             {type[0], type[1]},
@@ -419,73 +522,32 @@ class combine:
             {type[1], type[2]},
         ]
 
-        annotator = Annotator(ax, pairs, x="variable", y="value", data=df_sp, sym="")
-        annotator.configure(test='t-test_ind', text_format='star', loc='inside')
-        # annotator.apply_and_annotate()
+        for i, p in enumerate(performance):
+            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
+            g = sns.boxplot(data=p, x=xlabel, y=ylabel[i], sym="", ax=ax)
 
-        annotator.new_plot(ax=ax, x="variable", y="value", data=df_sp)
-        annotator.configure(comparisons_correction="Bonferroni", verbose=2) # ボンフェローで補正
-        # annotator.configure(comparisons_correction="BH", verbose=2) # BHで補正
-        test_results = annotator.apply_test().annotate()
+            base_dir = 'fig/Performance/Comparison/'
+            os.makedirs(base_dir, exist_ok=True)
+            if mode == 'h-m':
+                ax.set_title('Cooperation')
+                ax.set_ylabel('Cooperative ' + performance_label[i])
+                ax.set_ylim(ylim[0][i][0], ylim[0][i][1])
+                plt.savefig(base_dir + 'Performance_Cooperation_' + ylabel[i] + '_Comparison.png')
+            elif mode == 'h-h':
+                ax.set_title('Human-Human')
+                ax.set_ylabel(performance_label[i])
+                ax.set_ylim(ylim[1][i][0], ylim[1][i][1])
+                plt.savefig(base_dir + 'Performance_Human-Human_' + ylabel[i] + '_Comparison.png')
+            elif mode == 'm-m':
+                ax.set_title('Model-Model')
+                ax.set_ylabel(performance_label[i])
+                ax.set_ylim(ylim[2][i][0], ylim[2][i][1])
+                plt.savefig(base_dir + 'Performance_Model-Model_' + ylabel[i] + '_Comparison.png')
 
-        ## ANOVA
-        model = ols('value ~ variable', data=df_sp).fit()
-        model.summary()
-        anova = sm.stats.anova_lm(model, typ=1)
-        print(anova)
+            mystat.t_test_multi(ax=g, pairs=pairs, data=p, x=xlabel, y=ylabel[i], test="t-test_ind")
+            mystat.anova(data=p, variable=xlabel, value=ylabel[i])
 
-        ## Eta_squared
-        coef = combine.correlation_ratio(self, df_sp['variable'], df_sp['value'])
-        print('Eta_squared: {:.4f}\nEta: {:.4f}'.format(coef**2, coef))
-
-        plt.savefig('fig/Performance/performance_comparison_time_' + str(mode) + '.pdf')
-        # plt.tight_layout()
         plt.show()
-
-
-        # fig_per = plt.figure(figsize=(10, 8), dpi=300)
-        # if mode == 'h-m':
-        #     plt.ylim(-0.02, 0.03)
-        #     plt.yticks(np.arange(-0.02, 0.04, 0.01))
-        # elif mode == 'h-h':
-        #     plt.ylim(0.0, 0.06)
-        # elif mode == 'm-m':
-        #     plt.ylim(0.0, 0.06)
-        #
-        # ax = sns.boxplot(x="variable", y="value", data=df_ep, sym="")
-        # # sns.stripplot(x='variable', y='value', data=df_sp, hue='Group', dodge=True,
-        # #               jitter=0.2, color='black', palette='Paired')
-        #
-        # pairs = [
-        #     {type[0], type[1]},
-        #     {type[0], type[2]},
-        #     {type[1], type[2]},
-        # ]
-        #
-        # annotator = Annotator(ax, pairs, x="variable", y="value", data=df_ep, sym="")
-        # annotator.configure(test='t-test_ind', text_format='star', loc='inside')
-        # # annotator.apply_and_annotate()
-        #
-        # annotator.new_plot(ax=ax, x="variable", y="value", data=df_ep)
-        # annotator.configure(comparisons_correction="Bonferroni", verbose=2) # ボンフェローで補正
-        # # annotator.configure(comparisons_correction="BH", verbose=2) # BHで補正
-        # test_results = annotator.apply_test().annotate()
-        #
-        # ## ANOVA
-        # model = ols('value ~ variable', data=df_ep).fit()
-        # model.summary()
-        # anova = sm.stats.anova_lm(model, typ=1)
-        # print(anova)
-        #
-        # ## Eta_squared
-        # coef = combine.correlation_ratio(self, df_ep['variable'], df_ep['value'])
-        # print('Eta_squared: {:.4f}\nEta: {:.4f}'.format(coef**2, coef))
-        #
-        # plt.savefig('fig/Performance/performance_comparison_rmse_' + str(mode) + '.pdf')
-        # # plt.tight_layout()
-        # plt.show()
-
-
 
     def performance_relation(self):
         error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()
@@ -504,17 +566,32 @@ class combine:
 
         print(1 - correlation(error_period, spend_period))
 
-        fig = plt.figure(figsize=(5, 5), dpi=150)
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=150)
 
-        plt.scatter(error_period_dyad, spend_period_dyad, label='Dyad', color='blue')
-        plt.scatter(error_period_triad, spend_period_triad, label='Triad' , color='red')
-        plt.scatter(error_period_tetrad, spend_period_tetrad, label='Tetrad', color='green')
+        s = 10
 
-        plt.xlabel('Error Period')
-        plt.ylabel('Spend Period')
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig('fig/performance_relation.png')
+        ax.scatter(error_period_dyad, spend_period_dyad, label='Dyad', color='blue', s=s)
+        ax.scatter(error_period_triad, spend_period_triad, label='Triad', color='red', s=s)
+        ax.scatter(error_period_tetrad, spend_period_tetrad, label='Tetrad', color='green', s=s)
+
+        r2_dyad = np.corrcoef(error_period_dyad, spend_period_dyad)
+        r2_triad = np.corrcoef(error_period_triad, spend_period_triad)
+        r2_tetrad = np.corrcoef(error_period_tetrad, spend_period_tetrad)
+        plt.text
+        ax.text(0.01, 0.12, '$Dyad: r = {:.2f}$'.format(r2_dyad[0][1]), horizontalalignment='left',
+                transform=ax.transAxes, fontsize="medium")
+        ax.text(0.01, 0.07, '$Triad: r = {:.2f}$'.format(r2_triad[0][1]), horizontalalignment='left',
+                transform=ax.transAxes, fontsize="medium")
+        ax.text(0.01, 0.02, '$Tetrad: r = {:.2f}$'.format(r2_tetrad[0][1]), horizontalalignment='left',
+                transform=ax.transAxes, fontsize="medium")
+
+        ax.set_xlim(-0.03, 0.02)
+        ax.set_ylim(-0.5, 1.0)
+        ax.set_xlabel('Cooperative Error (m)')
+        ax.set_ylabel('Cooperative Time (sec)')
+        ax.legend()
+        os.makedirs('fig/Performance/', exist_ok=True)
+        plt.savefig('fig/Performance/performance_relation.png')
         plt.show()
 
     def performance_hist(self):
@@ -528,8 +605,6 @@ class combine:
         spend_period_dyad = spend_period_dyad.reshape(-1)
         spend_period_triad = spend_period_triad.reshape(-1)
         spend_period_tetrad = spend_period_tetrad.reshape(-1)
-
-
 
         error = pd.DataFrame({
             'Dyad': error_period_dyad,
@@ -546,10 +621,11 @@ class combine:
         )
 
         performence = [error, spend]
-        label = ['error', 'spend']
+        label = ['Cooperative Error (m)', 'Cooperative Time (s)']
+        outlabel = ['Error', 'Time']
 
         xlim = [
-            (-0.1, 0.1),
+            (-0.02, 0.02),
             (-1, 1),
         ]
         xtics = [
@@ -561,14 +637,21 @@ class combine:
         kwargs = dict(hist_kws={'alpha': .6}, kde_kws={'linewidth': 2})
 
         for i in range(len(performence)):
-            fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
+            fig, ax = plt.subplots(3, 1, figsize=(10, 10), dpi=150, sharey=True, sharex=True)
+            ax[1].set_ylabel('Counts')
+            plt.xlabel(label[i])
             for j in range(3):
-                sns.histplot(performence[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j])
-
-                ax[j].set_title(mode[i])
+                # sns.histplot(performence[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j])
+                # y, edge = hist.get_histogram_normalize(performence[i][mode[j]], bin=10)
+                step = 0.1 * xlim[i][1]
+                freq, edge = hist.calc_frequency(performence[i][mode[j]], np.arange(xlim[i][0], xlim[i][1], step))
+                ax[j].bar(edge, freq, width=step, align='edge', label="Counts", color="gray", edgecolor="black", linewidth=0.2)
+                ax[j].set_ylim(0, 30)
+                ax[j].set_title('Group size: ' + mode[j])
                 ax[j].set_xlim(xlim[i])
             plt.tight_layout()
-            plt.savefig('fig/performance_hist_' + str(label[i]) + '.png')
+            os.makedirs('fig/Performance/Hist/', exist_ok=True)
+            plt.savefig('fig/Performance/Hist/CooperativePerformance_' + str(outlabel[i]) + '_hist.png')
         plt.show()
 
     def performance_bootstrap(self):
@@ -590,7 +673,6 @@ class combine:
 
         for i in range(len(data)):
             bs_data.append(combine.bootstrap(self, data[i], R))
-
 
         reshape_data = [data[_].reshape(-1) for _ in range(6)]
         bs_reshape_data = [bs_data[_].reshape(-1) for _ in range(6)]
@@ -626,7 +708,6 @@ class combine:
         bs_performance = [bs_error, bs_spend]
         label = ['Error', 'Spend']
 
-
         xlim = [
             (-0.1, 0.1),
             (-1, 1),
@@ -644,7 +725,8 @@ class combine:
             fig, ax = plt.subplots(3, 1, figsize=(10, 7), dpi=150)
             for j in range(3):
                 sns.histplot(performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
-                sns.histplot(bs_performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j], stat='probability')
+                sns.histplot(bs_performance[i][mode[j]], kde=True, bins=10, label="Counts", ax=ax[j],
+                             stat='probability')
 
                 ax[j].set_title(mode[j])
                 ax[j].set_xlim(xlim[i])
@@ -662,8 +744,6 @@ class combine:
         plt.savefig('fig/performance_bootstrap.png')
         plt.show()
 
-
-
     def bootstrap(self, data, R):
         lenth = len(data[0])
         data_all = data.reshape(-1)
@@ -674,8 +754,6 @@ class combine:
             results[i] = np.mean(sample)
 
         return results
-
-
 
     def summation_ave_cfo(self, graph=False, mode='no_abs'):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo_3sec(mode)
@@ -712,8 +790,6 @@ class combine:
                          'After abs.\nSummation abs. PCFO (Avg)',
                          'After abs.\nSummation abs. FCFO (Avg)']
                 ranges = [0.2, 1.0, 0.25, 3.0]
-
-
 
             fig = plt.figure(figsize=(10, 7), dpi=150)
 
@@ -779,8 +855,6 @@ class combine:
                      'Subtraction abs. FCFO (Avg)'
                      ]
             ranges = [0.4, 8.0, 0.4, 6.0]
-
-
 
             fig = plt.figure(figsize=(10, 7), dpi=150)
 
@@ -866,8 +940,6 @@ class combine:
                          'After abs.\nSummation abs. FCFO (Avg)']
                 ranges = [0.2, 1.0, 0.25, 3.0]
 
-
-
             fig = plt.figure(figsize=(10, 7), dpi=150)
 
             plot = [
@@ -901,7 +973,6 @@ class combine:
 
         return summation_3sec_datas
 
-
     def subtraction_ave_cfo_bs(self, graph=False):
         dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo_3sec()
         triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo_3sec()
@@ -933,7 +1004,6 @@ class combine:
                      ]
             ranges = [0.4, 8.0, 0.4, 6.0]
 
-
             fig = plt.figure(figsize=(10, 7), dpi=150)
 
             plot = [
@@ -946,8 +1016,8 @@ class combine:
             for j in range(len(plot)):
                 df = pd.DataFrame({
                     'Dyad': subtraction_3sec_datas_bs[j][0],
-                     'Triad': subtraction_3sec_datas_bs[j][1],
-                     'Tetrad': subtraction_3sec_datas_bs[j][2],
+                    'Triad': subtraction_3sec_datas_bs[j][1],
+                    'Tetrad': subtraction_3sec_datas_bs[j][2],
                 })
 
                 df_melt = pd.melt(df)
@@ -986,7 +1056,6 @@ class combine:
         #     data_bs.append([])
         #     for j in range(len(data[i])):
         #         data_bs[i].append(combine.bootstrap(self, data[i][j], R))
-
 
         df_error_raw_ = []
         df_spend_raw_ = []
@@ -1048,10 +1117,6 @@ class combine:
         #     p.set(ylim=ylim[i])
         # plt.show()
 
-
-
-
-
         std = []
         mean = []
         data_use = data
@@ -1069,7 +1134,7 @@ class combine:
             'Dyad': mean[0],
             'Triad': mean[1],
             'Tetrad': mean[2],
-            }
+        }
         )
 
         df_melt_error = pd.concat([pd.melt(df_error_), df_period], axis=1)
@@ -1129,8 +1194,6 @@ class combine:
         errorx_period_triad, errory_period_triad, spendx_period_triad, spendy_period_triad = self.triad_cfo.period_performance_cooperation_each_axis()
         errorx_period_tetrad, errory_period_tetrad, spendx_period_tetrad, spendy_period_tetrad = self.tetrad_cfo.period_performance_cooperation_each_axis()
 
-
-
         label = ['Dyad', 'Triad', 'Tetrad']
         variance_label = [
             'Variance of pitch FCFO(Nm)',
@@ -1161,12 +1224,9 @@ class combine:
 
         if mode == 'a_abs':
             summation_label = [
-                     'After abs.\nSummation Pitch FCFO (Avg)',
-                     'After abs.\nSummation Roll FCFO (Avg)']
+                'After abs.\nSummation Pitch FCFO (Avg)',
+                'After abs.\nSummation Roll FCFO (Avg)']
             ranges = [0.2, 0.2, 0.8, 0.8]
-
-
-
 
         variance_period = [dyad_valiance_period, triad_valiance_period, tetrad_valiance_period]
         error = [error_period_dyad, error_period_triad, error_period_tetrad]
@@ -1184,7 +1244,8 @@ class combine:
         periods = []
         for l in range(len(label)):
             period = []
-            for i, j, k, p, r, a, b, c, d in zip(variance_period[l], error[l], spend[l], summation[0][l], summation[1][l], errorx[l], errory[l], spendx[l], spendy[l]):
+            for i, j, k, p, r, a, b, c, d in zip(variance_period[l], error[l], spend[l], summation[0][l],
+                                                 summation[1][l], errorx[l], errory[l], spendx[l], spendy[l]):
                 period_ = pd.DataFrame({
                     variance_label[0]: i[0],
                     variance_label[1]: i[1],
@@ -1203,13 +1264,8 @@ class combine:
                 period.append(period_)
             periods.append(pd.concat([_ for _ in period], axis=0).reset_index(drop=True))
 
-
         df = pd.concat([_ for _ in periods], axis=0).reset_index(drop=True)
         # print(df)
-
-
-
-
 
         # ##histogram
         # fig = plt.figure(figsize=(10, 10), dpi=300)
@@ -1222,8 +1278,6 @@ class combine:
         #     plt.legend()
         # plt.tight_layout()
         # plt.show()
-
-
 
         # ## variance-performance
         # fig = plt.figure(figsize=(10, 10), dpi=300)
@@ -1251,7 +1305,6 @@ class combine:
         #
         # plt.tight_layout()
         # plt.show()
-
 
         # ##summatio-variance
         # fig = plt.figure(figsize=(10, 10), dpi=300)
@@ -1282,8 +1335,6 @@ class combine:
         #
         # # plt.tight_layout()
         # plt.show()
-
-
 
         # ##summatio-variance with performance
         # # cmap = ['Blues_r', 'Blues']
@@ -1326,11 +1377,10 @@ class combine:
         ssb = 0
         for category in set(categories):
             subgroup = values[np.where(categories == category)[0]]
-            ssw += sum((subgroup-np.mean(subgroup))**2)
-            ssb += len(subgroup)*(np.mean(subgroup)-np.mean(values))**2
+            ssw += sum((subgroup - np.mean(subgroup)) ** 2)
+            ssb += len(subgroup) * (np.mean(subgroup) - np.mean(values)) ** 2
 
-        return (ssb / (ssb + ssw))**.5
-
+        return (ssb / (ssb + ssw)) ** .5
 
     def ftr_3sec(self, graph=True, source='human'):
         dyad_p, dyad_r = self.dyad_cfo.get_ftr_3sec(source=source)
@@ -1357,7 +1407,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1365,8 +1415,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
-
 
             fig = plt.figure(figsize=(10, 5), dpi=150)
 
@@ -1404,7 +1452,6 @@ class combine:
                 plot[j].set_ylabel(types[j])
                 # plot[j].axes.xaxis.set_visible(False)
                 plot[j].set_ylim(0.0, ranges[j])
-
 
                 pairs = [
                     {size[1], size[2]},
@@ -1446,7 +1493,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1454,7 +1501,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             dfpp = []
             dfpp_melt = []
@@ -1485,7 +1531,6 @@ class combine:
             # plot[j].axes.xaxis.set_visible(False)
             plt.ylim(0.0, 1.0)
 
-
             pairs = [
                 {size[1], size[2]},
                 {size[0], size[1]},
@@ -1494,7 +1539,6 @@ class combine:
 
             combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
             # combine.anova(self, data=df, variable=xlabel, value=ylabel)
-
 
             plt.tight_layout()
             os.makedirs('fig/FTR', exist_ok=True)
@@ -1531,7 +1575,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1539,7 +1583,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             fig = plt.figure(figsize=(10, 5), dpi=150)
 
@@ -1569,7 +1612,6 @@ class combine:
 
                 df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
-
                 ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
                 # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
                 #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
@@ -1579,7 +1621,6 @@ class combine:
                 # plot[j].axes.xaxis.set_visible(False)
                 plot[j].set_ylim(-1.0, ranges[j])
 
-
                 pairs = [
                     {size[1], size[2]},
                     {size[0], size[1]},
@@ -1588,8 +1629,6 @@ class combine:
 
                 combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
                 # combine.anova(self, data=df, variable='variable', value='value')
-
-
 
             plt.tight_layout()
             os.makedirs('fig/FTR', exist_ok=True)
@@ -1620,7 +1659,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1628,7 +1667,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             dfpp = []
             dfpp_melt = []
@@ -1659,7 +1697,6 @@ class combine:
             # plot[j].axes.xaxis.set_visible(False)
             plt.ylim(-1.0, 0.4)
 
-
             pairs = [
                 {size[1], size[2]},
                 {size[0], size[1]},
@@ -1669,14 +1706,12 @@ class combine:
             combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
             # combine.anova(self, data=df, variable=xlabel, value=ylabel)
 
-
             plt.tight_layout()
             os.makedirs('fig/FTR', exist_ok=True)
             plt.savefig('fig/FTR/Compare_Cooperative_FTR_3sec_combine.png')
             plt.show()
 
         return ftr_3sec_datas
-
 
     def performance_ftr(self, mode='h-m'):
         ftr_dyad = self.dyad_cfo.get_ftr_combine_3sec(self)
@@ -1690,7 +1725,6 @@ class combine:
             error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_human()
             error_period_triad, spend_period_triad = self.triad_cfo.period_performance_human()
             error_period_tetrad, spend_period_tetrad = self.tetrad_cfo.period_performance_human()
-
 
         ftr = [
             ftr_dyad, ftr_triad, ftr_tetrad
@@ -1723,7 +1757,8 @@ class combine:
         df.reset_index(drop=True, inplace=True)
 
         # FacetGridを作成してグラフを設定
-        g = sns.FacetGrid(df, col="Performance_type", row="Group Size", hue="Group", height=4, aspect=1.2, sharey=False, sharex=False)
+        g = sns.FacetGrid(df, col="Performance_type", row="Group Size", hue="Group", height=4, aspect=1.2, sharey=False,
+                          sharex=False)
         g.map(plot_scatter, "Performance", "FTR")
 
         ylims = [(0, 1)]
@@ -1738,11 +1773,10 @@ class combine:
                      (0.0, 0.1), (0.0, 3.0)]
 
         # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
-        for num,ax in enumerate(g.axes.flatten()):
+        for num, ax in enumerate(g.axes.flatten()):
             # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
             ax.set_xlim(xlims[num])
             ax.set_ylim(ylims[0])
-
 
         if mode == 'h-h':
             os.makedirs("fig/FTR-Performance/h-h/", exist_ok=True)
@@ -1752,7 +1786,6 @@ class combine:
             plt.savefig("fig/FTR-Performance/FTR-Performance_.png")
 
         plt.show()
-
 
     def ief_3sec(self, graph=True, source='human'):
         dyad_p, dyad_r = self.dyad_cfo.get_ief_3sec(source=source)
@@ -1781,7 +1814,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1789,7 +1822,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             fig = plt.figure(figsize=(10, 5), dpi=150)
 
@@ -1819,7 +1851,6 @@ class combine:
 
                 df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
-
                 ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
                 # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
                 #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
@@ -1829,7 +1860,6 @@ class combine:
                 # plot[j].axes.xaxis.set_visible(False)
                 plot[j].set_ylim(0.0, ranges[j])
 
-
                 pairs = [
                     {size[1], size[2]},
                     {size[0], size[1]},
@@ -1838,8 +1868,6 @@ class combine:
 
                 combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
                 # combine.anova(self, data=df, variable='variable', value='value')
-
-
 
             plt.tight_layout()
             os.makedirs('fig/IEF', exist_ok=True)
@@ -1877,7 +1905,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1885,7 +1913,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             fig = plt.figure(figsize=(10, 5), dpi=150)
 
@@ -1915,7 +1942,6 @@ class combine:
 
                 df.rename(columns={'variable': xlabel, 'value': ylabel}, inplace=True)
 
-
                 ax = sns.boxplot(x=xlabel, y=ylabel, data=df, ax=plot[j], sym="")
                 # sns.stripplot(x='variable', y='value', data=df, hue='Group', dodge=True,
                 #               jitter=0.2, color='black', palette='Paired', ax=plot[j])
@@ -1925,7 +1951,6 @@ class combine:
                 # plot[j].axes.xaxis.set_visible(False)
                 plot[j].set_ylim(-1.0, ranges[j])
 
-
                 pairs = [
                     {size[1], size[2]},
                     {size[0], size[1]},
@@ -1934,8 +1959,6 @@ class combine:
 
                 combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
                 # combine.anova(self, data=df, variable='variable', value='value')
-
-
 
             plt.tight_layout()
             os.makedirs('fig/IEF', exist_ok=True)
@@ -1966,7 +1989,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=2.0)
             sns.set_style('ticks')
             sns.set_context("poster",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -1974,7 +1997,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             dfpp = []
             dfpp_melt = []
@@ -2007,7 +2029,6 @@ class combine:
             if source == 'model':
                 plt.ylim(0.0, 1.4)
 
-
             pairs = [
                 {size[1], size[2]},
                 {size[0], size[1]},
@@ -2016,7 +2037,6 @@ class combine:
 
             combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
             # combine.anova(self, data=df, variable=xlabel, value=ylabel)
-
 
             plt.tight_layout()
             os.makedirs('fig/IEF', exist_ok=True)
@@ -2049,7 +2069,7 @@ class combine:
             sns.set(font='Times New Roman', font_scale=1.0)
             sns.set_style('ticks')
             sns.set_context("paper",
-                            rc = {
+                            rc={
                                 "axes.linewidth": 0.5,
                                 "legend.fancybox": False,
                                 'pdf.fonttype': 42,
@@ -2057,7 +2077,6 @@ class combine:
                                 'ytick.major.width': 1.0,
                                 'xtick.major.width': 1.0,
                             })
-
 
             dfpp = []
             dfpp_melt = []
@@ -2097,15 +2116,12 @@ class combine:
             combine.t_test_multi(self, ax=ax, pairs=pairs, data=df, x=xlabel, y=ylabel)
             # combine.anova(self, data=df, variable=xlabel, value=ylabel)
 
-
             plt.tight_layout()
             os.makedirs('fig/IEF', exist_ok=True)
             plt.savefig('fig/IEF/Compare_Cooperative_IEF_3sec_combine.png')
             plt.show()
 
         return ief_3sec_datas
-
-
 
     def t_test(self, ax, pairs, data, x="variable", y="value", test='t-test_ind'):
         annotator = Annotator(ax, pairs, x=x, y=y, data=data, sym="")
@@ -2121,7 +2137,7 @@ class combine:
         # annotator.apply_and_annotate()
 
         annotator.new_plot(ax=ax, x=x, y=y, data=data)
-        annotator.configure(comparisons_correction=comparisons_correction, verbose=2) #補正
+        annotator.configure(comparisons_correction=comparisons_correction, verbose=2)  # 補正
         test_results = annotator.apply_test().annotate()
 
     def anova(self, data, variable='variable', value='value'):
@@ -2141,6 +2157,3 @@ class combine:
         ss_total = anova['sum_sq'][n_groups]
         eta_squared = ss_treatment / ss_total
         print(f"Eta squared: {eta_squared}")
-
-
-
