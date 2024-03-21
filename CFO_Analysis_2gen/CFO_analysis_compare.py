@@ -26,9 +26,9 @@ from mypackage.mystatistics import statistics as mystat
 from mypackage import ParallelExecutor
 
 class CFO_compare:
-    def __init__(self, cfo_data_ind, cfo_data_shd, group_type):
+    def __init__(self, cfo_data_ind, cfo_data_shd, group_type, file_names):
         self.group_type = group_type
-
+        self.file_names = file_names
         self.cfo_ind = cfo_data_ind
         self.cfo_shd = cfo_data_shd
 
@@ -43,12 +43,13 @@ class CFO_compare:
         self.end_num = int((self.endtime - 20.0) / self.smp)
         self.nn_read_flag = False
         self.join = self.cfo_ind[0]['join'][0]
-        if self.group_type == 'triad':
-            self.tasktype = ''.join(chr(char) for char in self.cfo_ind[0]['tasktype'])
-            self.controltype = ''.join(chr(char) for char in self.cfo_ind[0]['controltype'])
+        self.tasktype = ''.join(chr(char) for char in self.cfo_ind[0]['tasktype'])
+        self.controltype = ''.join(chr(char) for char in self.cfo_ind[0]['controltype'])
         # print(self.join)
 
-        plt.rcParams['font.family'] = 'Times New Roman'
+        # plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['font.family']= 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Arial']
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
         plt.rcParams['ytick.right'] = 'True'
@@ -94,10 +95,11 @@ class CFO_compare:
         for i in range(len(self.cfo_ind)):
             data_ind = self.cfo_ind[i]
             data_shd = self.cfo_shd[i]
-            fig, ax = plt.subplots(3, 2, figsize=(15, 10), dpi=150)
+            fig, ax = plt.subplots(3, 2, figsize=(15, 10), dpi=200, sharex=True)
 
             plt.xticks(np.arange(self.starttime, self.endtime * 2, self.duringtime * 2))
             plt.xlim([self.starttime, self.endtime])  # x軸の範囲
+            # plt.xlim([40.0, 60.0])  # x軸の範囲
             ax[0, 1].set_xlabel("Time (sec)")
             ax[1, 1].set_xlabel("Time (sec)")
 
@@ -138,12 +140,21 @@ class CFO_compare:
                 ax[1, j].set_ylabel(ylabels[1][j])
                 ax[1, j].set_yticks(yticks[1])
                 ax[1, j].set_ylim(ylims[1][0], ylims[1][1])
+                text_sum = np.zeros(len(data_shd['time'][self.start_num:self.end_num:10]))
                 for k in range(self.join):
                     i_num = 'i' + str(k + 1)
                     ax[1, j].plot(data_ind['time'][self.start_num:self.end_num:10],
                                   data_ind[i_num + axis + '_text'][self.start_num:self.end_num:10],
-                                  '-', lw=2.0,
+                                  '-', lw=1.0,
                                   label='P' + str(k + 1))
+
+                    text_sum = np.sum([text_sum, data_ind[i_num + axis + '_text'][self.start_num:self.end_num:10]], axis=0)
+
+                ax[1, j].plot(data_shd['time'][self.start_num:self.end_num:10],
+                              text_sum,
+                              '-', lw=2.0,
+                              label='Coop total')
+
 
                 for k in range(self.join):
                     i_num = 'i' + str(k + 1)
@@ -157,14 +168,14 @@ class CFO_compare:
                     i_num = 'i' + str(k + 1)
                     ax[1, j].plot(data_shd['time'][self.start_num:self.end_num:10],
                                   data_shd[i_num + axis + '_text_pre'][self.start_num:self.end_num:10],
-                                  ':', lw=1.0,
+                                  ':', lw=0.5,
                                   label='Shd Model' + str(k + 1))
 
                     text_sum = np.sum([text_sum, data_shd[i_num + axis + '_text_pre'][self.start_num:self.end_num:10]], axis=0)
 
                 ax[1, j].plot(data_shd['time'][self.start_num:self.end_num:10],
                               text_sum,
-                              ':', lw=2.0,
+                              ':', lw=1.0,
                               label='Shd Model total')
 
 
@@ -197,5 +208,9 @@ class CFO_compare:
                 ax[2, j].legend(ncol=self.join, columnspacing=1, loc='upper left')
 
             plt.tight_layout()
-            # plt.savefig("fig/response_check.png")
+            # os.makedirs('fig/comparison_ind_shd/' + self.group_type, exist_ok=True)
+            # plt.savefig('fig/comparison_ind_shd/' + self.group_type + '/' + self.file_names[i][:-4] + '.png')
+
+            # os.makedirs('fig/comparison_ind_shd/' + self.group_type + '/' + 'Expand', exist_ok=True)
+            # plt.savefig('fig/comparison_ind_shd/' + self.group_type + '/Expand/' + self.file_names[i][:-4] + '_Expand.png')
         plt.show()

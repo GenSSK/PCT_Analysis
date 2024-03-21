@@ -9,6 +9,7 @@ import numpy as np
 import Npz
 import Combine_analysis
 import CFO_analysis_compare
+import Trajectory_analysis
 
 plt.switch_backend('Qt5Agg')
 
@@ -17,25 +18,47 @@ if __name__ == '__main__':
     npz = Npz.NPZ()
 
     dyad_npz_filename = [
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Circle_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Discrete_Random_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Lemniscate_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Random_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_RoseCurve_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Circle_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_RoseCurve_1_CFO.npz',
+
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Circle_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_RoseCurve_1_CFO.npz',
     ]
 
     triad_npz_filename = [
-        '2024-01-31_AdABC_Triad_k.tozuka_k.kobayashi_l.nicolas_Circle_1_CFO.npz',
-        '2024-01-31_AdABC_Triad_k.tozuka_k.kobayashi_l.nicolas_Discrete_Random_1_CFO.npz',
-        '2024-01-31_AdABC_Triad_k.tozuka_k.kobayashi_l.nicolas_Random_1_CFO.npz',
+        '2024-02-29_AdABC_Triad_t.onogawa_r.yanase_g.otsuka_Circle_1_CFO.npz',
+        '2024-02-29_AdABC_Triad_t.onogawa_r.yanase_g.otsuka_Discrete_Random_1_CFO.npz',
+        '2024-02-29_AdABC_Triad_t.onogawa_r.yanase_g.otsuka_Lemniscate_1_CFO.npz',
+        '2024-02-29_AdABC_Triad_t.onogawa_r.yanase_g.otsuka_Random_1_CFO.npz',
+        '2024-02-29_AdABC_Triad_t.onogawa_r.yanase_g.otsuka_RoseCurve_1_CFO.npz',
+
+        '2024-03-02_AdABC_Triad_k.tozuka_i.kato_s.tsuchiya_Circle_1_CFO.npz',
+        '2024-03-02_AdABC_Triad_k.tozuka_i.kato_s.tsuchiya_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Triad_k.tozuka_i.kato_s.tsuchiya_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Triad_k.tozuka_i.kato_s.tsuchiya_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Triad_k.tozuka_i.kato_s.tsuchiya_RoseCurve_1_CFO.npz',
     ]
 
     tetrad_npz_filename = [
-        '2024-02-09_AdABC_Tetrad_k.tozuka_g.otsuka_k.kobayashi_r.yanase_Circle_1_CFO.npz',
-        '2024-02-09_AdABC_Tetrad_k.tozuka_g.otsuka_k.kobayashi_r.yanase_Discrete_Random_1_CFO.npz',
-        '2024-02-09_AdABC_Tetrad_k.tozuka_g.otsuka_k.kobayashi_r.yanase_Lemniscate_1_CFO.npz',
-        '2024-02-09_AdABC_Tetrad_k.tozuka_g.otsuka_k.kobayashi_r.yanase_Random_1_CFO.npz',
+        '2024-03-01_AdABC_Tetrad_t.onogawa_r.yanase_g.otsuka_n.ito_Circle_1_CFO.npz',
+        '2024-03-01_AdABC_Tetrad_t.onogawa_r.yanase_g.otsuka_n.ito_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Tetrad_t.onogawa_r.yanase_g.otsuka_n.ito_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Tetrad_t.onogawa_r.yanase_g.otsuka_n.ito_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Tetrad_t.onogawa_r.yanase_g.otsuka_n.ito_RoseCurve_1_CFO.npz',
+
+        '2024-03-13_AdABC_Tetrad_k.tozuka_k.kobayashi_r.tanaka_n.ito_Circle_1_CFO.npz',
+        '2024-03-13_AdABC_Tetrad_k.tozuka_k.kobayashi_r.tanaka_n.ito_Discrete_Random_1_CFO.npz',
+        '2024-03-13_AdABC_Tetrad_k.tozuka_k.kobayashi_r.tanaka_n.ito_Lemniscate_1_CFO.npz',
+        '2024-03-13_AdABC_Tetrad_k.tozuka_k.kobayashi_r.tanaka_n.ito_Random_1_CFO.npz',
+        '2024-03-13_AdABC_Tetrad_k.tozuka_k.kobayashi_r.tanaka_n.ito_RoseCurve_1_CFO.npz',
     ]
+
 
     dyad_ind_npz = npz.select_load("/nfs/ssk-storage/data/cfo/dyad/", dyad_npz_filename)
     triad_ind_npz = npz.select_load("/nfs/ssk-storage/data/cfo/triad/", triad_npz_filename)
@@ -47,18 +70,35 @@ if __name__ == '__main__':
 
     # com = Combine_analysis.combine(dyad_ind_npz, triad_ind_npz, tetrad_ind_npz)
 
-    comp_dyad = CFO_analysis_compare.CFO_compare(dyad_ind_npz, dyad_shd_npz, 'dyad')
-    comp_triad = CFO_analysis_compare.CFO_compare(triad_ind_npz, triad_shd_npz, 'triad')
-    comp_tetrad = CFO_analysis_compare.CFO_compare(tetrad_ind_npz, tetrad_shd_npz, 'tetrad')
+    comp_dyad = CFO_analysis_compare.CFO_compare(dyad_ind_npz, dyad_shd_npz, 'dyad', dyad_npz_filename)
+    comp_triad = CFO_analysis_compare.CFO_compare(triad_ind_npz, triad_shd_npz, 'triad', triad_npz_filename)
+    comp_tetrad = CFO_analysis_compare.CFO_compare(tetrad_ind_npz, tetrad_shd_npz, 'tetrad', tetrad_npz_filename)
 
-    comp_dyad.show_prediction()
+    trj = Trajectory_analysis.TrajectoryAnalysis(dyad_ind_npz, triad_ind_npz, tetrad_ind_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
+    # trj = Trajectory_analysis.TrajectoryAnalysis(dyad_shd_npz, triad_shd_npz, tetrad_shd_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
+
+
+    ## indとshdの比較
+    # comp_dyad.show_prediction()
     # comp_triad.show_prediction()
     # comp_tetrad.show_prediction()
 
     ##予測確認
-    # com.dyad_cfo.show_prediction()
-    # com.triad_cfo.show_prediction()
-    # com.tetrad_cfo.show_prediction()
+    # trj.com_circle.dyad_cfo.show_prediction()
+    # trj.com_lemniscate.dyad_cfo.show_prediction()
+    # trj.com_rose_curve.dyad_cfo.show_prediction()
+    # trj.com_random.dyad_cfo.show_prediction()
+    # trj.com_discrete_random.dyad_cfo.show_prediction()
+    # trj.com_circle.triad_cfo.show_prediction()
+    # trj.com_lemniscate.triad_cfo.show_prediction()
+    # trj.com_rose_curve.triad_cfo.show_prediction()
+    # trj.com_random.triad_cfo.show_prediction()
+    # trj.com_discrete_random.triad_cfo.show_prediction()
+    # trj.com_circle.tetrad_cfo.show_prediction()
+    # trj.com_lemniscate.tetrad_cfo.show_prediction()
+    # trj.com_rose_curve.tetrad_cfo.show_prediction()
+    # trj.com_random.tetrad_cfo.show_prediction()
+    # trj.com_discrete_random.tetrad_cfo.show_prediction()
 
     ##タスク確認
     # com.dyad_cfo.task_show()
@@ -71,9 +111,21 @@ if __name__ == '__main__':
     # com.tetrad_cfo.task_show_solo()
 
     ##CFO確認
-    # com.dyad_cfo.cfo_sub()
-    # com.triad_cfo.cfo_sub()
-    # com.tetrad_cfo.cfo_sub()
+    # trj.com_circle.dyad_cfo.cfo_sub()
+    # trj.com_lemniscate.dyad_cfo.cfo_sub()
+    # trj.com_rose_curve.dyad_cfo.cfo_sub()
+    # trj.com_random.dyad_cfo.cfo_sub()
+    # trj.com_discrete_random.dyad_cfo.cfo_sub()
+    # trj.com_circle.triad_cfo.cfo_sub()
+    # trj.com_lemniscate.triad_cfo.cfo_sub()
+    # trj.com_rose_curve.triad_cfo.cfo_sub()
+    # trj.com_random.triad_cfo.cfo_sub()
+    # trj.com_discrete_random.triad_cfo.cfo_sub()
+    # trj.com_circle.tetrad_cfo.cfo_sub()
+    # trj.com_lemniscate.tetrad_cfo.cfo_sub()
+    # trj.com_rose_curve.tetrad_cfo.cfo_sub()
+    # trj.com_random.tetrad_cfo.cfo_sub()
+    # trj.com_discrete_random.tetrad_cfo.cfo_sub()
 
     # 時系列データすべて確認
     # com.dyad_cfo.plot_time_series('p')
@@ -100,6 +152,69 @@ if __name__ == '__main__':
     # com.subtraction_cfo(graph=True)
 
     ##パフォーマンスの確認
+    # trj.com_circle.performance_show()
+    # trj.com_lemniscate.performance_show()
+    # trj.com_rose_curve.performance_show()
+    # trj.com_random.performance_show()
+    # trj.com_discrete_random.performance_show()
+
+    # trj.com_circle.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='H-H')
+    # trj.com_lemniscate.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='H-H')
+    # trj.com_rose_curve.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='H-H')
+    # trj.com_random.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='H-H')
+    # trj.com_discrete_random.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='H-H')
+    # trj.com_circle.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='M-M')
+    # trj.com_lemniscate.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='M-M')
+    # trj.com_rose_curve.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='M-M')
+    # trj.com_random.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='M-M')
+    # trj.com_discrete_random.dyad_cfo.time_series_performance(graph=True, sigma=1000, mode='M-M')
+    # trj.com_circle.dyad_cfo.time_series_performance_cooperation(graph=True, sigma=1000)
+    # trj.com_lemniscate.dyad_cfo.time_series_performance_cooperation(graph=True, sigma=1000)
+    # trj.com_rose_curve.dyad_cfo.time_series_performance_cooperation(graph=True, sigma=1000)
+    # trj.com_random.dyad_cfo.time_series_performance_cooperation(graph=True, sigma=1000)
+    # trj.com_discrete_random.dyad_cfo.time_series_performance_cooperation(graph=True, sigma=1000)
+
+    # trj.com_circle.time_series_performance_show(sigma=1000)
+    # trj.com_lemniscate.time_series_performance_show(sigma=1000)
+    # trj.com_rose_curve.time_series_performance_show(sigma=1000)
+    # trj.com_random.time_series_performance_show(sigma=1000)
+    # trj.com_discrete_random.time_series_performance_show(sigma=1000)
+
+    # trj.com_circle.time_series_performance_summation_ave_cfo(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_lemniscate.time_series_performance_summation_ave_cfo(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_random.time_series_performance_summation_ave_cfo(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_discrete_random.time_series_performance_summation_ave_cfo(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_circle.time_series_performance_summation_ave_cfo(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_lemniscate.time_series_performance_summation_ave_cfo(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_random.time_series_performance_summation_ave_cfo(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_discrete_random.time_series_performance_summation_ave_cfo(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_circle.time_series_performance_summation_ave_cfo(graph=True, mode='a_abs', sigma=1, dec=100)
+    # trj.com_lemniscate.time_series_performance_summation_ave_cfo(graph=True, mode='a_abs', sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo(graph=True, mode='a_abs', sigma=1, dec=100)
+    # trj.com_random.time_series_performance_summation_ave_cfo(graph=True, mode='a_abs', sigma=1, dec=100)
+    # trj.com_discrete_random.time_series_performance_summation_ave_cfo(graph=True, mode='a_abs', sigma=1, dec=100)
+    #
+    # trj.com_circle.time_series_performance_subtraction_ave_cfo(graph=True, sigma=1, dec=100)
+    # trj.com_lemniscate.time_series_performance_subtraction_ave_cfo(graph=True, sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_subtraction_ave_cfo(graph=True, sigma=1, dec=100)
+    # trj.com_random.time_series_performance_subtraction_ave_cfo(graph=True, sigma=1, dec=100)
+    # trj.com_discrete_random.time_series_performance_subtraction_ave_cfo(graph=True, sigma=1, dec=100)
+
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo_axis(graph=True, mode='no_abs', sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo_axis(graph=True, mode='b_abs', sigma=1, dec=100)
+    # trj.com_rose_curve.time_series_performance_summation_ave_cfo_axis(graph=True, mode='a_abs', sigma=1, dec=100)
+
+    # trj.com_rose_curve.time_series_performance_subtraction_ave_cfo_axis(graph=True, sigma=1, dec=100)
+
+    # trj.com_circle.dyad_cfo.period_performance_New(graph=True, mode='M-M')
+    # trj.comparison_performance_human_model()
+
+    trj.com_rose_curve.robomech2024()
+    # trj.com_rose_curve.robomech2024_axis()
+
+
     # com.performance_show() #パフォーマンスの時系列重ね
     # com.dyad_cfo.period_performance(graph=True, mode='H-H') #H-Hのパフォーマンス、グループごと
     # com.triad_cfo.period_performance(graph=True, mode='H-H') #H-Hのパフォーマンス、グループごと
@@ -147,6 +262,9 @@ if __name__ == '__main__':
     # com.dyad_cfo.sum_sub_performance()
 
     ##CFOの和とCFOの差の関係
+    # trj.com_rose_curve.dyad_cfo.sum_sub()
+    # trj.com_rose_curve.triad_cfo.sum_sub()
+    # trj.com_rose_curve.tetrad_cfo.sum_sub()
     # com.dyad_cfo.sum_sub()
     # com.triad_cfo.sum_sub()
     # com.tetrad_cfo.sum_sub()
@@ -161,7 +279,7 @@ if __name__ == '__main__':
     ##CFOのpitchとrollの関係
     # com.dyad_cfo.CFO_relation_axis() #TODO not yet
     # com.triad_cfo.CFO_relation_axis() #TODO not yet
-    # com.tetrad_cfo.CFO_relation_axis() #TODO not yet
+    # com.tetrad_cfo.CFO_relation_axis() # TODO not yet
     # com.dyad_cfo.CFO_relation_axis_3sec() #TODO not yet
     # com.triad_cfo.CFO_relation_axis_3sec() #TODO not yet
     # com.tetrad_cfo.CFO_relation_axis_3sec() #TODO not yet
@@ -219,6 +337,8 @@ if __name__ == '__main__':
     #TODO Compparisonがない
 
     ##CFOの和の確認（Combine）
+    # trj.com_rose_curve.summation_cfo_combine(graph=True, mode='b_abs')
+    # trj.com_rose_curve.summation_cfo_combine(graph=True, mode='a_abs')
     # com.dyad_cfo.summation_cfo_combine(graph=True, mode='no_abs') #TODO not yet
     # com.triad_cfo.summation_cfo_combine(graph=True, mode='no_abs') #TODO not yet
     # com.tetrad_cfo.summation_cfo_combine(graph=True, mode='no_abs') #TODO not yet
@@ -233,6 +353,7 @@ if __name__ == '__main__':
     # com.summation_cfo_combine(graph=True, mode='a_abs')
 
     ##CFOの差の確認（Combine）
+    # trj.com_rose_curve.subtraction_cfo_combine(graph=True)
     # com.dyad_cfo.subtraction_cfo_combine(graph=True) #TODO not yet
     # com.triad_cfo.subtraction_cfo_combine(graph=True) #TODO not yet
     # com.tetrad_cfo.subtraction_cfo_combine(graph=True) #TODO not yet

@@ -1,14 +1,21 @@
 import os
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 import seaborn as sns
+# from minepy import MINE
 import CFO_Analysis_2gen.CFO_analysis as CFO_analysis
 from scipy.spatial.distance import correlation
 from statannotations.Annotator import Annotator
 from statsmodels.formula.api import ols
 import statsmodels.api as sm
+
+import shap
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+import joblib
 
 from mypackage.mystatistics import myHilbertTransform as HT
 from mypackage.mystatistics import mySTFT as STFT
@@ -24,12 +31,16 @@ def plot_scatter(x, y, color, **kwargs):
 
 
 class combine:
-    def __init__(self, dyad_npz, triad_npz, tetrad_npz):
-        self.dyad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(dyad_npz, 'dyad')
-        self.triad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(triad_npz, 'triad')
-        self.tetrad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(tetrad_npz, 'tetrad')
+    def __init__(self, dyad_npz, triad_npz, tetrad_npz, trajectory_type):
+        self.dyad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(dyad_npz, 'dyad', trajectory_type)
+        self.triad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(triad_npz, 'triad', trajectory_type)
+        self.tetrad_cfo: CFO_analysis.CFO = CFO_analysis.CFO(tetrad_npz, 'tetrad', trajectory_type)
 
-        plt.rcParams['font.family'] = 'Times New Roman'
+        self.trajectory_type = trajectory_type
+
+        # plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['font.family']= 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Arial']
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
         plt.rcParams['ytick.right'] = 'True'
@@ -259,15 +270,15 @@ class combine:
                 mystat.t_test_multi(ax, pairs, df, x=xlabel, y=ylabel, test='t-test_ind',)
                 mystat.anova(df, variable=xlabel, value=ylabel)
 
-            if mode == 'no_abs':
-                os.makedirs('fig/CFO/Summation/NoABS/Comparison/Combine/', exist_ok=True)
-                plt.savefig('fig/CFO/Summation/NoABS/Comparison/Combine/SummationCFO_NoABS_3sec_combine_comparison.png')
-            elif mode == 'b_abs':
-                os.makedirs('fig/CFO/Summation/BeforeABS/Comparison/Combine/', exist_ok=True)
-                plt.savefig('fig/CFO/Summation/BeforeABS/Comparison/Combine/SummationCFO_BeforeABS_3sec_combine_comparison.png')
-            elif mode == 'a_abs':
-                os.makedirs('fig/CFO/Summation/AfterABS/Comparison/Combine/', exist_ok=True)
-                plt.savefig('fig/CFO/Summation/AfterABS/Comparison/Combine/SummationCFO_AfterABS_3sec_combine_comparison.png')
+            # if mode == 'no_abs':
+            #     os.makedirs('fig/CFO/Summation/NoABS/Comparison/Combine/', exist_ok=True)
+            #     plt.savefig('fig/CFO/Summation/NoABS/Comparison/Combine/SummationCFO_NoABS_3sec_combine_comparison.png')
+            # elif mode == 'b_abs':
+            #     os.makedirs('fig/CFO/Summation/BeforeABS/Comparison/Combine/', exist_ok=True)
+            #     plt.savefig('fig/CFO/Summation/BeforeABS/Comparison/Combine/SummationCFO_BeforeABS_3sec_combine_comparison.png')
+            # elif mode == 'a_abs':
+            #     os.makedirs('fig/CFO/Summation/AfterABS/Comparison/Combine/', exist_ok=True)
+            #     plt.savefig('fig/CFO/Summation/AfterABS/Comparison/Combine/SummationCFO_AfterABS_3sec_combine_comparison.png')
             plt.show()
 
         return summation_3sec_datas
@@ -434,27 +445,62 @@ class combine:
         performance = [error_periode, spend_periode]
 
         types = ['dyad', 'triad', 'tetrad']
-        performance_type = ['Cooperative Error (m)', 'Cooperative Time (s)']
+        performance_type = ['Cooperative Error (m)', 'Cooperative Time (s/DT)']
         labels = ['Error', 'Time']
-        ylim = [[-0.02, 0.02], [-1.0, 1.0]]
+        ylim = [[-0.05, 0.05], [-2.0, 2.0]]
 
+        fig, axs = plt.subplots(3, 2, figsize=(12, 7), dpi=150, sharex=True)
+        axs[0,0].text(1.10, 1.20, self.trajectory_type, ha='center', transform=axs[0,0].transAxes, fontsize=16)
         for i, p in enumerate(performance):
-            fig, axs = plt.subplots(3, 1, figsize=(10, 7), dpi=150, sharex=True, sharey=True)
-            for j, ax in enumerate(axs):
-                ax.title.set_text(types[j])
+            for j in range(len(types)):
+                axs[j,i].title.set_text(types[j])
                 for k, p_ in enumerate(p[j]):
-                    ax.plot(np.arange(1, len(p_) + 1, 1), p_, label='Group' + str(k + 1))
-                    ax.scatter(np.arange(1, len(p_) + 1, 1), p_, s=10, marker='x')
-                ax.legend(ncol=10, columnspacing=1)
+                    axs[j,i].plot(np.arange(1, len(p_) + 1, 1), p_, label='Group' + str(k + 1))
+                    axs[j,i].scatter(np.arange(1, len(p_) + 1, 1), p_, s=10, marker='x')
+                axs[j,i].legend(ncol=10, columnspacing=1)
+                axs[j,i].set_ylim(ylim[i][0], ylim[i][1])
 
-            axs[1].set_ylabel(performance_type[i])
-            axs[2].set_xlabel('Period')
-            axs[2].set_xlim(0, len(error_period_dyad[0]) + 1)
-            axs[2].set_xticks(np.arange(1, len(error_period_dyad[0]) + 1, 1))
-            axs[2].set_ylim(ylim[i][0], ylim[i][1])
-            os.makedirs('fig/Performance/TimeSeries/', exist_ok=True)
-            plt.savefig('fig/Performance/TimeSeries/Performance_TimeSeries_Cooperation_' + labels[i] + '.png')
-        plt.show()
+            axs[1,i].set_ylabel(performance_type[i])
+            axs[2,i].set_xlabel('Period')
+            axs[2,i].set_xticks(np.arange(1, len(error_period_dyad[0]) + 1, 2))
+            axs[2,i].set_xlim(0, len(error_period_dyad[0]) + 1)
+        os.makedirs('fig/Performance/Period/', exist_ok=True)
+        plt.savefig('fig/Performance/Period/Performance_Period_Cooperation_' + self.trajectory_type + '.png')
+        # plt.show()
+
+    def time_series_performance_show(self, sigma: int = 'none'):
+        error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
+
+        error_ts = [error_ts_dyad, error_ts_triad, error_ts_tetrad]
+        error_dot_ts = [error_dot_ts_dyad, error_dot_ts_triad, error_dot_ts_tetrad]
+        performance = [error_ts, error_dot_ts]
+
+        types = ['dyad', 'triad', 'tetrad']
+        performance_type = ['Cooperative Error (m)', 'Cooperative Error Speed (m/$^2$)']
+        ylim = [[-0.05, 0.05], [-0.05, 0.05]]
+
+        time = self.dyad_cfo.get_time()
+        start_time = self.dyad_cfo.get_starttime()
+        end_time = self.dyad_cfo.get_endtime()
+
+        fig, axs = plt.subplots(3, 2, figsize=(12, 7), dpi=150, sharex=True)
+        axs[0,0].text(1.10, 1.20, self.trajectory_type, ha='center', transform=axs[0,0].transAxes, fontsize=16)
+        for i, p in enumerate(performance):
+            for j in range(len(types)):
+                axs[j,i].title.set_text(types[j])
+                for k, p_ in enumerate(p[j]):
+                    axs[j,i].plot(time[::10], p_[::10], label='Group' + str(k + 1))
+                axs[j,i].legend(ncol=10, columnspacing=1)
+                axs[j,i].set_ylim(ylim[i][0], ylim[i][1])
+
+            axs[1,i].set_ylabel(performance_type[i])
+            axs[2,i].set_xlabel('Time (s)')
+            axs[2,i].set_xlim([start_time, end_time])
+        os.makedirs('fig/Performance/TimeSeries/', exist_ok=True)
+        plt.savefig('fig/Performance/TimeSeries/Performance_TimeSeries_Cooperation_' + self.trajectory_type + '.png')
+        # plt.show()
 
     def performance_comparison(self, mode='h-m'):
         if mode == 'h-m':
@@ -1034,6 +1080,805 @@ class combine:
             # plt.show()
 
         return subtraction_3sec_datas
+
+    def time_series_performance_subtraction_ave_cfo(self, graph=False, sigma: int = 'none', dec=1):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.subtraction_ave_cfo()
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.subtraction_ave_cfo()
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.subtraction_ave_cfo()
+        summation_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
+
+        performance = [
+            [error_ts_dyad, error_dot_ts_dyad],
+            [error_ts_triad, error_dot_ts_triad],
+            [error_ts_tetrad, error_dot_ts_tetrad],
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        performance_label = ['Error', 'Speed Error']
+
+        types = ['Subtraction PCFO (Avg)',
+                 'Subtraction FCFO (Avg)',
+                 'Subtraction abs. PCFO (Avg)',
+                 'Subtraction abs. FCFO (Avg)']
+        ranges = [0.06, 0.5, 0.3, 4.0]
+
+        df_ = []
+        for i in range(len(size)):
+            for j in range(len(performance_label)):
+                for k in range(len(performance[i][j])):
+                    for l in range(len(summation_3sec_datas)):
+                        df_.append(pd.DataFrame({
+                            'CFO': summation_3sec_datas[l][i][k][::dec],
+                            'CFO_type': types[l],
+                            'Performance': performance[i][j][k][::dec],
+                            'Performance_type': performance_label[j],
+                            'Group Size': size[i],
+                            'Group': str(k + 1)
+                        })
+                        )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+
+            kwargs = dict(
+                s=0.02,
+                alpha=0.6,
+            )
+
+
+            # FacetGridを作成してグラフを設定
+            # g = sns.FacetGrid(df, col="Performance_type", row="CFO_type", hue="Group Size", height=4, aspect=1.2, sharey=False,
+            #                   sharex=False, )
+            # g.map(plot_scatter, "Performance", "CFO", **kwargs)
+            # df = df[df['CFO'] > 0.01]
+            df = df[~df['CFO'].between(-0.01, 0.01)]
+
+            sns.lmplot(data=df, x='CFO', y='Performance', hue='Group Size', col='Performance_type', row='CFO_type',
+                       scatter_kws={'s': 0.05, 'alpha': 0.1}, height=4, aspect=1.2, order=5,
+                       sharey=False, sharex=False, line_kws={'lw': 2})
+
+            ylims = [(0, 1)]
+
+            xlims = [(-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5)]
+
+            # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+            # for num, ax in enumerate(g.axes.flatten()):
+            #     # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            #     ax.set_xlim(xlims[num])
+            #     ax.set_ylim(ylims[0])
+
+            # base_dir = 'fig/CFO-Performance/TimeSeries/Subtraction/Combine/'
+            # os.makedirs(base_dir, exist_ok=True)
+            # plt.savefig(base_dir + 'SubtractionCFO-Performance_Combine_' + self.trajectory_type + '.png')
+            plt.show()
+
+        return df
+
+    def robomech2024(self, sigma: int = 'none'):
+        dyad_p_tot, dyad_f_tot, dyad_pa_tot, dyad_fa_tot = self.dyad_cfo.summation_ave_cfo(mode='b_abs')
+        triad_p_tot, triad_f_tot, triad_pa_tot, triad_fa_tot = self.triad_cfo.summation_ave_cfo(mode='b_abs')
+        tetrad_p_tot, tetrad_f_tot, tetrad_pa_tot, tetrad_fa_tot = self.tetrad_cfo.summation_ave_cfo(mode='b_abs')
+
+        dyad_p_sum, dyad_f_sum, dyad_pa_sum, dyad_fa_sum = self.dyad_cfo.summation_ave_cfo(mode='a_abs')
+        triad_p_sum, triad_f_sum, triad_pa_sum, triad_fa_sum = self.triad_cfo.summation_ave_cfo(mode='a_abs')
+        tetrad_p_sum, tetrad_f_sum, tetrad_pa_sum, tetrad_fa_sum = self.tetrad_cfo.summation_ave_cfo(mode='a_abs')
+
+        dyad_p_sub, dyad_f_sub, dyad_pa_sub, dyad_fa_sub = self.dyad_cfo.subtraction_ave_cfo()
+        triad_p_sub, triad_f_sub, triad_pa_sub, triad_fa_sub = self.triad_cfo.subtraction_ave_cfo()
+        tetrad_p_sub, tetrad_f_sub, tetrad_pa_sub, tetrad_fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
+
+        error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
+
+        performance = [
+            error_ts_dyad,
+            error_ts_triad,
+            error_ts_tetrad,
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        cfo_f = [
+            [dyad_f_tot, triad_f_tot, tetrad_f_tot],
+            [dyad_f_sum, triad_f_sum, tetrad_f_sum],
+            [dyad_f_sub, triad_f_sub, tetrad_f_sub],
+        ]
+
+        cfo_p = [
+            [dyad_p_tot, triad_p_tot, tetrad_p_tot],
+            [dyad_p_sum, triad_p_sum, tetrad_p_sum],
+            [dyad_p_sub, triad_p_sub, tetrad_p_sub],
+        ]
+
+        cfo_fa = [
+            [dyad_fa_tot, triad_fa_tot, tetrad_fa_tot],
+            [dyad_fa_sum, triad_fa_sum, tetrad_fa_sum],
+            [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
+        ]
+
+        cfo_pa = [
+            [dyad_pa_tot, triad_pa_tot, tetrad_pa_tot],
+            [dyad_pa_sum, triad_pa_sum, tetrad_pa_sum],
+            [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
+        ]
+
+        cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
+
+        # fig, axs = plt.subplots(3, 1, figsize=(5, 10), dpi=150)
+        # dp = sns.color_palette()
+        # for i, ax in enumerate(axs):
+        #     lines = []
+        #     for j in range(len(size)):
+        #         cfo_f_re = cfo_f[i][j].reshape(1, -1)
+        #         cfo_p_re = cfo_p[i][j].reshape(1, -1)
+        #         cfo_fa_re = cfo_fa[i][j].reshape(1, -1)
+        #         cfo_pa_re = cfo_pa[i][j].reshape(1, -1)
+        #
+        #         performance_re = performance[j].reshape(1, -1)
+        #
+        #
+        #         # # クロス相関関数を計算
+        #         # n = len(cfo_f_re[0][::100])
+        #         # x = cfo_f_re[0][::100] - np.mean(cfo_f_re[0][::100])
+        #         # y = performance_re[0][::100] - np.mean(performance_re[0][::100])
+        #         # cross_corr = np.correlate(x, y, mode='full')
+        #         # cross_corr /= (np.linalg.norm(x, ord=2) * np.linalg.norm(y, ord=2))
+        #         # lags = np.arange(-n + 1, n)
+        #         # ax.plot(lags, cross_corr)
+        #         # ax.set_title('Cross Correlation')
+        #         # ax.set_xlabel('Lag')
+        #         # ax.set_ylabel('Cross Correlation')
+        #
+        #
+        #
+        #         # sns.regplot(x=cfo_f_re[0][::100], y=performance_re[0][::100], ax=ax,
+        #         #             scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2}, logx=True
+        #         #             # label=size[j]
+        #         #             )
+        #         #
+        #         # # 回帰直線の凡例を手動で作成
+        #         # line = Line2D([0], [0], color=dp[j], lw=2, label=size[j])
+        #         # lines.append(line)
+        #         # r = np.corrcoef(cfo_f_re[0], performance_re[0])
+        #         # # r = np.corrcoef(np.log10(cfo_re[0]), performance_re[0])
+        #         # # r2 = np.corrcoef(cfo_re[0], performance_re[0])
+        #         #
+        #         # ax.text(0.02, 0.89-j*0.1, size[j]+': $r = {:.2f}$'.format(r2), horizontalalignment='left',
+        #         #         transform=ax.transAxes, fontsize="small")
+        #         # ax.set(xscale='log')
+        #         # ax.set_xlabel(cfo_labels[i])
+        #         # ax.set_ylabel('Cooperative RMSE')
+        #
+        #     ax.legend(handles=lines, loc='upper right')
+        #
+        # plt.show()
+
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=200)
+        for i in range(len(size)):
+            cfo_f_tot_re = cfo_f[0][i].reshape(1, -1)
+            cfo_f_sum_re = cfo_f[1][i].reshape(1, -1)
+            cfo_f_sub_re = cfo_f[2][i].reshape(1, -1)
+            cfo_p_tot_re = cfo_p[0][i].reshape(1, -1)
+            cfo_p_sum_re = cfo_p[1][i].reshape(1, -1)
+            cfo_p_sub_re = cfo_p[2][i].reshape(1, -1)
+            cfo_fa_tot_re = cfo_fa[0][i].reshape(1, -1)
+            cfo_fa_sum_re = cfo_fa[1][i].reshape(1, -1)
+            cfo_fa_sub_re = cfo_fa[2][i].reshape(1, -1)
+            cfo_pa_tot_re = cfo_pa[0][i].reshape(1, -1)
+            cfo_pa_sum_re = cfo_pa[1][i].reshape(1, -1)
+            cfo_pa_sub_re = cfo_pa[2][i].reshape(1, -1)
+
+            performance_re = performance[i].reshape(1, -1)
+
+            input = np.column_stack((cfo_f_tot_re[0],
+                                     cfo_f_sum_re[0],
+                                     cfo_f_sub_re[0],
+                                     cfo_p_tot_re[0],
+                                     cfo_p_sum_re[0],
+                                     cfo_p_sub_re[0],
+                                     # cfo_fa_tot_re[0],
+                                     # cfo_fa_sum_re[0],
+                                     # cfo_fa_sub_re[0],
+                                     # cfo_pa_tot_re[0],
+                                     # cfo_pa_sum_re[0],
+                                     # cfo_pa_sub_re[0],
+                                     ))
+
+            input_log = np.column_stack((np.log(cfo_f_tot_re[0]),
+                                         np.log(cfo_f_sum_re[0]),
+                                         np.log(cfo_f_sub_re[0]),
+                                         np.log(cfo_p_tot_re[0]),
+                                         np.log(cfo_p_sum_re[0]),
+                                         np.log(cfo_p_sub_re[0]),
+                                         # np.log(cfo_fa_tot_re[0]),
+                                         # np.log(cfo_fa_sum_re[0]),
+                                         # np.log(cfo_fa_sub_re[0]),
+                                         # np.log(cfo_pa_tot_re[0]),
+                                         # np.log(cfo_pa_sum_re[0]),
+                                         # np.log(cfo_pa_sub_re[0]),
+                                         ))
+
+            n = 2
+            input_tim = np.column_stack((cfo_f_tot_re[0] ** n,
+                                       cfo_f_sum_re[0] ** n,
+                                       cfo_f_sub_re[0] ** n,
+                                       cfo_p_tot_re[0] ** n,
+                                       cfo_p_sum_re[0] ** n,
+                                       cfo_p_sub_re[0] ** n,
+                                       # cfo_fa_tot_re[0] ** n,
+                                       # cfo_fa_sum_re[0] ** n,
+                                       # cfo_fa_sub_re[0] ** n,
+                                       # cfo_pa_tot_re[0] ** n,
+                                       # cfo_pa_sum_re[0] ** n,
+                                       # cfo_pa_sub_re[0] ** n,
+                                         ))
+
+            # 説明変数行列に定数項を追加
+            X = sm.add_constant(input_tim)
+
+            # 回帰モデルの作成
+            model = sm.OLS(performance_re[0], X).fit()
+            print(model.summary())
+
+
+            predicted_values = model.predict(X)
+            # sns.regplot(x=predicted_values[::100], y=performance_re[0][::100], ax=ax,
+            #             scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2},
+            #             )
+            ax.scatter(predicted_values[::100], performance_re[0][::100], s=0.05, alpha=0.2)
+            ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle='--')
+
+            # r2 = np.corrcoef(predicted_values, performance_re[0])
+            ax.text(0.02, 0.89-i*0.05, size[i]+': $R^2 = {:.2f}$'.format(model.rsquared), horizontalalignment='left',
+                    transform=ax.transAxes, fontsize="small")
+
+            ax.set_xlabel('Predicted Cooperative RMSE')
+            ax.set_ylabel('Cooperative RMSE')
+            ax.set_ylim(-0.03, 0.03)
+            ax.set_xlim(-0.03, 0.03)
+
+
+
+            # # 訓練データとテストデータに分割
+            # X_train, X_test, y_train, y_test = train_test_split(input[::100], performance_re[0][::100], test_size=0.2, random_state=42)
+            #
+            # # # ランダムフォレストモデルの構築
+            # # model = RandomForestRegressor(n_estimators=100, random_state=42)
+            # # model.fit(X_train, y_train)
+            # # # モデルをファイルに保存
+            # # os.makedirs('random_forest', exist_ok=True)
+            # # joblib.dump(model, 'random_forest/random_forest_model_' + size[i] + '.pkl')
+            #
+            # # # 保存されたモデルをロード
+            # model = joblib.load('random_forest/random_forest_model_' + size[i] + '.pkl')
+            #
+            # # # SHAP値の計算
+            # # explainer = shap.Explainer(model, X_train)
+            # # shap_values = explainer(X_test[:100])
+            # # print(shap_values)
+            #
+            #
+            # # 特徴量の重要度を取得
+            # feature_importances = model.feature_importances_
+            #
+            # # 特徴量の重要度を可視化
+            # ax.barh(range(len(feature_importances)), feature_importances, align='center')
+            # # ax.yticks(range(len(feature_importances)), boston.feature_names)
+            # ax.set_xlabel('Feature Importance')
+            # ax.set_ylabel('Feature')
+            # ax.set_title('Feature Importance of Random Forest Model')
+            #
+            # # predicted_values = model.predict(X_test)
+            # # sns.regplot(x=predicted_values, y=y_test, ax=ax,
+            # #             scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2},
+            # #             )
+            # #
+            # # r = np.corrcoef(predicted_values, y_test)
+            # # # r = np.corrcoef(np.log10(cfo_re[0]), performance_re[0])
+            # # # r2 = mystat.r2_score(cfo_re[0], performance_re[0])
+            # #
+            # # ax.text(0.02, 0.89-i*0.1, size[i]+': $r = {:.2f}$'.format(r[0][1]), horizontalalignment='left',
+            # #         transform=ax.transAxes, fontsize="small")
+
+        # os.makedirs('fig/robomech2024', exist_ok=True)
+        # plt.savefig('fig/robomech2024/performance_predict.pdf')
+        plt.show()
+
+    def robomech2024_axis(self, sigma: int = 'none'):
+        dyad_pp_tot, dyad_pr_tot, dyad_fp_tot, dyad_fr_tot = self.dyad_cfo.summation_cfo(mode='b_abs')
+        triad_pp_tot, triad_pr_tot, triad_fp_tot, triad_fr_tot = self.triad_cfo.summation_cfo(mode='b_abs')
+        tetrad_pp_tot, tetrad_pr_tot, tetrad_fp_tot, tetrad_fr_tot = self.tetrad_cfo.summation_cfo(mode='b_abs')
+
+        dyad_pp_sum, dyad_pr_sum, dyad_fp_sum, dyad_fr_sum = self.dyad_cfo.summation_cfo(mode='a_abs')
+        triad_pp_sum, triad_pr_sum, triad_fp_sum, triad_fr_sum = self.triad_cfo.summation_cfo(mode='a_abs')
+        tetrad_pp_sum, tetrad_pr_sum, tetrad_fp_sum, tetrad_fr_sum = self.tetrad_cfo.summation_cfo(mode='a_abs')
+
+        dyad_pp_sub, dyad_pr_sub, dyad_fp_sub, dyad_fr_sub = self.dyad_cfo.subtraction_cfo()
+        triad_pp_sub, triad_pr_sub, triad_fp_sub, triad_fr_sub = self.triad_cfo.subtraction_cfo()
+        tetrad_pp_sub, tetrad_pr_sub, tetrad_fp_sub, tetrad_fr_sub = self.tetrad_cfo.subtraction_cfo()
+
+        error_ts_dyad_p, error_ts_dyad_r, error_dot_ts_dyad_p, error_dot_ts_dyad_r = self.dyad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_triad_p, error_ts_triad_r, error_dot_ts_triad_p, error_dot_ts_triad_r = self.triad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_tetrad_p, error_ts_tetrad_r, error_dot_ts_tetrad_p, error_dot_ts_tetrad_r = self.tetrad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+
+        performance = [
+            [
+                error_ts_dyad_p,
+                error_ts_triad_p,
+                error_ts_tetrad_p,
+            ],
+            [
+                error_ts_dyad_r,
+                error_ts_triad_r,
+                error_ts_tetrad_r,
+            ]
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        cfo_p = [
+            [
+                [dyad_pp_tot, triad_pp_tot, tetrad_pp_tot],
+                [dyad_pp_sum, triad_pp_sum, tetrad_pp_sum],
+                [dyad_pp_sub, triad_pp_sub, tetrad_pp_sub],
+            ],
+            [
+                [dyad_pr_tot, triad_pr_tot, tetrad_pr_tot],
+                [dyad_pr_sum, triad_pr_sum, tetrad_pr_sum],
+                [dyad_pr_sub, triad_pr_sub, tetrad_pr_sub],
+            ],
+
+        ]
+        cfo_f = [
+            [
+                [dyad_fp_tot, triad_fp_tot, tetrad_fp_tot],
+                [dyad_fp_sum, triad_fp_sum, tetrad_fp_sum],
+                [dyad_fp_sub, triad_fp_sub, tetrad_fp_sub],
+            ],
+            [
+                [dyad_fr_tot, triad_fr_tot, tetrad_fr_tot],
+                [dyad_fr_sum, triad_fr_sum, tetrad_fr_sum],
+                [dyad_fr_sub, triad_fr_sub, tetrad_fr_sub],
+            ]
+        ]
+
+        cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
+
+        axis = ['Pitch', 'Roll']
+
+        # fig, axs = plt.subplots(3, 2, figsize=(12, 10), dpi=150)
+        # dp = sns.color_palette()
+        # for i in range(len(cfo_labels)):
+        #     for j in range(len(size)):
+        #         lines = []
+        #         for k in range(len(axis)):
+        #             ax = axs[i][k]
+        #             cfo_p_re = cfo_p[k][i][j].reshape(1, -1)
+        #             cfo_f_re = cfo_f[k][i][j].reshape(1, -1)
+        #
+        #             performance_re = performance[k][j].reshape(1, -1)
+        #
+        #             # # クロス相関関数を計算
+        #             # n = len(cfo_f_re[0][::100])
+        #             # cross_corr = np.correlate(cfo_f_re[0][::100], performance_re[0][::100], mode='full')
+        #             # lags = np.arange(-n + 1, n)
+        #             # ax.plot(lags, cross_corr)
+        #             # ax.set_title('Cross Correlation')
+        #             # ax.set_xlabel('Lag')
+        #             # ax.set_ylabel('Cross Correlation')
+        #
+        #             # 自己相関関数を計算
+        #             autocorr1 = np.correlate(cfo_f_re[0][::100], cfo_f_re[0][::100], mode='full')
+        #             autocorr2 = np.correlate(performance_re[0][::100], performance_re[0][::100], mode='full')
+        #
+        #             ax.plot(autocorr1 / np.max(autocorr1), label='CFO')
+        #             ax.plot(autocorr2 / np.max(autocorr2), label='Performance')
+        #             ax.set_title('Autocorrelation')
+        #             ax.set_xlabel('Lag')
+        #             ax.set_ylabel('Autocorrelation')
+        #             ax.legend()
+        #             # ax.show()
+        #
+        #
+        #             # sns.regplot(x=cfo_f_re[0][::100], y=performance_re[0][::100], ax=ax,
+        #             #             scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2}, logx=True,
+        #             #             fit_reg=True
+        #             #             # label=size[j]
+        #             #             )
+        #             # # 回帰直線の凡例を手動で作成
+        #             # line = Line2D([0], [0], color=dp[j], lw=2, label=size[j])
+        #             # lines.append(line)
+        #             # r = np.corrcoef(cfo_f_re[0], performance_re[0])
+        #             # # r = np.corrcoef(np.log10(cfo_re[0]), performance_re[0])
+        #             # # r2 = mystat.r2_score(cfo_re[0], performance_re[0])
+        #             #
+        #             # ax.text(0.02, 0.89-j*0.1, size[j]+': $r = {:.2f}$'.format(r[0][1]), horizontalalignment='left',
+        #             #         transform=ax.transAxes, fontsize="small")
+        #             # # ax.set(xscale='log')
+        #             # ax.set_xlabel(cfo_labels[i])
+        #             # ax.set_ylabel('Cooperative RMSE')
+        #
+        #         # ax.legend(handles=lines, loc='upper right')
+
+        fig, axs = plt.subplots(1, 2, figsize=(8, 6), dpi=150)
+        for i in range(len(size)):
+            for j in range(len(axis)):
+                ax = axs[j]
+                cfo_tot_p_re = cfo_p[j][0][i].reshape(1, -1)
+                cfo_sum_p_re = cfo_p[j][1][i].reshape(1, -1)
+                cfo_sub_p_re = cfo_p[j][2][i].reshape(1, -1)
+                cfo_tot_f_re = cfo_f[j][0][i].reshape(1, -1)
+                cfo_sum_f_re = cfo_f[j][1][i].reshape(1, -1)
+                cfo_sub_f_re = cfo_f[j][2][i].reshape(1, -1)
+
+                performance_re = performance[j][i].reshape(1, -1)
+
+
+                # 説明変数行列に定数項を追加
+                X = sm.add_constant(np.column_stack((cfo_tot_p_re[0], cfo_sum_p_re[0], cfo_sub_p_re[0], cfo_tot_f_re[0], cfo_sum_f_re[0], cfo_sub_f_re[0])))
+
+                # 回帰モデルの作成
+                model = sm.OLS(performance_re[0], X).fit()
+                print(model.summary())
+
+                predicted_values = model.predict(X)
+                sns.regplot(x=predicted_values[::100], y=performance_re[0][::100], ax=ax,
+                            scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2},
+                            )
+
+        plt.show()
+
+
+
+
+
+    def time_series_performance_summation_ave_cfo(self, graph=False, mode='no_abs', sigma: int = 'none', dec=1):
+        dyad_p, dyad_f, dyad_pa, dyad_fa = self.dyad_cfo.summation_ave_cfo(mode=mode)
+        triad_p, triad_f, triad_pa, triad_fa = self.triad_cfo.summation_ave_cfo(mode=mode)
+        tetrad_p, tetrad_f, tetrad_pa, tetrad_fa = self.tetrad_cfo.summation_ave_cfo(mode=mode)
+        summation_3sec_datas = [
+            [dyad_p, triad_p, tetrad_p],
+            [dyad_f, triad_f, tetrad_f],
+            [dyad_pa, triad_pa, tetrad_pa],
+            [dyad_fa, triad_fa, tetrad_fa],
+        ]
+
+        error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
+        error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
+
+        performance = [
+            [error_ts_dyad, error_dot_ts_dyad],
+            [error_ts_triad, error_dot_ts_triad],
+            [error_ts_tetrad, error_dot_ts_tetrad],
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        performance_label = ['Error', 'Speed Error']
+
+        types = ['Summation PCFO (Avg)',
+                 'Summation FCFO (Avg)',
+                 'Summation abs. PCFO (Avg)',
+                 'Summation abs. FCFO (Avg)']
+        ranges = [0.06, 0.5, 0.3, 4.0]
+
+        if mode == 'b_abs':
+            types = ['Before abs.\nSummation PCFO (Avg)',
+                     'Before abs.\nSummation FCFO (Avg)',
+                     'Before abs.\nSummation abs. PCFO (Avg)',
+                     'Before abs.\nSummation abs. FCFO (Avg)']
+            ranges = [0.25, 3.0, 0.25, 3.0]
+
+        if mode == 'a_abs':
+            types = ['After abs.\nSummation PCFO (Avg)',
+                     'After abs.\nSummation FCFO (Avg)',
+                     'After abs.\nSummation abs. PCFO (Avg)',
+                     'After abs.\nSummation abs. FCFO (Avg)']
+            ranges = [0.2, 1.0, 0.25, 3.0]
+
+        df_ = []
+        for i in range(len(size)):
+            for j in range(len(performance_label)):
+                for k in range(len(performance[i][j])):
+                    for l in range(len(summation_3sec_datas)):
+                        df_.append(pd.DataFrame({
+                            'CFO': summation_3sec_datas[l][i][k][::dec],
+                            'CFO_type': types[l],
+                            'Performance': performance[i][j][k][::dec],
+                            'Performance_type': performance_label[j],
+                            'Group Size': size[i],
+                            'Group': str(k + 1)
+                        })
+                        )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+
+            kwargs = dict(
+                s=0.02,
+                alpha=0.6,
+            )
+
+
+            # # FacetGridを作成してグラフを設定
+            # g = sns.FacetGrid(df, col="Performance_type", row="CFO_type", hue="Group Size", height=4, aspect=1.2, sharey=False,
+            #                   sharex=False, )
+            # g.map(plot_scatter, "Performance", "CFO", **kwargs)
+            # df = df[df['CFO'] > 0.01]
+            # df = df.loc[~(abs(df) < 0.01).any(axis=1)]
+            df = df[~df['CFO'].between(-0.01, 0.01)]
+
+
+            sns.lmplot(data=df, x='CFO', y='Performance', hue='Group Size', col='Performance_type', row='CFO_type',
+                       scatter_kws={'s': 0.05, 'alpha': 0.1}, height=4, aspect=1.2, order=5,
+                       sharey=False, sharex=False, line_kws={'lw': 2})
+
+            ylims = [(0, 1)]
+
+            xlims = [(-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5)]
+
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0),
+                         (0.0, 0.1), (0.0, 3.0),
+                         (0.0, 0.1), (0.0, 3.0)]
+
+            # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+            # for num, ax in enumerate(g.axes.flatten()):
+            #     # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            #     ax.set_xlim(xlims[num])
+            #     ax.set_ylim(ylims[0])
+
+            # base_dir = 'fig/CFO-Performance/TimeSeries/Summation/Combine/'
+            # if mode == 'no_abs':
+            #     os.makedirs(base_dir + 'NoABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'NoABS/SummationCFO-Performance_NoABS_Combine_' + self.trajectory_type + '.png')
+            # elif mode == 'b_abs':
+            #     os.makedirs(base_dir + 'BeforeABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'BeforeABS/SummationCFO-Performance_BeforeABS_Combine_' + self.trajectory_type + '.png')
+            # elif mode == 'a_abs':
+            #     os.makedirs(base_dir + 'AfterABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'AfterABS/SummationCFO-Performance_AfterABS_Combine_' + self.trajectory_type + '.png')
+            plt.show()
+
+
+        return df
+
+
+    def time_series_performance_summation_ave_cfo_axis(self, graph=False, mode='no_abs', sigma: int = 'none', dec=1):
+        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.summation_cfo(mode=mode)
+        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.summation_cfo(mode=mode)
+        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.summation_cfo(mode=mode)
+        summation_3sec_datas = [
+            [dyad_pp, triad_pp, tetrad_pp],
+            [dyad_rp, triad_rp, tetrad_rp],
+            [dyad_pf, triad_pf, tetrad_pf],
+            [dyad_rf, triad_rf, tetrad_rf],
+        ]
+
+        error_ts_dyad_x, error_ts_dyad_y, error_dot_ts_dyad_x, error_dot_ts_dyad_y = self.dyad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_triad_x, error_ts_triad_y, error_dot_ts_triad_x, error_dot_ts_triad_y = self.triad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_tetrad_x, error_ts_tetrad_y, error_dot_ts_tetrad_x, error_dot_ts_tetrad_y = self.tetrad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+
+        performance = [
+            [error_ts_dyad_x, error_ts_dyad_y, error_dot_ts_dyad_x, error_dot_ts_dyad_y],
+            [error_ts_triad_x, error_ts_triad_y, error_dot_ts_triad_x, error_dot_ts_triad_y],
+            [error_ts_tetrad_x, error_ts_tetrad_y, error_dot_ts_tetrad_x, error_dot_ts_tetrad_y],
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        performance_label = ['X Error', 'Y Error', 'X SE', 'Y SE']
+
+        types = ['Summation Pitch PCFO (Avg)',
+                 'Summation Roll PCFO (Avg)',
+                 'Summation Pitch FCFO (Avg)',
+                 'Summation Roll FCFO (Avg)']
+        ranges = [0.05, 0.05, 0.3, 0.3]
+        ticks = [[0.0, 0.1, 0.3, 0.3],
+                 [0.0, 0.1, 0.2, 0.3],
+                 [0.0, 1.0, 2.0, 3.0],
+                 [0.0, 0.1, 2.0, 3.0],
+                 ]
+
+        if mode == 'b_abs':
+            types = ['Before abs.\nSummation Pitch PCFO (Avg)',
+                     'Before abs.\nSummation Roll PCFO (Avg)',
+                     'Before abs.\nSummation Pitch FCFO (Avg)',
+                     'Before abs.\nSummation Roll FCFO (Avg)']
+            ranges = [0.3, 0.3, 4.0, 4.0]
+            ticks = [[0.0, 0.1, 0.2, 0.3],
+                     [0.0, 0.1, 0.2, 0.3],
+                     [0.0, 2.0, 4.0],
+                     [0.0, 2.0, 4.0],
+                     ]
+
+        if mode == 'a_abs':
+            types = ['After abs.\nSummation Pitch PCFO (Avg)',
+                     'After abs.\nSummation Roll PCFO (Avg)',
+                     'After abs.\nSummation Pitch FCFO (Avg)',
+                     'After abs.\nSummation Roll FCFO (Avg)']
+            ranges = [0.3, 0.3, 1.2, 1.2]
+            ticks = [[0.0, 0.1, 0.2, 0.3],
+                     [0.0, 0.1, 0.2, 0.3],
+                     [0.0, 0.6, 1.2],
+                     [0.0, 0.6, 1.2],
+                     ]
+
+        df_ = []
+        for i in range(len(size)):
+            for j in range(len(performance_label)):
+                for k in range(len(performance[i][j])):
+                    for l in range(len(summation_3sec_datas)):
+                        df_.append(pd.DataFrame({
+                            'CFO': summation_3sec_datas[l][i][k][::dec],
+                            'CFO_type': types[l],
+                            'Performance': performance[i][j][k][::dec],
+                            'Performance_type': performance_label[j],
+                            'Group Size': size[i],
+                            'Group': str(k + 1)
+                        })
+                        )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+
+            kwargs = dict(
+                s=0.02,
+                alpha=0.6,
+            )
+
+
+            # # FacetGridを作成してグラフを設定
+            # g = sns.FacetGrid(df, col="Performance_type", row="CFO_type", hue="Group Size", height=4, aspect=1.2, sharey=False,
+            #                   sharex=False, )
+            # g.map(plot_scatter, "Performance", "CFO", **kwargs)
+            # df = df[df['CFO'] > 0.01]
+            # df = df.loc[~(abs(df) < 0.01).any(axis=1)]
+            df = df[~df['CFO'].between(-0.01, 0.01)]
+
+
+            sns.lmplot(data=df, x='CFO', y='Performance', hue='Group Size', col='Performance_type', row='CFO_type',
+                       scatter_kws={'s': 0.05, 'alpha': 0.1}, height=4, aspect=1.2, order=5,
+                       sharey=False, sharex=False, line_kws={'lw': 2})
+
+            ylims = [(0, 1)]
+
+            xlims = [(-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5)]
+
+            if mode == 'h-h':
+                xlims = [(0.0, 0.1), (0.0, 3.0),
+                         (0.0, 0.1), (0.0, 3.0),
+                         (0.0, 0.1), (0.0, 3.0)]
+
+            # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+            # for num, ax in enumerate(g.axes.flatten()):
+            #     # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            #     ax.set_xlim(xlims[num])
+            #     ax.set_ylim(ylims[0])
+
+            # base_dir = 'fig/CFO-Performance/TimeSeries/Summation/Combine/'
+            # if mode == 'no_abs':
+            #     os.makedirs(base_dir + 'NoABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'NoABS/SummationCFO-Performance_NoABS_Combine_' + self.trajectory_type + '.png')
+            # elif mode == 'b_abs':
+            #     os.makedirs(base_dir + 'BeforeABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'BeforeABS/SummationCFO-Performance_BeforeABS_Combine_' + self.trajectory_type + '.png')
+            # elif mode == 'a_abs':
+            #     os.makedirs(base_dir + 'AfterABS/', exist_ok=True)
+            #     plt.savefig(base_dir + 'AfterABS/SummationCFO-Performance_AfterABS_Combine_' + self.trajectory_type + '.png')
+            plt.show()
+
+
+        return df
+
+    def time_series_performance_subtraction_ave_cfo_axis(self, graph=False, sigma: int = 'none', dec=1):
+        dyad_pp, dyad_rp, dyad_pf, dyad_rf = self.dyad_cfo.subtraction_cfo()
+        triad_pp, triad_rp, triad_pf, triad_rf = self.triad_cfo.subtraction_cfo()
+        tetrad_pp, tetrad_rp, tetrad_pf, tetrad_rf = self.tetrad_cfo.subtraction_cfo()
+        subtraction_3sec_datas = [
+            [dyad_pp, triad_pp, tetrad_pp],
+            [dyad_rp, triad_rp, tetrad_rp],
+            [dyad_pf, triad_pf, tetrad_pf],
+            [dyad_rf, triad_rf, tetrad_rf],
+        ]
+
+        error_ts_dyad_x, error_ts_dyad_y, error_dot_ts_dyad_x, error_dot_ts_dyad_y = self.dyad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_triad_x, error_ts_triad_y, error_dot_ts_triad_x, error_dot_ts_triad_y = self.triad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+        error_ts_tetrad_x, error_ts_tetrad_y, error_dot_ts_tetrad_x, error_dot_ts_tetrad_y = self.tetrad_cfo.time_series_performance_cooperation_axis(sigma=sigma)
+
+        performance = [
+            [error_ts_dyad_x, error_ts_dyad_y, error_dot_ts_dyad_x, error_dot_ts_dyad_y],
+            [error_ts_triad_x, error_ts_triad_y, error_dot_ts_triad_x, error_dot_ts_triad_y],
+            [error_ts_tetrad_x, error_ts_tetrad_y, error_dot_ts_tetrad_x, error_dot_ts_tetrad_y],
+        ]
+
+        size = ['Dyad', 'Triad', 'Tetrad']
+
+        performance_label = ['X Error', 'Y Error', 'X SE', 'Y SE']
+
+        types = ['Subtraction Pitch PCFO (Avg)', 'Subtraction Roll PCFO (Avg)', 'Subtraction Pitch FCFO (Avg)',
+                 'Subtraction Roll FCFO (Avg)']
+        ranges = [0.5, 0.5, 10.0, 10.0]
+
+        df_ = []
+        for i in range(len(size)):
+            for j in range(len(performance_label)):
+                for k in range(len(performance[i][j])):
+                    for l in range(len(subtraction_3sec_datas)):
+                        df_.append(pd.DataFrame({
+                            'CFO': subtraction_3sec_datas[l][i][k][::dec],
+                            'CFO_type': types[l],
+                            'Performance': performance[i][j][k][::dec],
+                            'Performance_type': performance_label[j],
+                            'Group Size': size[i],
+                            'Group': str(k + 1)
+                        })
+                        )
+
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        if graph:
+
+            kwargs = dict(
+                s=0.02,
+                alpha=0.6,
+            )
+
+
+            # FacetGridを作成してグラフを設定
+            # g = sns.FacetGrid(df, col="Performance_type", row="CFO_type", hue="Group Size", height=4, aspect=1.2, sharey=False,
+            #                   sharex=False, )
+            # g.map(plot_scatter, "Performance", "CFO", **kwargs)
+            # df = df[df['CFO'] > 0.01]
+            df = df[~df['CFO'].between(-0.01, 0.01)]
+
+            sns.lmplot(data=df, x='CFO', y='Performance', hue='Group Size', col='Performance_type', row='CFO_type',
+                       scatter_kws={'s': 0.05, 'alpha': 0.1}, height=4, aspect=1.2, order=5,
+                       sharey=False, sharex=False, line_kws={'lw': 2})
+
+            ylims = [(0, 1)]
+
+            xlims = [(-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5),
+                     (-0.015, 0.015), (-0.1, 0.5)]
+
+            # Iterate over the AxesSubplots in the FacetGrid object, and set the y limit individually
+            # for num, ax in enumerate(g.axes.flatten()):
+            #     # col_var = ax.get_title().split(" ")[-1]  # get the column variable from the title
+            #     ax.set_xlim(xlims[num])
+            #     ax.set_ylim(ylims[0])
+
+            # base_dir = 'fig/CFO-Performance/TimeSeries/Subtraction/Combine/'
+            # os.makedirs(base_dir, exist_ok=True)
+            # plt.savefig(base_dir + 'SubtractionCFO-Performance_Combine_' + self.trajectory_type + '.png')
+            plt.show()
+
+        return df
 
     def performance_deviation(self):
         error_period_dyad, spend_period_dyad = self.dyad_cfo.period_performance_cooperation()

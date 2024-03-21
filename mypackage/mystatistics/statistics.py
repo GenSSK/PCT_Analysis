@@ -7,10 +7,13 @@ from statannotations.Annotator import Annotator
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 
+# https://github.com/trevismd/statannotations
+# seaborn >= 0.9,<0.12
 
 # 二対比較検定
-def t_test(ax, pairs, data: pd.DataFrame, x="variable", y="value", test='t-test_ind'):
-    annotator = Annotator(ax, pairs, x=x, y=y, data=data, sym="")
+def t_test(ax, pairs, data: pd.DataFrame, x="variable", y="value",
+           hue=None, order=None, test='t-test_ind'):
+    annotator = Annotator(ax, pairs, x=x, y=y, hue=hue, order=order, data=data, sym="")
     annotator.configure(test=test, text_format='star', loc='inside')
     annotator.apply_and_annotate()
 
@@ -19,6 +22,10 @@ def t_test(ax, pairs, data: pd.DataFrame, x="variable", y="value", test='t-test_
 def t_test_multi(ax, pairs, data: pd.DataFrame, x="variable", y="value",
                  test='t-test_ind', comparisons_correction="Bonferroni"):
     # comparisons_correction="BH", "Bonferroni"
+    # Bonferroni
+    # Holm-Bonferroni
+    # Benjamini-Hochberg
+    # Benjamini-Yekutieli
 
     annotator = Annotator(ax, pairs, x=x, y=y, data=data, sym="")
     annotator.configure(test=test, text_format='star', loc='inside')
@@ -52,15 +59,21 @@ def anova(data: pd.DataFrame, variable='variable', value='value'):
 
 
 # 決定係数
-def r2_score(data1, data2):
-    sy2 = np.var(data2)  # データの分散
-    error = data1 - data2  # 誤差
-    syx2 = np.mean(error ** 2)  # 誤差の二乗平均
-    sr2 = sy2 - syx2  # 回帰の分散
-    r2 = sr2 / sy2  # 決定係数
+# def r2_score(data1, data2):
+#     sy2 = np.var(data2)  # データの分散
+#     error = data1 - data2  # 誤差
+#     syx2 = np.mean(error ** 2)  # 誤差の二乗平均
+#     sr2 = sy2 - syx2  # 回帰の分散
+#     r2 = sr2 / sy2  # 決定係数
+#
+#     return r2
+
+def r2_score(actual, predicted):
+    ssr = np.sum((actual - predicted) ** 2)  # 回帰変動
+    sst = np.sum((actual - np.mean(actual)) ** 2)  # 全変動
+    r2 = 1 - (ssr / sst)  # 決定係数
 
     return r2
-
 
 # ブートストラップ
 # data: nparray

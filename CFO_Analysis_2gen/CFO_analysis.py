@@ -39,33 +39,70 @@ def plot_scatter(x, y, color, **kwargs):
 
 
 class CFO:
-    def __init__(self, cfo_data, group_type):
+    def __init__(self, cfo_data, group_type, trajectory_type):
         self.group_type = group_type
-
+        self.trajectory_type = trajectory_type
         self.cfo = cfo_data
 
         self.smp = 0.0001  # サンプリング時間
-        if (self.group_type == 'triad'):
-            self.duringtime = self.cfo[0]['duringtime'][0]  # ターゲットの移動時間
-            self.starttime = self.cfo[0]['starttime'][0]  # タスク開始時間
-            self.endtime = self.cfo[0]['endtime'][0]  # タスク終了時間
-        else:
-            self.duringtime = 3.0  # ターゲットの移動時間
-            self.starttime = 20.0  # タスク開始時間
-            self.endtime = 80.0  # タスク終了時間
+        self.duringtime = self.cfo[0]['duringtime'][0]  # ターゲットの移動時間
+        remove_count_from_start = 0
+        remove_count_from_end = 0
+        if trajectory_type == 'Circle':
+            remove_count_from_start = 1.0
+            remove_count_from_end = 0.0
+        elif trajectory_type == 'Lemniscate':
+            remove_count_from_start = 2.0
+            remove_count_from_end = 0.0
+            self.duringtime = self.duringtime / 2.0
+        elif trajectory_type == 'RoseCurve':
+            remove_count_from_start = 4.0
+            remove_count_from_end = 0.0
+            self.duringtime = self.duringtime / 4.0
+        elif trajectory_type == 'Random':
+            remove_count_from_start =  10.0
+            remove_count_from_end = 0.0
+        elif trajectory_type == 'Discrete_Random':
+            remove_count_from_start = 9.0
+            remove_count_from_end = 0.0
+
+        self.starttime = self.cfo[0]['starttime'][0] + remove_count_from_start * self.duringtime  # タスク開始時間
+        self.endtime = self.cfo[0]['endtime'][0] - remove_count_from_end * self.duringtime  # タスク終了時間
+        if self.trajectory_type == 'Discrete_Random':
+            self.endtime -= 2.0
         self.tasktime = self.endtime - self.starttime  # タスクの時間
         self.period = int(self.tasktime / self.duringtime)  # 回数
         self.num = int(self.duringtime / self.smp)  # 1ピリオドにおけるデータ数
         self.start_num = int((self.starttime - 20.0) / self.smp)
         self.end_num = int((self.endtime - 20.0) / self.smp)
-        self.nn_read_flag = False
-        self.join = self.cfo_each[0]['join'][0]
-        if self.group_type == 'triad':
-            self.tasktype = ''.join(chr(char) for char in self.cfo[0]['tasktype'])
-            self.controltype = ''.join(chr(char) for char in self.cfo[0]['controltype'])
+        self.join = self.cfo[0]['join'][0]
+        self.tasktype = ''.join(chr(char) for char in self.cfo[0]['tasktype'])
+        self.controltype = ''.join(chr(char) for char in self.cfo[0]['controltype'])
         # print(self.join)
 
-        plt.rcParams['font.family'] = 'Times New Roman'
+        self.group_dir = ""
+        if str(self.group_type) == 'dyad':
+            self.group_dir = 'dyad/'
+        elif str(self.group_type) == 'triad':
+            self.group_dir = 'triad/'
+        elif str(self.group_type) == 'tetrad':
+            self.group_dir = 'tetrad/'
+
+        self.trajectory_dir = ""
+        if str(self.trajectory_type) == 'Circle':
+            self.trajectory_dir = 'Circle/'
+        elif str(self.trajectory_type) == 'Lemniscate':
+            self.trajectory_dir = 'Lemniscate/'
+        elif str(self.trajectory_type) == 'RoseCurve':
+            self.trajectory_dir = 'RoseCurve/'
+        elif str(self.trajectory_type) == 'Random':
+            self.trajectory_dir = 'Random/'
+        elif str(self.trajectory_type) == 'Discrete_Random':
+            self.trajectory_dir = 'DiscreteRandom/'
+
+        # plt.rcParams['font.family'] = 'Times New Roman'
+        plt.rcParams['font.family']= 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Arial']
         plt.rcParams['mathtext.default'] = 'regular'
         plt.rcParams['xtick.top'] = 'True'
         plt.rcParams['ytick.right'] = 'True'
@@ -94,6 +131,15 @@ class CFO:
         # plt.rcParams['savefig.bbox'] = 'tight'
         plt.rcParams['pdf.fonttype'] = 42  # PDFにフォントを埋め込むためのパラメータ
 
+    def get_time(self):
+        data = self.cfo[0]
+        return data['time'][self.start_num:self.end_num]-20.0
+    def get_starttime(self):
+        return self.starttime-20.0
+
+    def get_endtime(self):
+        return self.endtime-20.0
+
     def show_prediction(self):
         variable_label = ['thm', 'text']
         rp_label = ['_r', '_p']
@@ -110,10 +156,10 @@ class CFO:
 
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            fig, ax = plt.subplots(3, 2, figsize=(15, 10), dpi=150)
+            fig, ax = plt.subplots(3, 2, figsize=(15, 10), dpi=150, sharex=True)
 
-            plt.xticks(np.arange(self.starttime, self.endtime * 2, self.duringtime * 2))
-            plt.xlim([self.starttime, self.endtime])  # x軸の範囲
+            plt.xticks(np.arange(self.starttime-20.0, (self.endtime-20.0) * 2, self.duringtime))
+            plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
             ax[0, 1].set_xlabel("Time (sec)")
             ax[1, 1].set_xlabel("Time (sec)")
 
@@ -129,7 +175,7 @@ class CFO:
                             lw = lws[m]
                             lt = lts[m]
                             disp_name = interfacenum  + rp + '_' + v + vo
-                            ax[k, l].plot(data['time'][self.start_num:self.end_num:10],
+                            ax[k, l].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                                           data[disp_name][self.start_num:self.end_num:10],
                                           lt, lw=lw,
                                           label='P' + str(j + 1) + vo)
@@ -140,17 +186,17 @@ class CFO:
                 ax[2, j].set_ylabel(axis + "-axis Position (m)")
                 # ax[2, j].set_yticks(np.arange(-0.2, 0.2, 0.05))
                 ax[2, j].set_ylim([-0.5, 0.5])  # y軸の範囲
-                ax[2, j].plot(data['time'][self.start_num:self.end_num:10],
+                ax[2, j].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                               data['target' + axis][self.start_num:self.end_num:10],
                               '-', lw=2.0,
                               label='Target')
-                ax[2, j].plot(data['time'][self.start_num:self.end_num:10],
+                ax[2, j].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                               data['ball' + axis][self.start_num:self.end_num:10],
                               '-', lw=2.0,
                               label='H-H')
                 for k in range(self.join):
                     interfacenum = 'i' + str(k + 1)
-                    ax[2, j].plot(data['time'][self.start_num:self.end_num:10],
+                    ax[2, j].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                                   data[interfacenum + '_ball' + axis + '_pre'][self.start_num:self.end_num:10],
                                   '--', lw=1.0,
                                   label='Model' + str(k + 1))
@@ -167,21 +213,21 @@ class CFO:
 
             fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10],
+            x.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['targetx'][self.start_num:self.end_num:10],
                    label='Target')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10],
+            x.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['ballx'][self.start_num:self.end_num:10],
                    label='Ball(H-H)')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['i1_ballx_pre'][self.start_num:self.end_num:10],
+            x.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['i1_ballx_pre'][self.start_num:self.end_num:10],
                    label='Ball(M-M)')
             x.set_ylabel('X-axis Position (m)')
             x.legend(ncol=2, columnspacing=1, loc='upper left')
             x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10],
+            y.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['targety'][self.start_num:self.end_num:10],
                    label='Target')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10],
+            y.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['bally'][self.start_num:self.end_num:10],
                    label='Ball(H-H)')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['i1_bally_pre'][self.start_num:self.end_num:10],
+            y.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['i1_bally_pre'][self.start_num:self.end_num:10],
                    label='Ball(M-M)')
             y.set_ylabel('Y-axis Position (m)')
             y.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -207,12 +253,12 @@ class CFO:
 
             fig, (x, y) = plt.subplots(2, 1, figsize=(5, 5), dpi=150, sharex=True)
 
-            x.plot(data['time'][self.start_num:self.end_num:10], data['targetx'][self.start_num:self.end_num:10],
+            x.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['targetx'][self.start_num:self.end_num:10],
                    label='Target')
-            x.plot(data['time'][self.start_num:self.end_num:10], data['ballx'][self.start_num:self.end_num:10],
+            x.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['ballx'][self.start_num:self.end_num:10],
                    label='Ball(H-H)')
             for j in range(self.join):
-                x.plot(data['time'][self.start_num:self.end_num:10],
+                x.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                        data['i' + str(j + 1) + '_ballx_pre'][self.start_num:self.end_num:10],
                        label='Ball(solo' + str(j + 1) + ')')
 
@@ -220,12 +266,12 @@ class CFO:
             x.legend(ncol=2, columnspacing=1, loc='upper left')
             x.set_ylim([-0.2, 0.2])  # y軸の範囲
 
-            y.plot(data['time'][self.start_num:self.end_num:10], data['targety'][self.start_num:self.end_num:10],
+            y.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['targety'][self.start_num:self.end_num:10],
                    label='Target')
-            y.plot(data['time'][self.start_num:self.end_num:10], data['bally'][self.start_num:self.end_num:10],
+            y.plot(data['time'][self.start_num:self.end_num:10]-20.0, data['bally'][self.start_num:self.end_num:10],
                    label='Ball(H-H)')
             for j in range(self.join):
-                y.plot(data['time'][self.start_num:self.end_num:10],
+                y.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                        data['i' + str(j + 1) + '_bally_pre'][self.start_num:self.end_num:10],
                        label='Ball(solo' + str(j + 1) + ')')
             # y.plot(data['pre_time'], data['pre_ball_x'], label='pre_bally')
@@ -347,16 +393,16 @@ class CFO:
                 for i in range(self.join):
                     inum = 'i' + str(i + 1)
                     plot_name = inum + '_' + mode + '_' + k[1]
-                    ax[k[0]].plot(data['time'][self.start_num:self.end_num:10],
+                    ax[k[0]].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                                   data[plot_name][self.start_num:self.end_num:10],
                                   label=k[2] + ' (P' + str(i + 1) + ')')
 
             for k in cfo_name:
-                ax[k[0]].plot(data['time'][self.start_num:self.end_num:10],
+                ax[k[0]].plot(data['time'][self.start_num:self.end_num:10]-20.0,
                               k[rorp + 1][j][self.start_num:self.end_num:10], label=k[3])
 
             # for k in data_name:
-            #     ax[k[0]].plot(data['time'][self.start_num:self.end_num:10], data[k[1]][self.start_num:self.end_num:10], label=k[2])
+            #     ax[k[0]].plot(data['time'][self.start_num:self.end_num:10]-20.0, data[k[1]][self.start_num:self.end_num:10], label=k[2])
 
             for k in range(len(ax)):
                 ax[k].legend(ncol=2, loc='upper right', fontsize=6)
@@ -382,6 +428,8 @@ class CFO:
 
             # plt.xlim([10, 60])  # x軸の範囲
             # plt.xlim([0.28, 0.89])  # x軸の範囲
+            plt.xticks(np.arange(self.starttime-20.0, (self.endtime-20.0) * 2, self.duringtime))
+            plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
             plt.xlabel("Time (sec)")
 
             for i in range(self.join):
@@ -389,17 +437,17 @@ class CFO:
                 pcfoname = interfacenum + '_p_pcfo'
                 fcfoname = interfacenum + '_p_fcfo'
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
 
                 pcfoname = interfacenum + '_r_pcfo'
                 fcfoname = interfacenum + '_r_fcfo'
 
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
 
             ppcfo.set_ylabel('Pitch PCFO (rad)')
@@ -485,7 +533,7 @@ class CFO:
             for i, cfo in enumerate(summation):
                 for j in range(len(self.cfo)):
                     data = self.cfo[j]
-                    ax[i].plot(data['time'][self.start_num:self.end_num:10], cfo[j][::10], label='Group' + str(j + 1))
+                    ax[i].plot(data['time'][self.start_num:self.end_num:10]-20.0, cfo[j][::10], label='Group' + str(j + 1))
                     ax[i].set_ylabel(ylabels[i])
                     ax[i].legend(ncol=10, columnspacing=1, loc='upper left')
                     ax[i].set_yticks(ytics[i])
@@ -559,9 +607,9 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                pcfo.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                pcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[0][i][::10],
                            label='Group' + str(i + 1))
-                fcfo.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                fcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[1][i][::10],
                            label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Summation PCFO (rad)')
@@ -671,7 +719,7 @@ class CFO:
             for i, cfo in enumerate(subtraction):
                 for j in range(len(self.cfo)):
                     data = self.cfo[j]
-                    ax[i].plot(data['time'][self.start_num:self.end_num:10], cfo[j][::10], label='Group' + str(j + 1))
+                    ax[i].plot(data['time'][self.start_num:self.end_num:10]-20.0, cfo[j][::10], label='Group' + str(j + 1))
                     ax[i].set_ylabel(ylabels[i])
                     ax[i].legend(ncol=10, columnspacing=1, loc='upper left')
                     ax[i].set_yticks(ytics[i])
@@ -764,9 +812,9 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                pcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10],
+                pcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[0][i][::10],
                           label='Group' + str(i + 1))
-                fcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10],
+                fcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[1][i][::10],
                           label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Subtraction PCFO (rad)')
@@ -811,32 +859,405 @@ class CFO:
 
         return error, spent
 
-    def period_performance(self, mode='H-H', graph=False):
-        error_period = []
-        spent_period = []
+    def time_series_performance_calc(self, data, ballx, bally, ballx_dot, bally_dot):
+        error = np.sqrt(
+            (data['targetx'][self.start_num:self.end_num] - ballx[self.start_num:self.end_num]) ** 2
+            + (data['targety'][self.start_num:self.end_num] - bally[self.start_num:self.end_num]) ** 2)
+
+        error_dot = np.sqrt(
+            (data['targetx_dot'][self.start_num:self.end_num] - ballx_dot[self.start_num:self.end_num]) ** 2
+            + (data['targety_dot'][self.start_num:self.end_num] - bally_dot[self.start_num:self.end_num]) ** 2)
+
+        return error, error_dot
+
+
+    def time_series_performance_calc_axis(self, data, ballx, bally, ballx_dot, bally_dot):
+        error_x = np.abs(data['targetx'][self.start_num:self.end_num] - ballx[self.start_num:self.end_num])
+        error_y = np.abs(data['targety'][self.start_num:self.end_num] - bally[self.start_num:self.end_num])
+
+        error_dot_x = np.abs(data['targetx_dot'][self.start_num:self.end_num] - ballx_dot[self.start_num:self.end_num])
+        error_dot_y = np.abs(data['targety_dot'][self.start_num:self.end_num] - bally_dot[self.start_num:self.end_num])
+
+        return error_x, error_y, error_dot_x, error_dot_y
+
+    def time_series_performance(self, mode='H-H', sigma: int = 'none', graph=False):
+        error_ts = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_dot_ts = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_ts_ave = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_ave = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_ts_best = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_best = np.zeros((len(self.cfo), self.end_num-self.start_num))
         for i in range(len(self.cfo)):
             data = self.cfo[i]
-            if mode == 'H-H':
-                error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
-            elif mode == 'M-M':
-                error, spent = CFO.performance_calc(self, data, data['ballx_pre'], data['bally_pre'])
-            error_reshape = error.reshape([self.period, self.num])  # [回数][データ]にわける
-            # error_period = np.sum(error_reshape, axis=1) # 回数ごとに足す
-            error_period.append(np.sum(error_reshape, axis=1) / self.num)
+            best_join = 0
+            best_error = 100
+            for j in range(self.join):
+                interface = 'i' + str(j + 1)
+                if mode == 'H-H':
+                    error, error_dot = CFO.time_series_performance_calc(self, data,
+                                                            data['ballx'], data['bally'],
+                                                            data['ballx_dot'], data['bally_dot'])
+                elif mode == 'M-M':
+                    error, error_dot = CFO.time_series_performance_calc(self, data,
+                                                            data[interface+'_ballx_pre'], data[interface+'_bally_pre'],
+                                                            data[interface+'_ballx_pre_dot'], data[interface+'_bally_pre_dot'])
+                if sigma == 'none':
+                    error_ts[i][j] = error
+                    error_dot_ts[i][j] = error_dot
+                else:
+                    error_ts[i][j] = gaussian_filter(error, sigma=sigma)
+                    error_dot_ts[i][j] = gaussian_filter(error_dot, sigma=sigma)
 
-            spent_reshape = spent.reshape([self.period, self.num])
-            spent_period_ = np.sum(spent_reshape, axis=1)
-            # spent_period = spent_period_ * self.smp
-            spent_period.append(spent_period_ * self.smp)
+                if np.average(error) < best_error:
+                    best_error = np.average(error, axis=0)
+                    best_join = j
+
+            error_ts_ave[i] = np.average(error_ts[i], axis=0)
+            error_dot_ts_ave[i] = np.average(error_dot_ts[i], axis=0)
+            error_ts_best[i] = error_ts[i][best_join]
+            error_dot_ts_best[i] = error_dot_ts[i][best_join]
+
+            if graph:
+                fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+                labels = ['Error (m)', 'Error speed (m/s$^2$)']
+                performance = [error_ts[i], error_dot_ts[i]]
+                performance_ave = [error_ts_ave[i], error_dot_ts_ave[i]]
+                ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | ' + self.trajectory_type + ' | Group' + str(i + 1))
+                for j, label in enumerate(labels):
+                    if mode == 'H-H':
+                        ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance_ave[j][::10])
+                    else:
+                        ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance_ave[j][::10], label='Average', lw=2)
+                        for k in range(self.join):
+                            ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance[j][k][::10], label='Model' + str(k + 1))
+                        ax[j].legend(ncol=10, columnspacing=1)
+                    ax[j].set_ylabel(label)
+                    if j == 0:
+                        ax[j].set_ylim([0, 0.1])
+                    elif j == 1:
+                        ax[j].set_ylim([0, 0.1])
+                ax[1].set_xlim(self.starttime-20.0, self.endtime-20.0)
+                ax[1].set_xlabel('Time (sec)')
+
+                base_dir = 'fig/Performance/TimeSeries/Group/'
+
+                if mode == 'H-H':
+                    mode_dir = 'Human-Human/'
+                elif mode == 'M-M':
+                    mode_dir = 'Model-Model/'
+
+                os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_TimeSeries_'
+                            + mode + '_' + self.trajectory_type + '_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
+
+        if graph:
+            fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+            labels = ['Error (m)', 'Error speed (m/s$^2$)']
+            ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | ' + self.trajectory_type)
+            for i in range(len(self.cfo)):
+                performance = [error_ts_ave[i], error_dot_ts_ave[i]]
+                for j, label in enumerate(labels):
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance[j][::10], label='Group' + str(i + 1))
+                    ax[j].set_ylabel(label)
+                    ax[j].legend(ncol=10, columnspacing=1)
+                    if j == 0:
+                        ax[j].set_ylim([0, 0.1])
+                    elif j == 1:
+                        ax[j].set_ylim([0, 0.1])
+                ax[1].set_xlim(self.starttime-20.0, self.endtime-20.0)
+                ax[1].set_xlabel('Time (sec)')
+
+                if mode == 'H-H':
+                    mode_dir = 'Human-Human/'
+                elif mode == 'M-M':
+                    mode_dir = 'Model-Model/'
+
+                base_dir = 'fig/Performance/TimeSeries/'
+                os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_TimeSeries_'
+                            + mode + '_' + self.trajectory_type + '_' + str(self.group_type) + '.png')
+            plt.show()
+
+        # return error_ts_ave, error_dot_ts_ave
+        return error_ts_best, error_dot_ts_best
+
+    def time_series_performance_axis(self, mode='H-H', sigma: int = 'none', graph=False):
+        error_ts_x = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_ts_y = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_dot_ts_x = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_dot_ts_y = np.zeros((len(self.cfo), self.join, self.end_num-self.start_num))
+        error_ts_ave_x = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_ts_ave_y = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_ave_x = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_ave_y = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_ts_best_x = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_ts_best_y = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_best_x = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        error_dot_ts_best_y = np.zeros((len(self.cfo), self.end_num-self.start_num))
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            best_join = 0
+            best_error = 100
+            for j in range(self.join):
+                interface = 'i' + str(j + 1)
+                if mode == 'H-H':
+                    error_x, error_y, error_dot_x, error_dot_y = CFO.time_series_performance_calc_axis(self, data,
+                                                                                                       data['ballx'], data['bally'],
+                                                                                                       data['ballx_dot'], data['bally_dot'])
+                elif mode == 'M-M':
+                    error_x, error_y, error_dot_x, error_dot_y = CFO.time_series_performance_calc_axis(self, data,
+                                                                                                       data[interface+'_ballx_pre'], data[interface+'_bally_pre'],
+                                                                                                       data[interface+'_ballx_pre_dot'], data[interface+'_bally_pre_dot'])
+                if sigma == 'none':
+                    error_ts_x[i][j] = error_x
+                    error_ts_y[i][j] = error_y
+                    error_dot_ts_x[i][j] = error_dot_x
+                    error_dot_ts_y[i][j] = error_dot_y
+                else:
+                    error_ts_x[i][j] = gaussian_filter(error_x, sigma=sigma)
+                    error_ts_y[i][j] = gaussian_filter(error_y, sigma=sigma)
+                    error_dot_ts_x[i][j] = gaussian_filter(error_dot_x, sigma=sigma)
+                    error_dot_ts_y[i][j] = gaussian_filter(error_dot_y, sigma=sigma)
+
+                if np.average(error_x) < best_error:
+                    best_error = np.average(error_x, axis=0)
+                    best_join = j
+
+            error_ts_ave_x[i] = np.average(error_ts_x[i], axis=0)
+            error_ts_ave_y[i] = np.average(error_ts_y[i], axis=0)
+            error_dot_ts_ave_x[i] = np.average(error_dot_ts_x[i], axis=0)
+            error_dot_ts_ave_y[i] = np.average(error_dot_ts_y[i], axis=0)
+            error_ts_best_x[i] = error_ts_x[i][best_join]
+            error_ts_best_y[i] = error_ts_y[i][best_join]
+            error_dot_ts_best_x[i] = error_dot_ts_x[i][best_join]
+            error_dot_ts_best_y[i] = error_dot_ts_y[i][best_join]
+
+        # return error_ts_ave, error_dot_ts_ave
+        return error_ts_best_x, error_ts_best_y, error_dot_ts_best_x, error_dot_ts_best_y
+
+    def time_series_performance_cooperation(self, sigma: int = 'none', graph=False):
+        error_ts_human, error_dot_ts_human = CFO.time_series_performance(self, mode='H-H', sigma=sigma)
+        error_ts_model, error_dot_ts_model = CFO.time_series_performance(self, mode='M-M', sigma=sigma)
+
+        error_ts = np.subtract(error_ts_human, error_ts_model)
+        error_dot_ts = np.subtract(error_dot_ts_human, error_dot_ts_model)
+
+        if graph:
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+                fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+                labels = ['Error (m)', 'Error speed (m/s$^2$)']
+                performance_h = [error_ts_human[i], error_dot_ts_human[i]]
+                performance_m = [error_ts_model[i], error_dot_ts_model[i]]
+                ax[0].set_title(str(self.group_type) + ' | Cooperation | ' + self.trajectory_type + ' | Group' + str(i + 1))
+                for j, label in enumerate(labels):
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance_h[j][::10], label='H-H')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance_m[j][::10], label='M-M')
+                    ax[j].legend(ncol=10, columnspacing=1)
+                    ax[j].set_ylabel(label)
+                    if j == 0:
+                        ax[j].set_ylim([0, 0.1])
+                    elif j == 1:
+                        ax[j].set_ylim([0, 0.1])
+                ax[1].set_xlim(self.starttime-20.0, self.endtime-20.0)
+                ax[1].set_xlabel('Time (sec)')
+
+                base_dir = 'fig/Performance/TimeSeries/Group/'
+
+                os.makedirs(base_dir + self.group_dir + self.trajectory_dir + 'Cooperation/', exist_ok=True)
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + 'Cooperation/' + 'Performance_TimeSeries_'
+                            + 'Group' + str(i + 1) + '_' + self.trajectory_type + '_' + str(self.group_type) + '.png')
+
+            fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+            labels = ['Error (m)', 'Error speed (m/s$^2$)']
+            ax[0].set_title(str(self.group_type) + ' | Cooperation | ' + self.trajectory_type)
+            for i in range(len(self.cfo)):
+                data = self.cfo[i]
+                performance = [error_ts[i], error_dot_ts[i]]
+                for j, label in enumerate(labels):
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, performance[j][::10], label='Group' + str(i + 1))
+                    ax[j].set_ylabel(label)
+                    ax[j].legend(ncol=10, columnspacing=1, loc='upper left')
+                    if j == 0:
+                        ax[j].set_ylim([-0.02, 0.02])
+                    elif j == 1:
+                        ax[j].set_ylim([-0.04, 0.04])
+                ax[1].set_xlim(self.starttime-20.0, self.endtime-20.0)
+                ax[1].set_xlabel('Time (sec)')
+
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + 'Cooperation/' + 'Performance_TimeSeries_'
+                            + 'Cooperation_' + '_' + self.trajectory_type + '_' + str(self.group_type) + '.png')
+            plt.show()
+
+        return error_ts, error_dot_ts
+
+    def time_series_performance_cooperation_axis(self, sigma: int = 'none', graph=False):
+        error_ts_human_x, error_ts_human_y, error_dot_ts_human_x, error_dot_ts_human_y = CFO.time_series_performance_axis(self, mode='H-H', sigma=sigma)
+        error_ts_model_x, error_ts_model_y, error_dot_ts_model_x, error_dot_ts_model_y = CFO.time_series_performance_axis(self, mode='M-M', sigma=sigma)
+
+        error_ts_x = np.subtract(error_ts_human_x, error_ts_model_x)
+        error_ts_y = np.subtract(error_ts_human_y, error_ts_model_y)
+        error_dot_ts_x = np.subtract(error_dot_ts_human_x, error_dot_ts_model_x)
+        error_dot_ts_y = np.subtract(error_dot_ts_human_y, error_dot_ts_model_y)
+
+        return error_ts_x, error_ts_y, error_dot_ts_x, error_dot_ts_y
+
+
+    def period_performance_New(self, mode='H-H', sigma: int = 'none', graph=False): #TODO will be marge with period_performance
+        error_period = np.zeros((len(self.cfo), self.join, self.period))
+        error_dot_period = np.zeros((len(self.cfo), self.join, self.period))
+        error_period_ave = np.zeros((len(self.cfo), self.period))
+        error_dot_period_ave = np.zeros((len(self.cfo), self.period))
+        error_period_best = np.zeros((len(self.cfo), self.period))
+        error_dot_period_best = np.zeros((len(self.cfo), self.period))
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            best_join = 0
+            best_error = 10000
+            # best_error_dot = 10000
+            for j in range(self.join):
+                interface = 'i' + str(j + 1)
+                if mode == 'H-H':
+                    error, error_dot = CFO.time_series_performance_calc(self, data,
+                                                                        data['ballx'], data['bally'],
+                                                                        data['ballx_dot'], data['bally_dot'])
+                elif mode == 'M-M':
+                    error, error_dot = CFO.time_series_performance_calc(self, data,
+                                                                        data[interface+'_ballx_pre'], data[interface+'_bally_pre'],
+                                                                        data[interface+'_ballx_pre_dot'], data[interface+'_bally_pre_dot'])
+                if sigma == 'none':
+                    pass
+                else:
+                    error = gaussian_filter(error, sigma=sigma)
+                    error_dot = gaussian_filter(error_dot, sigma=sigma)
+                error_period[i][j] = error.reshape([self.period, -1]).mean(axis=1)
+                error_dot_period[i][j] = error_dot.reshape([self.period, -1]).mean(axis=1)
+
+
+                if np.average(error) < best_error:
+                    best_error = np.average(error, axis=0)
+                    best_join = j
+
+            error_period_ave[i] = np.average(error_period[i], axis=0)
+            error_dot_period_ave[i] = np.average(error_dot_period[i], axis=0)
+            error_period_best[i] = error_period[i][best_join]
+            error_dot_period_best[i] = error_dot_period[i][best_join]
+
+            if graph:
+                fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+                labels = ['Error (m)', 'Error speed (m/s$^2$)']
+                performance = [error_period[i], error_dot_period[i]]
+                performance_ave = [error_period_ave[i], error_dot_period_ave[i]]
+                performance_best = [error_period_best[i], error_dot_period_best[i]]
+                ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | ' + self.trajectory_type+ ' | Group' + str(i + 1))
+                for j, label in enumerate(labels):
+                    if mode == 'H-H':
+                        ax[j].plot(np.arange(self.period) + 1, performance_ave[j])
+                        ax[j].scatter(np.arange(self.period) + 1, performance_ave[j], s=5, marker='x')
+                    else:
+                        ax[j].plot(np.arange(self.period) + 1, performance_ave[j], label='Average')
+                        ax[j].scatter(np.arange(self.period) + 1, performance_ave[j], s=5, marker='x')
+                        for k in range(self.join):
+                            ax[j].plot(np.arange(self.period) + 1, performance[j][k], label='Model' + str(k + 1))
+                            ax[j].scatter(np.arange(self.period) + 1, performance[j][k], s=5, marker='x')
+                        ax[j].plot(np.arange(self.period) + 1, performance_best[j], label='Best')
+                        ax[j].scatter(np.arange(self.period) + 1, performance_best[j], s=5, marker='x')
+                        ax[j].legend(ncol=10, columnspacing=1)
+                    ax[j].set_ylabel(label)
+                    if j == 0:
+                        ax[j].set_ylim([0, 0.1])
+                    elif j == 1:
+                        ax[j].set_ylim([0, 0.1])
+                ax[1].set_xticks(np.arange(1, self.period + 1, 1))
+                ax[1].set_xlim(0, self.period + 1)
+                ax[1].set_xlabel('Period')
+
+                base_dir = 'fig/Performance/Period/Group/'
+
+                if mode == 'H-H':
+                    mode_dir = 'Human-Human/'
+                elif mode == 'M-M':
+                    mode_dir = 'Model-Model/'
+
+                # os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                # plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_Period_'
+                #             + mode + '_' + self.trajectory_type + '_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
+
+        if graph:
+            fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
+            labels = ['Error (m)', 'Error speed (m/s$^2$)']
+            ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | ' + self.trajectory_type)
+            for i in range(len(self.cfo)):
+                # performance = [error_period_ave[i], error_dot_period_ave[i]]
+                performance = [error_period_best[i], error_dot_period_best[i]]
+                for j, label in enumerate(labels):
+                    ax[j].plot(np.arange(self.period) + 1, performance[j], label='Group' + str(i + 1))
+                    ax[j].scatter(np.arange(self.period) + 1, performance[j], s=5, marker='x')
+                    ax[j].set_ylabel(label)
+                    ax[j].legend(ncol=10, columnspacing=1)
+                    if j == 0:
+                        ax[j].set_ylim([0, 0.1])
+                    elif j == 1:
+                        ax[j].set_ylim([0, 0.1])
+                ax[1].set_xticks(np.arange(1, self.period + 1, 1))
+                ax[1].set_xlim(0, self.period + 1)
+                ax[1].set_xlabel('Period')
+
+                if mode == 'H-H':
+                    mode_dir = 'Human-Human/'
+                elif mode == 'M-M':
+                    mode_dir = 'Model-Model/'
+
+                # base_dir = 'fig/Performance/Period/'
+                # os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                # plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_Period_'
+                #             + mode + '_' + self.trajectory_type + '_' + str(self.group_type) + '.png')
+            plt.show()
+
+        # return error_period_ave, error_dot_period_ave
+        return error_period_best, error_dot_period_best
+
+
+    def period_performance(self, mode='H-H', graph=False):
+        error_period = np.zeros((len(self.cfo), self.join, self.period))
+        error_period_ave = np.zeros((len(self.cfo), self.period))
+        spent_period = np.zeros((len(self.cfo), self.join, self.period))
+        spent_period_ave = np.zeros((len(self.cfo), self.period))
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            for j in range(self.join):
+                interface = 'i' + str(j + 1)
+                if mode == 'H-H':
+                    error, spent = CFO.performance_calc(self, data, data['ballx'], data['bally'])
+                elif mode == 'M-M':
+                    error, spent = CFO.performance_calc(self, data, data[interface+'_ballx_pre'], data[interface+'_bally_pre'])
+                error_reshape = error.reshape([self.period, self.num])  # [回数][データ]にわける
+                error_period[i][j] = np.sum(error_reshape, axis=1) / self.num
+
+                spent_reshape = spent.reshape([self.period, self.num])
+                spent_period_ = np.sum(spent_reshape, axis=1)
+                spent_period[i][j] = spent_period_ * self.smp / self.duringtime
+
+            spent_period_ave = np.average(spent_period, axis=1)
+            error_period_ave = np.average(error_period, axis=1)
 
             if graph:
                 fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
                 labels = ['Error (m)', 'Time (sec)']
                 performance = [error_period[i], spent_period[i]]
+                performance_ave = [error_period_ave[i], spent_period_ave[i]]
                 ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | Group' + str(i + 1))
                 for j, label in enumerate(labels):
-                    ax[j].plot(np.arange(self.period) + 1, performance[j])
-                    ax[j].scatter(np.arange(self.period) + 1, performance[j], s=5, marker='x')
+                    if mode == 'H-H':
+                        ax[j].plot(np.arange(self.period) + 1, performance_ave[j])
+                        ax[j].scatter(np.arange(self.period) + 1, performance_ave[j], s=5, marker='x')
+                    else:
+                        ax[j].plot(np.arange(self.period) + 1, performance_ave[j], label='Average')
+                        ax[j].scatter(np.arange(self.period) + 1, performance_ave[j], s=5, marker='x')
+                        for k in range(self.join):
+                            ax[j].plot(np.arange(self.period) + 1, performance[j][k], label='Model' + str(i + 1))
+                            ax[j].scatter(np.arange(self.period) + 1, performance[j][k], s=5, marker='x')
+                        ax[j].legend(ncol=10, columnspacing=1)
                     ax[j].set_ylabel(label)
                     if j == 0:
                         ax[j].set_ylim([0, 0.1])
@@ -846,26 +1267,21 @@ class CFO:
                 ax[1].set_xlim(0, self.period + 1)
                 ax[1].set_xlabel('Period')
 
-                base_dir = 'fig/Performance/TimeSeries/Group/'
-                if str(self.group_type) == 'dyad':
-                    group_dir = 'dyad/'
-                elif str(self.group_type) == 'triad':
-                    group_dir = 'triad/'
-                elif str(self.group_type) == 'tetrad':
-                    group_dir = 'tetrad/'
+                base_dir = 'fig/Performance/Period/Group/'
+
                 if mode == 'H-H':
                     mode_dir = 'Human-Human/'
                 elif mode == 'M-M':
                     mode_dir = 'Model-Model/'
 
-                os.makedirs(base_dir + group_dir + mode_dir, exist_ok=True)
-                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_TimeSeries_'
-                            + mode + '_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
+                os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_Period_'
+                            + mode + '_' + self.trajectory_type + '_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
-        if graph == True:
+        if graph:
             fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
             labels = ['Error (m)', 'Time (sec)']
-            ax[0].set_title(str(self.group_type) + ' | ' + mode)
+            ax[0].set_title(str(self.group_type) + ' | ' + mode + ' | ' + self.trajectory_type)
             for i in range(len(self.cfo)):
                 performance = [error_period[i], spent_period[i]]
                 for j, label in enumerate(labels):
@@ -881,11 +1297,19 @@ class CFO:
                 ax[1].set_xlim(0, self.period + 1)
                 ax[1].set_xlabel('Period')
 
-                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_TimeSeries_'
-                            + mode + '_' + str(self.group_type) + '.png')
+                if mode == 'H-H':
+                    mode_dir = 'Human-Human/'
+                elif mode == 'M-M':
+                    mode_dir = 'Model-Model/'
+
+                base_dir = 'fig/Performance/Period/'
+                os.makedirs(base_dir + self.group_dir + self.trajectory_dir + mode_dir, exist_ok=True)
+                plt.savefig(base_dir + self.group_dir + self.trajectory_dir + mode_dir + 'Performance_Period_'
+                            + mode + '_' + self.trajectory_type + '_' + str(self.group_type) + '.png')
             plt.show()
 
-        return error_period, spent_period
+        return error_period_ave, spent_period_ave
+
 
     def period_performance_cooperation(self, graph=False):
         error_period_human, spent_period_human = CFO.period_performance(self, mode='H-H')
@@ -916,7 +1340,7 @@ class CFO:
                 ax[1].set_xlim(0, self.period + 1)
                 ax[1].set_xlabel('Period')
 
-                base_dir = 'fig/Performance/TimeSeries/Group/'
+                base_dir = 'fig/Performance/Period/Group/'
                 if str(self.group_type) == 'dyad':
                     group_dir = 'dyad/'
                 elif str(self.group_type) == 'triad':
@@ -925,7 +1349,7 @@ class CFO:
                     group_dir = 'tetrad/'
 
                 os.makedirs(base_dir + group_dir + 'Cooperation/', exist_ok=True)
-                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_TimeSeries_'
+                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_Period_'
                             + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
             fig, ax = plt.subplots(2, 1, figsize=(10, 4), dpi=150, sharex=True)
@@ -946,7 +1370,7 @@ class CFO:
                 ax[1].set_xlim(0, self.period + 1)
                 ax[1].set_xlabel('Period')
 
-                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_TimeSeries_'
+                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_Period_'
                             + 'Cooperation_' + str(self.group_type) + '.png')
             plt.show()
 
@@ -1005,7 +1429,7 @@ class CFO:
                 ax[1].set_xlim(0, self.period + 1)
                 ax[1].set_xlabel('Period')
 
-                base_dir = 'fig/Performance/TimeSeries/Group/'
+                base_dir = 'fig/Performance/Period/Group/'
                 if str(self.group_type) == 'dyad':
                     group_dir = 'dyad/'
                 elif str(self.group_type) == 'triad':
@@ -1014,7 +1438,7 @@ class CFO:
                     group_dir = 'tetrad/'
 
                 # os.makedirs(base_dir + group_dir + 'Cooperation/', exist_ok=True)
-                # plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_TimeSeries_'
+                # plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_Period_'
                 #             + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
             plt.show()
@@ -1077,7 +1501,7 @@ class CFO:
                 ax[3].set_xlim(0, self.period + 1)
                 ax[3].set_xlabel('Period')
 
-                base_dir = 'fig/Performance/TimeSeries/EachAxis/Group/'
+                base_dir = 'fig/Performance/Period/EachAxis/Group/'
                 if str(self.group_type) == 'dyad':
                     group_dir = 'dyad/'
                 elif str(self.group_type) == 'triad':
@@ -1090,7 +1514,7 @@ class CFO:
                     mode_dir = 'Model-Model/'
 
                 os.makedirs(base_dir + group_dir + mode_dir, exist_ok=True)
-                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_TimeSeries_eachaxis_'
+                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_Period_eachaxis_'
                             + mode + '_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
         if graph == True:
@@ -1112,7 +1536,7 @@ class CFO:
                 ax[3].set_xticks(np.arange(1, self.period + 1, 1))
                 ax[3].set_xlim(0, self.period + 1)
                 ax[3].set_xlabel('Period')
-                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_TimeSeries_eachaxis_'
+                plt.savefig(base_dir + group_dir + mode_dir + 'Performance_Period_eachaxis_'
                             + mode + '_' + str(self.group_type) + '.png')
             plt.show()
 
@@ -1153,7 +1577,7 @@ class CFO:
                 ax[3].set_xlim(0, self.period + 1)
                 ax[3].set_xlabel('Period')
 
-                base_dir = 'fig/Performance/TimeSeries/EachAxis/Group/'
+                base_dir = 'fig/Performance/Period/EachAxis/Group/'
                 if str(self.group_type) == 'dyad':
                     group_dir = 'dyad/'
                 elif str(self.group_type) == 'triad':
@@ -1162,7 +1586,7 @@ class CFO:
                     group_dir = 'tetrad/'
 
                 os.makedirs(base_dir + group_dir + 'Cooperation/', exist_ok=True)
-                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_TimeSeries_eachaxis_'
+                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_Period_eachaxis_'
                             + 'Cooperation_' + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
             fig, ax = plt.subplots(4, 1, figsize=(10, 6), dpi=150, sharex=True)
@@ -1184,7 +1608,7 @@ class CFO:
                 ax[3].set_xticks(np.arange(1, self.period + 1, 1))
                 ax[3].set_xlim(0, self.period + 1)
                 ax[3].set_xlabel('Period')
-                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_TimeSeries_eachaxis_'
+                plt.savefig(base_dir + group_dir + 'Cooperation/' + 'Performance_Period_eachaxis_'
                             + 'Cooperation_' + str(self.group_type) + '.png')
             plt.show()
 
@@ -1468,8 +1892,8 @@ class CFO:
                         transform=ax.transAxes, fontsize="medium")
 
                 plt.tight_layout()
-            os.makedirs('fig/CFO/Summation-Subtraction/', exist_ok=True)
-            plt.savefig('fig/CFO/Summation-Subtraction/SummationCFO-SubtractionCFO_' + str(label[i]) + '_' + str(self.group_type) + '.png')
+            # os.makedirs('fig/CFO/Summation-Subtraction/', exist_ok=True)
+            # plt.savefig('fig/CFO/Summation-Subtraction/SummationCFO-SubtractionCFO_' + str(label[i]) + '_' + str(self.group_type) + '.png')
         plt.show()
 
     def period_ecfo(self, mode='normal'):
@@ -2247,13 +2671,13 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                pcfo.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                pcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[0][i][::10],
                           label='Group' + str(i + 1))
-                fcfo.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                fcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[1][i][::10],
                           label='Group' + str(i + 1))
-                pcfoave.plot(data['time'][self.start_num:self.end_num:10], summation[2][i][::10],
+                pcfoave.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[2][i][::10],
                              label='Group' + str(i + 1))
-                fcfoave.plot(data['time'][self.start_num:self.end_num:10], summation[3][i][::10],
+                fcfoave.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[3][i][::10],
                              label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Summation\nPCFO (rad)')
@@ -2346,13 +2770,13 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                pcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[0][i][::10],
+                pcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[0][i][::10],
                           label='Group' + str(i + 1))
-                fcfo.plot(data['time'][self.start_num:self.end_num:10], subtraction[1][i][::10],
+                fcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[1][i][::10],
                           label='Group' + str(i + 1))
-                pcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[2][i][::10],
+                pcfoave.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[2][i][::10],
                              label='Group' + str(i + 1))
-                fcfoave.plot(data['time'][self.start_num:self.end_num:10], subtraction[3][i][::10],
+                fcfoave.plot(data['time'][self.start_num:self.end_num:10]-20.0, subtraction[3][i][::10],
                              label='Group' + str(i + 1))
 
             pcfo.set_ylabel('Subtraction\nPCFO (rad)')
@@ -2443,7 +2867,7 @@ class CFO:
                 for j in range(len(label)):
                     ax = fig.add_subplot(2, 1, j + 1)
                     ax.set_ylim(0, 4)
-                    ax.plot(data['time'][self.start_num:self.end_num:10], valiance[i][j][::10])
+                    ax.plot(data['time'][self.start_num:self.end_num:10]-20.0, valiance[i][j][::10])
                     ax.set_ylabel('Variance of ' + ylabel[j] + ' FCFO (Nm)')
                     ax.set_xlabel('time (s)')
 
@@ -2471,38 +2895,38 @@ class CFO:
                 thmname = interfacenum + '_r_thm_tf'
                 thm_prename = interfacenum + '_r_thm_pre_tf'
                 thm_prename_solo = interfacenum + '_r_thm_pre_solo_tf'
-                rthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                rthm.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[thmname][self.start_num:self.end_num:10],
                           label='P' + str(i + 1) + '_act')
-                rthm.plot(data['time'][self.start_num:self.end_num:10],
+                rthm.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                           data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                # rthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+                # rthm.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[thm_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 thmname = interfacenum + '_p_thm_tf'
                 thm_prename = interfacenum + '_p_thm_pre_tf'
                 thm_prename_solo = interfacenum + '_p_thm_pre_solo_tf'
-                pthm.plot(data['time'][self.start_num:self.end_num:10], data[thmname][self.start_num:self.end_num:10],
+                pthm.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[thmname][self.start_num:self.end_num:10],
                           label='P' + str(i + 1) + '_act')
-                pthm.plot(data['time'][self.start_num:self.end_num:10],
+                pthm.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                           data[thm_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                # pthm.plot(data['time'][self.start_num:self.end_num:10], data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+                # pthm.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[thm_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
                 textname = interfacenum + '_r_text_tf'
                 text_prename = interfacenum + '_r_text_pre_tf'
                 text_prename_solo = interfacenum + '_r_text_pre_solo_tf'
-                rtext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                rtext.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[textname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1) + '_act')
-                rtext.plot(data['time'][self.start_num:self.end_num:10],
+                rtext.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                            data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                # rtext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
+                # rtext.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[text_prename_solo][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre_solo')
 
                 textname = interfacenum + '_p_text_tf'
                 text_prename = interfacenum + '_p_text_pre_tf'
                 text_prename_solo = interfacenum + '_p_text_pre_solo_tf'
-                ptext.plot(data['time'][self.start_num:self.end_num:10], data[textname][self.start_num:self.end_num:10],
+                ptext.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[textname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1) + '_act')
-                ptext.plot(data['time'][self.start_num:self.end_num:10],
+                ptext.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                            data[text_prename][self.start_num:self.end_num:10], label='P' + str(i + 1) + '_pre')
-                # ptext.plot(data['time'][self.start_num:self.end_num:10], data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
+                # ptext.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[text_prename_solo][self.start_num:self.end_num:10], label='P'+str(i+1)+'_pre_solo')
 
             rthm.set_ylabel('Roll angle (rad)')
             rthm.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -2544,17 +2968,17 @@ class CFO:
                 pcfoname = interfacenum + '_p_pcfo_tf'
                 fcfoname = interfacenum + '_p_fcfo_tf'
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
 
                 pcfoname = interfacenum + '_r_pcfo_tf'
                 fcfoname = interfacenum + '_r_fcfo_tf'
 
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], data[pcfoname][self.start_num:self.end_num:10],
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], data[fcfoname][self.start_num:self.end_num:10],
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
                            label='P' + str(i + 1))
 
             ppcfo.set_ylabel('Pitch PCFO (rad)')
@@ -2634,13 +3058,13 @@ class CFO:
             for i in range(len(self.cfo)):
                 data = self.cfo[i]
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                ppcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[0][i][::10],
                            label='Group' + str(i + 1))
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                rpcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[1][i][::10],
                            label='Group' + str(i + 1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10], summation[2][i][::10],
+                pfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[2][i][::10],
                            label='Group' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10], summation[3][i][::10],
+                rfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[3][i][::10],
                            label='Group' + str(i + 1))
 
             ppcfo.set_ylabel('Summation\nPitch PCFO (rad)')
@@ -2763,17 +3187,17 @@ class CFO:
 
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
-                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][0][::10],
+                    pwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_human[j][i][0][::10],
                                label='P' + str(i + 1) + 'Human')
-                    pwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][0][::10],
+                    pwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_model[j][i][0][::10],
                                label='P' + str(i + 1) + 'Model')
-                    # pwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
+                    # pwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_diff[j][i][0][::10], label='P' + str(i + 1) + 'Diff')
 
-                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][1][::10],
+                    rwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_human[j][i][1][::10],
                                label='P' + str(i + 1) + 'Human')
-                    rwork.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][1][::10],
+                    rwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_model[j][i][1][::10],
                                label='P' + str(i + 1) + 'Model')
-                    # rwork.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
+                    # rwork.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_diff[j][i][1][::10], label='P' + str(i + 1) + 'Diff')
 
                 pwork.set_ylabel('Pitch work (J)')
                 pwork.legend(ncol=2, columnspacing=1, loc='upper left')
@@ -2809,11 +3233,11 @@ class CFO:
 
                 for i in range(self.join):
                     interfacenum = 'i' + str(i + 1)
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_human[j][i][::10],
+                    plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_human[j][i][::10],
                              label='P' + str(i + 1) + 'Human')
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_model[j][i][::10],
+                    plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_model[j][i][::10],
                              label='P' + str(i + 1) + 'Model')
-                    plt.plot(data['time'][self.start_num:self.end_num:10], work_diff[j][i][::10],
+                    plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, work_diff[j][i][::10],
                              label='P' + str(i + 1) + 'Diff')
 
                 plt.ylabel('Pitch work (J)')
@@ -2867,16 +3291,16 @@ class CFO:
 
                 for j in range(self.join):
                     interfacenum = 'i' + str(j + 1)
-                    ptext.plot(data['time'][self.start_num:self.end_num:10],
+                    ptext.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                                data[interfacenum + types[0]][self.start_num:self.end_num:10],
                                label='P' + str(j + 1))
-                    rtxt.plot(data['time'][self.start_num:self.end_num:10],
+                    rtxt.plot(data['time'][self.start_num:self.end_num:10]-20.0,
                               data[interfacenum + types[1]][self.start_num:self.end_num:10],
                               label='P' + str(j + 1))
 
-                ptext.plot(data['time'][self.start_num:self.end_num:10], summation[0][i][::10],
+                ptext.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[0][i][::10],
                            label='Summation_' + mode)
-                rtxt.plot(data['time'][self.start_num:self.end_num:10], summation[1][i][::10],
+                rtxt.plot(data['time'][self.start_num:self.end_num:10]-20.0, summation[1][i][::10],
                           label='Summation_' + mode)
 
                 ptext.set_ylabel('force (Nm)')
@@ -3037,9 +3461,9 @@ class CFO:
 
                 for j in range(len(axis)):
                     ax2 = ax[j].twinx()
-                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_all[j][i][::10], label='Total')
-                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_plate[j][i][::10], label='Plate')
-                    ax2.plot(data['time'][self.start_num:self.end_num:10], ftr[j][i][::10], label='Ratio', color='red')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, force_all[j][i][::10], label='Total')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, force_plate[j][i][::10], label='Plate')
+                    ax2.plot(data['time'][self.start_num:self.end_num:10]-20.0, ftr[j][i][::10], label='Ratio', color='red')
                     ax[j].set_xlabel('Time (sec)')
                     ax[j].set_ylabel(axis[j] + ' force')
                     ax2.set_ylabel('FTR')
@@ -3094,9 +3518,9 @@ class CFO:
 
                 for j in range(len(axis)):
                     ax2 = ax[j].twinx()
-                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_all[j][i][::10], label='Total')
-                    ax[j].plot(data['time'][self.start_num:self.end_num:10], force_plate[j][i][::10], label='Plate')
-                    ax2.plot(data['time'][self.start_num:self.end_num:10], ief[j][i][::10], label='Ratio', color='red')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, force_all[j][i][::10], label='Total')
+                    ax[j].plot(data['time'][self.start_num:self.end_num:10]-20.0, force_plate[j][i][::10], label='Plate')
+                    ax2.plot(data['time'][self.start_num:self.end_num:10]-20.0, ief[j][i][::10], label='Ratio', color='red')
                     ax[j].set_xlabel('Time (sec)')
                     ax[j].set_ylabel(axis[j] + ' force')
                     ax2.set_ylabel('Ineffective force')
@@ -3144,15 +3568,15 @@ class CFO:
                 data = self.cfo[i]
                 plt.figure(figsize=(10, 5), dpi=150)
 
-                plt.plot(data['time'][self.start_num:self.end_num:10], force_all[i][::10], label='Total')
-                plt.plot(data['time'][self.start_num:self.end_num:10], force_plate[i][::10], label='Plate')
+                plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, force_all[i][::10], label='Total')
+                plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, force_plate[i][::10], label='Plate')
                 plt.xlabel('Time (sec)')
                 plt.ylabel('force')
                 plt.legend(ncol=2, columnspacing=1, loc='upper left')
                 plt.ylim([-0, 6])  # y軸の範囲
 
                 ax2 = plt.twinx()
-                ax2.plot(data['time'][self.start_num:self.end_num:10], ief[i][::10], label='Ratio', color='red')
+                ax2.plot(data['time'][self.start_num:self.end_num:10]-20.0, ief[i][::10], label='Ratio', color='red')
                 ax2.set_ylabel('Ineffective force')
                 ax2.set_ylim([0, 2])  # y軸の範囲
 
@@ -3193,15 +3617,15 @@ class CFO:
                 data = self.cfo[i]
                 plt.figure(figsize=(10, 5), dpi=150)
 
-                plt.plot(data['time'][self.start_num:self.end_num:10], force_all[i][::10], label='Total')
-                plt.plot(data['time'][self.start_num:self.end_num:10], force_plate[i][::10], label='Plate')
+                plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, force_all[i][::10], label='Total')
+                plt.plot(data['time'][self.start_num:self.end_num:10]-20.0, force_plate[i][::10], label='Plate')
                 plt.xlabel('Time (sec)')
                 plt.ylabel('force')
                 plt.legend(ncol=2, columnspacing=1, loc='upper left')
                 plt.ylim([-0, 6])  # y軸の範囲
 
                 ax2 = plt.twinx()
-                ax2.plot(data['time'][self.start_num:self.end_num:10], ftr[i][::10], label='Ratio', color='red')
+                ax2.plot(data['time'][self.start_num:self.end_num:10]-20.0, ftr[i][::10], label='Ratio', color='red')
                 ax2.set_ylabel('FTR')
                 ax2.set_ylim([0, 2])  # y軸の範囲
 
