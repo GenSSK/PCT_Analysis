@@ -1,52 +1,36 @@
-import os, sys
+import os
+
+import matplotlib.pyplot as plt
+from matplotlib import cbook, cm
+from matplotlib.colors import LightSource
+from matplotlib.lines import Line2D
+from matplotlib import colors
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import pickle, shap, itertools, joblib, tqdm, cmath
-import gc  # ガベージコレクションモジュールのインポート
-from patsy import dmatrices
-
-import matplotlib.pyplot as plt
-from matplotlib import cbook, cm, colors
-from matplotlib.colors import LightSource
-from matplotlib.lines import Line2D
-from matplotlib.ticker import MaxNLocator
-
 from scipy import signal
 from scipy.interpolate import griddata
-from scipy.ndimage import gaussian_filter
-from scipy.spatial.distance import correlation
-
 # from minepy import MINE
-import statsmodels.api as sm
-from statsmodels.formula.api import ols
+import CFO_Analysis_2gen.CFO_analysis as CFO_analysis
+from scipy.spatial.distance import correlation
 from statannotations.Annotator import Annotator
-
-from sklearn.kernel_ridge import KernelRidge
+from statsmodels.formula.api import ols
+import statsmodels.api as sm
+import pickle
+import shap
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from sklearn.metrics.pairwise import rbf_kernel
-from sklearn.linear_model import Lasso, Ridge, ElasticNet, LinearRegression
 
-import torch
-from torch.utils.data import DataLoader, TensorDataset
-from torch.autograd import Variable
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
+import joblib
 
-
-import network
-import CFO_analysis
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from mypackage.mystatistics import myHilbertTransform as HT
 from mypackage.mystatistics import mySTFT as STFT
 from mypackage.mystatistics import myhistogram as hist
 from mypackage.mystatistics import myFilter as Filter
 from mypackage.mystatistics import statistics as mystat
 from mypackage import ParallelExecutor
-from mypackage import StringUtils as su
 
 
 def plot_scatter(x, y, color, **kwargs):
@@ -1212,1062 +1196,7 @@ class combine:
             plt.show()
 
         return df
-    def get_group_cfo_for_model(self, size='Dyad', labels: list = any, smp=0.0001, dec=1, cutoff: float = 'none', delay=0.0):
-        if size == 'Triad':
-            p_tot, f_tot, pa_tot, fa_tot = self.triad_cfo.summation_ave_cfo(mode='b_abs', cutoff=cutoff)
-            p_sum, f_sum, pa_sum, fa_sum = self.triad_cfo.summation_ave_cfo(mode='a_abs', cutoff=cutoff)
-            p_sub, f_sub, pa_sub, fa_sub = self.triad_cfo.subtraction_ave_cfo()
-            p_dev, f_dev, pa_dev, fa_dev = self.triad_cfo.deviation_ave_cfo(cutoff=cutoff)
-            error_ts, error_dot_ts = self.triad_cfo.time_series_performance_cooperation(cutoff=cutoff)
-            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.triad_cfo.summation_cfo(mode='b_abs', cutoff=cutoff)
-            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.triad_cfo.summation_cfo(mode='a_abs', cutoff=cutoff)
-            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.triad_cfo.subtraction_cfo()
-            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.triad_cfo.deviation_cfo(cutoff=cutoff)
-            error_ts_x, error_ts_y, error_dot_ts_x, error_dot_ts_y = self.triad_cfo.time_series_performance_cooperation_axis(cutoff=cutoff)
 
-        elif size == 'Tetrad':
-            p_tot, f_tot, pa_tot, fa_tot = self.tetrad_cfo.summation_ave_cfo(mode='b_abs', cutoff=cutoff)
-            p_sum, f_sum, pa_sum, fa_sum = self.tetrad_cfo.summation_ave_cfo(mode='a_abs', cutoff=cutoff)
-            p_sub, f_sub, pa_sub, fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
-            p_dev, f_dev, pa_dev, fa_dev = self.tetrad_cfo.deviation_ave_cfo(cutoff=cutoff)
-            error_ts, error_dot_ts = self.tetrad_cfo.time_series_performance_cooperation(cutoff=cutoff)
-            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.tetrad_cfo.summation_cfo(mode='b_abs', cutoff=cutoff)
-            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.tetrad_cfo.summation_cfo(mode='a_abs', cutoff=cutoff)
-            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.tetrad_cfo.subtraction_cfo()
-            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.tetrad_cfo.deviation_cfo(cutoff=cutoff)
-            error_ts_x, error_ts_y, error_dot_ts_x, error_dot_ts_y = self.tetrad_cfo.time_series_performance_cooperation_axis(cutoff=cutoff)
-
-        else:
-            p_tot, f_tot, pa_tot, fa_tot = self.dyad_cfo.summation_ave_cfo(mode='b_abs', cutoff=cutoff)
-            p_sum, f_sum, pa_sum, fa_sum = self.dyad_cfo.summation_ave_cfo(mode='a_abs', cutoff=cutoff)
-            p_sub, f_sub, pa_sub, fa_sub = self.dyad_cfo.subtraction_ave_cfo()
-            p_dev, f_dev, pa_dev, fa_dev = self.dyad_cfo.deviation_ave_cfo(cutoff=cutoff)
-            error_ts, error_dot_ts = self.dyad_cfo.time_series_performance_cooperation(cutoff=cutoff)
-            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.dyad_cfo.summation_cfo(mode='b_abs', cutoff=cutoff)
-            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.dyad_cfo.summation_cfo(mode='a_abs', cutoff=cutoff)
-            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.dyad_cfo.subtraction_cfo()
-            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.dyad_cfo.deviation_cfo(cutoff=cutoff)
-            error_ts_x, error_ts_y, error_dot_ts_x, error_dot_ts_y = self.dyad_cfo.time_series_performance_cooperation_axis(cutoff=cutoff)
-
-        f_tot_radius = np.hypot(p_f_tot, r_f_tot)
-        f_sum_radius = np.hypot(p_f_sum, r_f_sum)
-        f_sub_radius = np.hypot(p_f_sub, r_f_sub)
-        f_dev_radius = np.hypot(p_f_dev, r_f_dev)
-        p_tot_radius = np.hypot(p_p_tot, r_p_tot)
-        p_sum_radius = np.hypot(p_p_sum, r_p_sum)
-        p_sub_radius = np.hypot(p_p_sub, r_p_sub)
-        p_dev_radius = np.hypot(p_p_dev, r_p_dev)
-
-        f_tot_angle = np.arctan2(r_f_tot, p_f_tot)
-        f_sum_angle = np.arctan2(r_f_sum, p_f_sum)
-        f_sub_angle = np.arctan2(r_f_sub, p_f_sub)
-        f_dev_angle = np.arctan2(r_f_dev, p_f_dev)
-        p_tot_angle = np.arctan2(r_p_tot, p_p_tot)
-        p_sum_angle = np.arctan2(r_p_sum, p_p_sum)
-        p_sub_angle = np.arctan2(r_p_sub, p_p_sub)
-        p_dev_angle = np.arctan2(r_p_dev, p_p_dev)
-
-        error_ts_radius = np.hypot(error_ts_x, error_ts_y)
-        error_ts_angle = np.arctan2(error_ts_y, error_ts_x)
-
-        error_dot_ts_radius = np.hypot(error_dot_ts_x, error_dot_ts_y)
-        error_dot_ts_angle = np.arctan2(error_dot_ts_y, error_dot_ts_x)
-
-        cfo_dict = {
-            'σ_F_tot': f_tot,
-            'σ_F_sum': f_sum,
-            'σ_F_sub': f_sub,
-            'σ_F_dev': f_dev,
-            'σ_P_tot': p_tot,
-            'σ_P_sum': p_sum,
-            'σ_P_sub': p_sub,
-            'σ_P_dev': p_dev,
-
-            'σ_FA_tot': fa_tot,
-            'σ_FA_sum': fa_sum,
-            'σ_FA_sub': fa_sub,
-            'σ_PA_tot': pa_tot,
-            'σ_PA_sum': pa_sum,
-            'σ_PA_sub': pa_sub,
-
-            'σ_p_F_tot': p_f_tot,
-            'σ_p_F_sum': p_f_sum,
-            'σ_p_F_sub': p_f_sub,
-            'σ_p_F_dev': p_f_dev,
-            'σ_p_P_tot': p_p_tot,
-            'σ_p_P_sum': p_p_sum,
-            'σ_p_P_sub': p_p_sub,
-            'σ_p_P_dev': p_p_dev,
-            'σ_r_F_tot': r_f_tot,
-            'σ_r_F_sum': r_f_sum,
-            'σ_r_F_sub': r_f_sub,
-            'σ_r_F_dev': r_f_dev,
-            'σ_r_P_tot': r_p_tot,
-            'σ_r_P_sum': r_p_sum,
-            'σ_r_P_sub': r_p_sub,
-            'σ_r_P_dev': r_p_dev,
-
-            'σ_F_tot_radius': f_tot_radius,
-            'σ_F_sum_radius': f_sum_radius,
-            'σ_F_sub_radius': f_sub_radius,
-            'σ_F_dev_radius': f_dev_radius,
-            'σ_P_tot_radius': p_tot_radius,
-            'σ_P_sum_radius': p_sum_radius,
-            'σ_P_sub_radius': p_sub_radius,
-            'σ_P_dev_radius': p_dev_radius,
-
-            'σ_F_tot_angle': f_tot_angle,
-            'σ_F_sum_angle': f_sum_angle,
-            'σ_F_sub_angle': f_sub_angle,
-            'σ_F_dev_angle': f_dev_angle,
-            'σ_P_tot_angle': p_tot_angle,
-            'σ_P_sum_angle': p_sum_angle,
-            'σ_P_sub_angle': p_sub_angle,
-            'σ_P_dev_angle': p_dev_angle,
-
-        }
-
-        delay_num = int(delay / smp)
-
-        time = np.arange(0, len(f_tot[0]) * smp, smp)
-        end_num = len(time)
-
-        df_ = []
-        for i in range(len(f_tot)):
-            data = {
-                'Time': time[delay_num::dec],
-                'RMSE': error_ts[i][delay_num::dec],
-                'RMSE_x': error_ts_x[i][delay_num::dec],
-                'RMSE_y': error_ts_y[i][delay_num::dec],
-                'RMSE_radius': error_ts_radius[i][delay_num::dec],
-                'RMSE_angle': error_ts_angle[i][delay_num::dec],
-                'Group': str(i + 1)
-            }
-
-            # Adding selected CFO data to dataframe based on labels
-            for label in labels:
-                data[label] = cfo_dict[label][i][:end_num - delay_num:dec]
-
-            df_.append(pd.DataFrame(data))
-        df = pd.concat([i for i in df_], axis=0)
-        df.reset_index(drop=True, inplace=True)
-
-        return df
-
-    def get_test_data_for_model(self, labels: list = any, smp=0.0001, dec=1, cutoff: float = 'none', delay=0.0):
-
-        Group_num = len(self.dyad_cfo.cfo)
-        end_time = 60.0
-        end_num = int(end_time / smp)
-        default_delay = 0.3
-        dd_num = int(default_delay / smp)
-        d_num = int(delay / smp)
-
-        time = np.arange(0, end_time + 10.0, smp)
-
-
-        p_f_tot = np.zeros((Group_num, len(time)))
-        p_f_sum = np.zeros((Group_num, len(time)))
-        p_f_dev = np.zeros((Group_num, len(time)))
-        p_p_tot = np.zeros((Group_num, len(time)))
-        p_p_sum = np.zeros((Group_num, len(time)))
-        p_p_dev = np.zeros((Group_num, len(time)))
-        r_f_tot = np.zeros((Group_num, len(time)))
-        r_f_sum = np.zeros((Group_num, len(time)))
-        r_f_dev = np.zeros((Group_num, len(time)))
-        r_p_tot = np.zeros((Group_num, len(time)))
-        r_p_sum = np.zeros((Group_num, len(time)))
-        r_p_dev = np.zeros((Group_num, len(time)))
-        f_tot = np.zeros((Group_num, len(time)))
-        f_sum = np.zeros((Group_num, len(time)))
-        f_dev = np.zeros((Group_num, len(time)))
-        p_tot = np.zeros((Group_num, len(time)))
-        p_sum = np.zeros((Group_num, len(time)))
-        p_dev = np.zeros((Group_num, len(time)))
-
-
-        for i in range(Group_num):
-            p_f_tot[i] = 0.4 * np.abs(np.sin(2 * np.pi * (i * 0.1 + 0.1) * time))
-            p_f_sum[i] = 0.2 * np.cos(2 * np.pi * (i * 0.1 + 0.05) * time)
-            p_f_dev[i] = 0.2 * np.abs(np.sin(2 * np.pi * (i * 0.1 + 0.2) * time))
-            p_p_tot[i] = 0.1 * np.abs(np.sin(2 * np.pi * (i * 0.01 + 0.01) * time))
-            p_p_sum[i] = 0.05 * np.sin(2 * np.pi * (i * 0.01 + 0.04) * time)
-            p_p_dev[i] = 0.05 * np.abs(np.cos(2 * np.pi * (i * 0.01 + 0.05) * time))
-
-            r_f_tot[i] = 0.3 * np.abs(np.cos(2 * np.pi * (i * 0.1 + 0.2) * time))
-            r_f_sum[i] = 0.1 * np.sin(2 * np.pi * (i * 0.1 + 0.04) * time)
-            r_f_dev[i] = 0.3 * np.abs(np.cos(2 * np.pi * (i * 0.1 + 0.3) * time))
-            r_p_tot[i] = 0.05 * np.abs(np.cos(2 * np.pi * (i * 0.01 + 0.02) * time))
-            r_p_sum[i] = 0.1 * np.cos(2 * np.pi * (i * 0.01 + 0.01) * time)
-            r_p_dev[i] = 0.1 * np.abs(np.sin(2 * np.pi * (i * 0.01 + 0.02) * time))
-
-            f_tot[i] = p_f_tot[i] + r_f_tot[i]
-            f_sum[i] = p_f_sum[i] + r_f_sum[i]
-            f_dev[i] = p_f_dev[i] + r_f_dev[i]
-            p_tot[i] = p_p_tot[i] + r_p_tot[i]
-            p_sum[i] = p_p_sum[i] + r_p_sum[i]
-            p_dev[i] = p_p_dev[i] + r_p_dev[i]
-
-        f_tot_radius = np.hypot(p_f_tot, r_f_tot)
-        f_sum_radius = np.hypot(p_f_sum, r_f_sum)
-        f_dev_radius = np.hypot(p_f_dev, r_f_dev)
-        p_tot_radius = np.hypot(p_p_tot, r_p_tot)
-        p_sum_radius = np.hypot(p_p_sum, r_p_sum)
-        p_dev_radius = np.hypot(p_p_dev, r_p_dev)
-
-        f_tot_angle = np.arctan2(r_f_tot, p_f_tot)
-        f_sum_angle = np.arctan2(r_f_sum, p_f_sum)
-        f_dev_angle = np.arctan2(r_f_dev, p_f_dev)
-        p_tot_angle = np.arctan2(r_p_tot, p_p_tot)
-        p_sum_angle = np.arctan2(r_p_sum, p_p_sum)
-        p_dev_angle = np.arctan2(r_p_dev, p_p_dev)
-
-
-        rmse_x = 0.1 * p_f_tot**2 + 0.2 * p_f_sum**3 + 0.1 * p_f_dev**2 + 0.1 * p_p_tot**2 + 0.1 * p_p_sum**3 + 0.1 * p_p_dev**4
-        rmse_y = 0.1 * r_f_tot**2 + 0.2 * r_f_sum**3 + 0.1 * r_f_dev**2 + 0.1 * r_p_tot**2 + 0.1 * r_p_sum**3 + 0.1 * r_p_dev**4
-        rmse = np.hypot(rmse_x, rmse_y)
-        rmse_radius = np.hypot(rmse_x, rmse_y)
-        rmse_angle = np.arctan2(rmse_y, rmse_x)
-
-        cfo_dict = {
-            'σ_F_tot': f_tot,
-            'σ_F_sum': f_sum,
-            'σ_F_dev': f_dev,
-            'σ_P_tot': p_tot,
-            'σ_P_sum': p_sum,
-
-            'σ_p_F_tot': p_f_tot,
-            'σ_p_F_sum': p_f_sum,
-            'σ_p_F_dev': p_f_dev,
-            'σ_p_P_tot': p_p_tot,
-            'σ_p_P_sum': p_p_sum,
-            'σ_r_F_tot': r_f_tot,
-            'σ_r_F_sum': r_f_sum,
-            'σ_r_F_dev': r_f_dev,
-            'σ_r_P_tot': r_p_tot,
-            'σ_r_P_sum': r_p_sum,
-            'σ_r_P_dev': r_p_dev,
-
-            'σ_F_tot_radius': f_tot_radius,
-            'σ_F_sum_radius': f_sum_radius,
-            'σ_F_dev_radius': f_dev_radius,
-            'σ_P_tot_radius': p_tot_radius,
-            'σ_P_sum_radius': p_sum_radius,
-            'σ_P_dev_radius': p_dev_radius,
-
-            'σ_F_tot_angle': f_tot_angle,
-            'σ_F_sum_angle': f_sum_angle,
-            'σ_F_dev_angle': f_dev_angle,
-            'σ_P_tot_angle': p_tot_angle,
-            'σ_P_sum_angle': p_sum_angle,
-            'σ_P_dev_angle': p_dev_angle,
-        }
-
-        df_ = []
-        for i in range(Group_num):
-            df_.append(pd.DataFrame({
-                'Time': time[:end_num:dec],
-                'RMSE': rmse[i][dd_num:dd_num+end_num:dec],
-                'RMSE_x': rmse_x[i][dd_num:dd_num+end_num:dec],
-                'RMSE_y': rmse_y[i][dd_num:dd_num+end_num:dec],
-                'RMSE_radius': rmse_radius[i][dd_num:dd_num+end_num:dec],
-                'RMSE_angle': rmse_angle[i][dd_num:dd_num+end_num:dec],
-                'Group': str(i + 1)
-            })
-            )
-            # Adding selected CFO data to dataframe based on labels
-            for label in labels:
-                df_[i][label] = cfo_dict[label][i][d_num:d_num+end_num:dec]
-        df = pd.concat([i for i in df_], axis=0)
-        df.reset_index(drop=True, inplace=True)
-
-        return df
-
-    # def get_test_data_for_model(self, smp=0.0001, dec=1, cutoff: float = 'none', delay=0.0):
-    #     labels = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev', 'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-    #
-    #     Group_num = len(self.dyad_cfo.cfo)
-    #     end_time = 60.0
-    #     end_num = int(end_time / smp)
-    #     default_delay = 0.3
-    #     dd_num = int(default_delay / smp)
-    #     d_num = int(delay / smp)
-    #
-    #     time = np.arange(0, end_time + 10.0, smp)
-    #
-    #     f_tot = np.zeros((Group_num, len(time)))
-    #     f_sum = np.zeros((Group_num, len(time)))
-    #     f_dev = np.zeros((Group_num, len(time)))
-    #     p_tot = np.zeros((Group_num, len(time)))
-    #     p_sum = np.zeros((Group_num, len(time)))
-    #     p_dev = np.zeros((Group_num, len(time)))
-    #
-    #
-    #     for i in range(Group_num):
-    #         f_tot[i] = 0.8 * np.abs(np.sin(2 * np.pi * (i * 0.1 + 0.1) * time))
-    #         f_sum[i] = 0.5 * np.cos(2 * np.pi * (i * 0.1 + 0.05) * time)
-    #         f_dev[i] = 0.4 * np.abs(np.sin(2 * np.pi * (i * 0.1 + 0.2) * time))
-    #         p_tot[i] = 0.2 * np.abs(np.sin(2 * np.pi * (i * 0.01 + 0.01) * time))
-    #         p_sum[i] = 0.1 * np.sin(2 * np.pi * (i * 0.01 + 0.04) * time)
-    #         p_dev[i] = 0.1 * np.abs(np.cos(2 * np.pi * (i * 0.01 + 0.05) * time))
-    #
-    #     rmse = 0.1 * f_tot**2 + 0.2 * f_sum**3 + 0.1 * f_dev**2 + 0.1 * p_tot**2 + 0.1 * p_sum**3 + 0.1 * p_dev**4
-    #
-    #     cfo_dict = {
-    #         'σ_F_tot': f_tot,
-    #         'σ_F_sum': f_sum,
-    #         # 'σ_F_sub': f_sub,
-    #         'σ_F_dev': f_dev,
-    #         'σ_P_tot': p_tot,
-    #         'σ_P_sum': p_sum,
-    #         # 'σ_P_sub': p_sub,
-    #         'σ_P_dev': p_dev,
-    #         # 'σ_FA_tot': fa_tot,
-    #         # 'σ_FA_sum': fa_sum,
-    #         # 'σ_FA_sub': fa_sub,
-    #         # 'σ_PA_tot': pa_tot,
-    #         # 'σ_PA_sum': pa_sum,
-    #         # 'σ_PA_sub': pa_sub,
-    #     }
-    #
-    #     df_ = []
-    #     for i in range(Group_num):
-    #         df_.append(pd.DataFrame({
-    #             'Time': time[:end_num:dec],
-    #             'RMSE': rmse[i][dd_num:dd_num+end_num:dec],
-    #             'Group': str(i + 1)
-    #         })
-    #         )
-    #         # Adding selected CFO data to dataframe based on labels
-    #         for label in labels:
-    #             df_[i][label] = cfo_dict[label][i][d_num:d_num+end_num:dec]
-    #     df = pd.concat([i for i in df_], axis=0)
-    #     df.reset_index(drop=True, inplace=True)
-    #
-    #     return df
-
-    def get_interaction(self, df, origin_labels):
-        values = [df[origin_labels[i]] for i in range(len(origin_labels))]
-        list_values = dict(zip(origin_labels, values))
-
-        combinations = []
-        for i in range(len(origin_labels) - 1):
-            combinations_ = list(itertools.combinations(origin_labels, i + 2))
-            combinations.extend(combinations_)
-
-        result_list = []
-        formatted_combinations = []
-        for combo in combinations:
-            formatted_combo = '*'.join(combo)
-            formatted_combinations.append(formatted_combo)
-
-            # 組み合わせの各要素に対応する数値を取得し、掛け合わせる
-            product_value = 1  # 掛け合わせの初期値は1
-            for item in combo:
-                product_value *= list_values[item]
-            result_list.append((combo, product_value))
-
-        new_columns = []
-        for i in range(len(formatted_combinations)):
-            new_columns.append(pd.Series(result_list[i][1], name=formatted_combinations[i]))
-
-        df = pd.concat([df, *new_columns], axis=1)
-
-        input_labels = origin_labels.copy()
-        input_labels.extend(formatted_combinations)
-
-        return df, input_labels
-
-    def fnn_size(self, size='Dyad'):
-        input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                               'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        # df = self.get_group_cfo_for_model(size=size, dec=100, cutoff=1.0)
-        df = self.get_test_data_for_model()
-
-        input_gain = [8.0, 8.0, 8.0, 0.8, 1.0, 0.8]
-        output_gain = 30.0
-
-        for i, label in enumerate(input_labels_origin):
-            df[label] = df[label] * input_gain[i]
-
-        df['RMSE'] = df['RMSE'] * output_gain
-
-        os.makedirs('nn/' + self.trajectory_dir, exist_ok=True)
-        joblib.dump(input_gain, 'nn/' + self.trajectory_dir + 'input_gain_' + size + '.pkl')
-        joblib.dump(output_gain, 'nn/' + self.trajectory_dir + 'output_gain_' + size + '.pkl')
-
-        input_labels = input_labels_origin.copy()
-
-        input_element = ' + '.join(input_labels)
-        formula = 'RMSE ~ ' + input_element + ' - 1'
-        y_train, X_train = dmatrices(formula, data=df[df['Time'] < 40.0], return_type='dataframe')
-        y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe')
-
-        y_predicted, y_true, model, loss, valid_loss = self.fnn(X_train.to_numpy(), y_train.to_numpy(), X_test.to_numpy(), y_test.to_numpy(),
-                                                                epoch_num=2000, batch_size=1000, lr=0.0001)
-
-        # モデルのstate_dictを保存
-        torch.save(model, 'nn/' + self.trajectory_dir + 'nn_model_' + size + '.pth')
-
-        fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-        ax.scatter(y_predicted, y_test, s=0.05, alpha=1.0)
-
-        # r2 = np.corrcoef(y_predicted, y_true)
-        # ax.text(0.02, 0.89, '$R^2 = {:.2f}$'.format(r2), horizontalalignment='left',
-        #         transform=ax.transAxes, fontsize="small")
-
-        ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle='--')
-        ax.set_xlabel('Predicted Cooperative RMSE')
-        ax.set_ylabel('Cooperative RMSE')
-        # ax.set_ylim(-0.03, 0.03)
-        # ax.set_xlim(-0.03, 0.03)
-        os.makedirs('fig/NN/' + self.trajectory_dir, exist_ok=True)
-        plt.savefig('fig/NN/' + self.trajectory_dir + 'CooperativeRMSE_' + size + '.png')
-
-        fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-        ax.plot(loss)
-        ax.set_xlabel('Epoch')
-        ax.set_ylabel('Loss')
-        ax.set_yscale('log')
-        # plt.show()
-        os.makedirs('fig/NN/', exist_ok=True)
-        plt.savefig('fig/NN/loss_' + size + '.png')
-
-        fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-        ax.plot(valid_loss)
-        ax.set_xlabel('Epoch')
-        ax.set_ylabel('Validation Loss')
-        ax.set_yscale('log')
-        os.makedirs('fig/NN/', exist_ok=True)
-        plt.savefig('fig/NN/validation_loss_' + size + '.png')
-        # plt.show()
-
-    def fnn_check(self, size='Dyad'):
-        input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                               'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        # df = self.get_group_cfo_for_model(size=size, dec=100)
-        df = self.get_test_data_for_model()
-
-        input_gain: list = joblib.load('nn/' + self.trajectory_dir + 'input_gain_' + size + '.pkl')
-        output_gain: list = joblib.load('nn/' + self.trajectory_dir + 'output_gain_' + size + '.pkl')
-
-        for i, label in enumerate(input_labels_origin):
-            df[label] = df[label] * input_gain[i]
-
-        df['RMSE'] = df['RMSE'] * output_gain
-
-        Groups = df['Group'].unique()
-
-        input_labels = input_labels_origin.copy()
-        input_element = ' + '.join(input_labels)
-        formula = 'RMSE ~ ' + input_element + ' - 1'
-
-        model_path = 'nn/' + self.trajectory_dir + 'nn_model_' + size + '.pth'
-
-        for i in range(len(Groups)):
-            df_g = df[df['Group'] == Groups[i]]
-
-            y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe')
-
-            y_predicted = self.fnn_predict(model_path, X_test.to_numpy(), y_test.to_numpy())
-
-            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-            ax.plot(df_g['Time'], y_predicted / output_gain, label='Predicted')
-            ax.plot(df_g['Time'], df_g['RMSE'] / output_gain, label='Actual')
-
-            ax.set_xlabel('Time (s)')
-            ax.set_ylabel('Cooperative RMSE')
-            ax.legend()
-        plt.show()
-
-
-
-    def fnn(self, X_train, y_train, X_test, y_test, epoch_num, batch_size, lr):
-        # GPUが利用可能かどうかを確認し、利用可能ならGPUを使用
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        print(f'Using device: {device}')
-        # データセットの準備
-        dataset = TensorDataset(torch.from_numpy(X_train).float(), torch.from_numpy(y_train).float())
-        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)  # バッチサイズは32、データをシャッフル
-
-        # モデル、最適化手法、損失関数の初期化
-        net = network.Net().to(device)
-        optimizer = optim.SGD(net.parameters(), lr=lr)
-        criterion = nn.MSELoss()
-
-        # 学習の履歴を保存するリスト
-        loss_data = []
-        validation_loss_data = []
-
-        # 学習ループ
-        x_test_tt = Variable(torch.from_numpy(X_test).float().to(device))
-        y_test_tt = Variable(torch.from_numpy(y_test).float().to(device))
-
-        # 早期停止オブジェクトの初期化
-        early_stopping = network.EarlyStopping(patience=2000, verbose=True, path='nn/' + self.trajectory_dir + 'best_model.pt')
-
-
-        for epoch in tqdm.tqdm(range(epoch_num)):
-            loss_ = 0
-            for x_batch, y_batch in dataloader:
-                # x_batch, y_batch = Variable(x_batch, requires_grad=True), Variable(y_batch)
-                x_batch, y_batch = x_batch.to(device), y_batch.to(device)  # データをデバイスに移動
-                optimizer.zero_grad()
-                output = net(x_batch)
-                loss = criterion(output, y_batch)
-                loss_ += loss.item()
-                loss.backward()
-                optimizer.step()
-            loss_data.append(loss_ / len(dataloader))
-
-            # テストデータの処理で計算グラフを作成しない
-            with torch.no_grad():
-                outputs = net(x_test_tt)
-                mse = criterion(outputs, y_test_tt)  # テストデータに対するMSEを計算
-                validation_loss_data.append(mse.item())
-
-            # 早期停止の呼び出し
-            early_stopping(mse, net)
-
-            if early_stopping.early_stop:
-                print("Early stopping")
-                break
-
-        # 訓練終了後、ベストモデルをロード
-        net.load_state_dict(torch.load('nn/' + self.trajectory_dir + 'best_model.pt', weights_only=True))
-
-        net.to('cpu')
-        # テストデータで評価
-        print('Test MSE:', mse.item())
-
-        # # コサイン類似度の計算
-        # cosine_similarity = F.cosine_similarity(outputs.to('cpu'), torch.from_numpy(y_test).float(), dim=0)
-        # print('Cosine Similarity:', cosine_similarity.item())
-
-        # r2 score
-        r2 = r2_score(outputs.detach().cpu().numpy(), y_test)
-        print(f"{r2=}")
-
-        return outputs.detach().cpu().numpy(), y_test, net.state_dict(), loss_data, validation_loss_data
-
-    def fnn_predict(self, model_path, X_test, y_test):
-        x = Variable(torch.from_numpy(X_test).float(), requires_grad=True)
-        y = Variable(torch.from_numpy(y_test).float())
-
-        # 新しいモデルインスタンスを作成
-        net = network.Net()
-        # 保存したstate_dictをロード
-        net.load_state_dict(torch.load(model_path, weights_only=True))
-
-        outputs = net(x)
-        predicted = outputs.detach().cpu().numpy().T
-        return predicted[0]
-
-    def cross_correlation(self, size='Dyad'):
-        input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                               'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, delay=0.0)
-        Groups = df['Group'].unique()
-
-        delay = np.linspace(0.0, 3.0, 301)
-        corr = np.zeros((len(Groups), len(input_labels_origin), len(delay)))
-        for i in tqdm.tqdm(range(len(delay))):
-            df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, delay=delay[i])
-            for j, Group in enumerate(Groups):
-                df_g = df[df['Group'] == Group].copy()
-                df_g = df_g[df_g['Time'] > 10.0].copy()
-                rmse = df_g['RMSE'].to_numpy()
-                rmse = signal.detrend(rmse)
-                for k, label in enumerate(input_labels_origin):
-                    cfo = df_g[label].to_numpy()
-                    cfo = signal.detrend(cfo)
-                    corr[j][k][i] = np.correlate(cfo, rmse) / (np.linalg.norm(cfo) * np.linalg.norm(rmse))
-
-        fig, ax = plt.subplots(len(Groups), len(input_labels_origin), figsize=(len(input_labels_origin) * 10, len(Groups) * 5), dpi=200)
-        # axを常に2次元配列として扱う
-        if len(Groups) == 1:
-            ax = ax.reshape(len(Groups), len(input_labels_origin))
-        for i in range(len(Groups)):
-            for j in range(len(input_labels_origin)):
-                ax[i][j].plot(delay, corr[i][j])
-                ax[i][j].set_xlabel('Delay (s)')
-                ax[i][j].set_ylabel('Cross Correlation Coefficient')
-                ax[i][j].set_title('Group ' + str(Groups[i]) + ' ' + input_labels_origin[j])
-
-        os.makedirs('fig/CrossCorrelation/' + self.trajectory_dir, exist_ok=True)
-        fig.savefig('fig/CrossCorrelation/' + self.trajectory_dir + 'CrossCorrelation_' + size + '.png')
-        # plt.show()
-
-    def performance_learn_model_each(self, size='Dyad', model_name=any, delay=0.0, test=False):
-        if 'Polar' in model_name:
-            input_labels_origin = ['σ_F_tot_radius', 'σ_F_sum_radius', 'σ_F_dev_radius',
-                                   'σ_P_tot_radius', 'σ_P_sum_radius', 'σ_P_dev_radius',
-                                   'σ_F_tot_angle', 'σ_F_sum_angle', 'σ_F_dev_angle',
-                                   'σ_P_tot_angle', 'σ_P_sum_angle', 'σ_P_dev_angle',]
-        else:
-            input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                                   'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        if test:
-            df = self.get_test_data_for_model(dec=100, labels=input_labels_origin, delay=delay)
-            mode_origin = 'TEST_' + size
-        else:
-            df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=10000, cutoff=2.0, delay=delay)
-            mode_origin = size
-
-        df, input_labels = self.get_interaction(df, input_labels_origin)
-        input_labels = input_labels_origin.copy()
-
-        Groups = df['Group'].unique()
-        for Group in Groups:
-            df_g = df[df['Group'] == Group].copy()
-            mode = mode_origin
-            mode += '_Group_' + str(Group) + '_Delay_' + su.format_significant(delay)
-
-            if 'Polar' in model_name:
-                polar = ['radius', 'angle']
-                for i in range(len(polar)):
-                    mode_polar = mode_origin
-                    mode_polar += '_' + polar[i] + '_Group_' + str(Group) + '_Delay_' + su.format_significant(delay)
-
-                    if model_name[6:] == 'NN':
-                        print('NN')
-
-                    else:
-                        filtered_labels = [label for label in input_labels_origin if polar[i] in label]
-                        input_element = ' + '.join(filtered_labels)
-                        output_element = 'RMSE_' + polar[i]
-                        formula = output_element + ' ~ ' + input_element
-
-                        y_train, X_train = dmatrices(formula, data=df_g[(df_g['Time'] > 10.0) & (df_g['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
-                        y_test, X_test = dmatrices(formula, data=df_g[df_g['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-                    self.performance_learn_model(model_name, X_train, y_train, X_test, y_test, mode_polar)
-
-            else:
-                if model_name == 'NN':
-                    # input_gain = [8.0, 8.0, 8.0, 0.8, 1.0, 0.8]
-                    input_gain = []
-                    output_gain = 30.0
-
-                    for i, label in enumerate(input_labels):
-                        input_gain.append(np.abs(1.0 / df_g[label].max()))
-                        df_g.loc[:, label] = df_g[label] * input_gain[i]
-
-                    df_g.loc[:, 'RMSE'] = df_g['RMSE'] * output_gain
-
-                    os.makedirs('nn/' + self.trajectory_dir, exist_ok=True)
-                    joblib.dump(input_gain, 'nn/' + self.trajectory_dir + 'input_gain_' + mode + '.pkl')
-                    joblib.dump(output_gain, 'nn/' + self.trajectory_dir + 'output_gain_' + mode + '.pkl')
-
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element + ' - 1'
-                    y_train, X_train = dmatrices(formula, data=df_g[(df_g['Time'] > 10.0) & (df_g['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
-                    y_test, X_test = dmatrices(formula, data=df_g[df_g['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-
-                    X_train, y_train, X_test, y_test = X_train.to_numpy(), y_train.to_numpy(), X_test.to_numpy(), y_test.to_numpy()
-
-                elif model_name == 'Lasso':
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element + ' - 1'
-
-                    y_train, X_train = dmatrices(formula, data=df_g[(df_g['Time'] > 10.0) & (df_g['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
-                    y_test, X_test = dmatrices(formula, data=df_g[df_g['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-
-
-                else:
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element
-
-                    y_train, X_train = dmatrices(formula, data=df_g[(df_g['Time'] > 10.0) & (df_g['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
-                    y_test, X_test = dmatrices(formula, data=df_g[df_g['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-
-                self.performance_learn_model(model_name, X_train, y_train, X_test, y_test, mode)
-
-
-    def performance_learn_model_size(self, size='Dyad', model_name=any, delay=0.0, test=False):
-        if 'Polar' in model_name:
-            input_labels_origin = ['σ_F_tot_radius', 'σ_F_sum_radius', 'σ_F_dev_radius',
-                                   'σ_P_tot_radius', 'σ_P_sum_radius', 'σ_P_dev_radius',
-                                   'σ_F_tot_angle', 'σ_F_sum_angle', 'σ_F_dev_angle',
-                                   'σ_P_tot_angle', 'σ_P_sum_angle', 'σ_P_dev_angle',]
-        else:
-            input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                                   'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        if test:
-            df = self.get_test_data_for_model()
-            mode = 'TEST_' + size + '_Delay_' + su.format_significant(delay)
-
-        else:
-            df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, cutoff=1.0, delay=delay)
-            mode = size + '_Delay_' + f"{delay:.1f}"
-
-
-        df, input_labels = self.get_interaction(df, input_labels_origin)
-        input_labels = input_labels_origin.copy()
-
-
-
-        if model_name == 'NN':
-            input_gain = [8.0, 8.0, 8.0, 0.8, 1.0, 0.8]
-            output_gain = 30.0
-
-            for i, label in enumerate(input_labels_origin):
-                df[label] = df[label] * input_gain[i]
-
-            df['RMSE'] = df['RMSE'] * output_gain
-
-            os.makedirs('nn/' + self.trajectory_dir, exist_ok=True)
-            joblib.dump(input_gain, 'nn/' + self.trajectory_dir + 'input_gain_' + mode + '.pkl')
-            joblib.dump(output_gain, 'nn/' + self.trajectory_dir + 'output_gain_' + mode + '.pkl')
-
-            input_labels = input_labels_origin.copy()
-
-            input_element = ' + '.join(input_labels)
-            formula = 'RMSE ~ ' + input_element + ' - 1'
-            y_train, X_train = dmatrices(formula, data=df[(df['Time'] > 10.0) & (df['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
-            y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-
-            X_train, y_train, X_test, y_test = X_train.to_numpy(), y_train.to_numpy(), X_test.to_numpy(), y_test.to_numpy()
-
-        else:
-            input_element = ' + '.join(input_labels)
-            formula = 'RMSE ~ ' + input_element
-
-            y_train, X_train = dmatrices(formula, data=df[df['Time'] < 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-            y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
-
-        self.performance_learn_model(model_name, X_train, y_train, X_test, y_test, mode)
-
-    def performance_check_model_any(self, size='Dyad', use_model='each', model_name=any, delay=0.0, test=False):
-        if 'Polar' in model_name:
-            input_labels_origin = ['σ_F_tot_radius', 'σ_F_sum_radius', 'σ_F_dev_radius',
-                                   'σ_P_tot_radius', 'σ_P_sum_radius', 'σ_P_dev_radius',
-                                   'σ_F_tot_angle', 'σ_F_sum_angle', 'σ_F_dev_angle',
-                                   'σ_P_tot_angle', 'σ_P_sum_angle', 'σ_P_dev_angle',]
-        else:
-            input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                                   'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        if test:
-            df = self.get_test_data_for_model(dec=100, labels=input_labels_origin, delay=delay)
-            mode_origin = 'TEST_'
-        else:
-            df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, cutoff=2.0, delay=delay)
-            mode_origin = ''
-
-        if size == 'Dyad':
-            mode_origin += 'Dyad'
-        elif size == 'Triad':
-            mode_origin += 'Triad'
-        elif size == 'Tetrad':
-            mode_origin += 'Tetrad'
-
-        if use_model == 'all':
-            mode_origin += 'all'
-
-        df, input_labels = self.get_interaction(df, input_labels_origin)
-        # input_labels = input_labels_origin.copy()
-
-        predicted_list = []
-        observed_list = []
-
-        Groups = df['Group'].unique()
-        for Group in Groups:
-            df_g = df[df['Group'] == Group].copy()
-
-            mode = mode_origin
-            if use_model == 'each':
-                mode += '_Group_' + str(Group)
-
-            mode += '_Delay_' + su.format_significant(delay)
-
-            if 'Polar' in model_name:
-                polar = ['radius', 'angle']
-                predict_ = []
-
-                fig_polar, ax = plt.subplots(2, 1, figsize=(10, 7), dpi=150)
-                for i in range(len(polar)):
-                    mode_polar = mode_origin
-                    if use_model == 'each':
-                        mode_polar += '_' + polar[i] + '_Group_' + str(Group) + '_Delay_' + su.format_significant(delay)
-
-                    else:
-                        mode_polar = '_' + polar[i] + '_Delay_' + su.format_significant(delay)
-
-                    if model_name[6:] == 'NN':
-                        print('NN')
-
-                    else:
-                        filtered_labels = [label for label in input_labels_origin if polar[i] in label]
-                        input_element = ' + '.join(filtered_labels)
-                        output_element = 'RMSE_' + polar[i]
-                        formula = output_element + ' ~ ' + input_element
-
-                        y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe', eval_env=1, NA_action='raise')
-
-                    prediction = self.performance_check_model(model_name, X_test, y_test, mode_polar)
-                    predict_.append(prediction)
-
-                    ax[i].plot(df_g['Time'], predict_[i], label='Predicted')
-                    ax[i].plot(df_g['Time'], df_g['RMSE_' + polar[i]], label='Actual')
-                    ax[i].set_title(polar[i])
-                    ax[i].set_xlabel('Time (s)')
-                    ax[i].set_ylabel('Cooperative RMSE')
-                    ax[i].legend()
-
-                predicted_list.append(predict_[0])
-                observed_list.append(df_g['RMSE'].to_numpy())
-                prediction = predict_[0]
-
-                os.makedirs('fig/' + model_name + '/' + self.trajectory_dir + 'Prediction', exist_ok=True)
-                fig_polar.savefig('fig/' + model_name + '/' + self.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_' + mode + '_Group' + Group + '_polar.png')
-
-
-
-            else:
-                if model_name == 'NN':
-                    input_gain = joblib.load('nn/' + self.trajectory_dir + 'input_gain_' + mode + '.pkl')
-                    output_gain = joblib.load('nn/' + self.trajectory_dir + 'output_gain_' + mode + '.pkl')
-
-                    for i, label in enumerate(input_labels):
-                        df_g.loc[:, label] = df_g[label] * input_gain[i]
-
-                    df_g.loc[:, 'RMSE'] = df_g['RMSE'] * output_gain
-
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element + ' - 1'
-                    y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe', eval_env=1, NA_action='raise')
-
-                    X_test, y_test = X_test.to_numpy(), y_test.to_numpy()
-
-                elif model_name == 'Lasso':
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element + ' - 1'
-
-                    y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe', eval_env=1, NA_action='raise')
-
-                else:
-                    input_element = ' + '.join(input_labels)
-                    formula = 'RMSE ~ ' + input_element
-
-                    y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe', eval_env=1, NA_action='raise')
-
-                prediction = self.performance_check_model(model_name, X_test, y_test, mode)
-                predicted_list.append(prediction)
-                observed_list.append(df_g['RMSE'].to_numpy())
-            time = df_g['Time'].to_numpy()
-
-            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-            ax.plot(df_g['Time'], prediction, label='Predicted')
-            ax.plot(df_g['Time'], df_g['RMSE'], label='Actual')
-
-            r2 = r2_score(prediction, df_g['RMSE'].to_numpy())
-            print(f"{r2=}")
-
-            ax.set_title(f"{r2=}")
-            ax.set_xlabel('Time (s)')
-            ax.set_ylabel('Cooperative RMSE')
-            ax.legend()
-            os.makedirs('fig/' + model_name + '/' + self.trajectory_dir + 'Prediction', exist_ok=True)
-            fig.savefig('fig/' + model_name + '/' + self.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_' + mode + '_Group' + Group + '.png')
-            # plt.close()
-        # plt.show()
-
-        return time, predicted_list, observed_list
-
-    def performance_learn_model(self, model_name, X_train, y_train, X_test, y_test, mode):
-        os.makedirs(model_name + self.trajectory_dir, exist_ok=True)
-
-        if 'KernelRidge' in model_name:
-            model = KernelRidge(alpha=1.0, kernel='rbf') #KernelRidge
-            model.fit(X_train, y_train)
-            prediction = model.predict(X_test)
-            observed = y_test
-
-        elif 'RBF-Lasso' in model_name:
-            kx = rbf_kernel(X_train, X_train)
-            KX = rbf_kernel(X_test, X_train)
-            joblib.dump(X_train, model_name + self.trajectory_dir + 'train-data_' + mode + '.pkl')
-
-            model = Lasso(alpha=0.0000001, max_iter=500000, tol=1e-30)
-            model.fit(kx, y_train)
-            prediction = model.predict(KX)
-            observed = y_test
-
-        elif 'RBF-Ridge' in model_name:
-            kx = rbf_kernel(X_train, X_train)
-            KX = rbf_kernel(X_test, X_train)
-            joblib.dump(X_train, model_name + self.trajectory_dir + 'train-data_' + mode + '.pkl')
-
-            model = Ridge()
-            model.fit(kx, y_train)
-            prediction = model.predict(KX)
-            observed = y_test
-
-        elif 'RBF-LRM' in model_name:
-            kx = rbf_kernel(X_train, X_train)
-            KX = rbf_kernel(X_test, X_train)
-            joblib.dump(X_train, model_name + self.trajectory_dir + 'train-data_' + mode + '.pkl')
-
-            model = LinearRegression()
-            model.fit(kx, y_train)
-            prediction = model.predict(KX)
-            observed = y_test
-
-        elif 'RBF-ElasticNet' in model_name:
-            kx = rbf_kernel(X_train, X_train)
-            KX = rbf_kernel(X_test, X_train)
-            joblib.dump(X_train, model_name + self.trajectory_dir + 'train-data_' + mode + '.pkl')
-
-
-            model = ElasticNet(alpha=0.01)
-            model.fit(kx, y_train)
-            prediction = model.predict(KX)
-            observed = y_test
-
-        elif 'Lasso' in model_name:
-            model = Lasso(alpha=0.0000001, max_iter=5000000, tol=1e-30)
-            model.fit(X_train, y_train)
-            prediction = model.predict(X_test)
-            observed = y_test
-
-        elif 'LRM' in model_name:
-            model = sm.OLS(y_train, X_train).fit()
-            print(model.summary())
-            prediction = model.predict(X_test)
-            observed = y_test
-
-
-        elif 'RandomForest' in model_name:
-            # 各入力の最大値を保存
-            max_values = np.max(X_train, axis=0)
-            joblib.dump(max_values, 'random_forest/' + self.trajectory_dir + 'max_values_' + mode + '.pkl')
-            min_values = np.min(X_train, axis=0)
-            joblib.dump(min_values, 'random_forest/' + self.trajectory_dir + 'min_values_' + mode + '.pkl')
-
-            # ランダムフォレストモデルの構築
-            model = RandomForestRegressor(n_estimators=100,
-                                          criterion='squared_error',
-                                          max_depth=None,
-                                          min_samples_split=2,
-                                          min_samples_leaf=1,
-                                          min_weight_fraction_leaf=0.0,
-                                          max_features=1.0,
-                                          max_leaf_nodes=None,
-                                          min_impurity_decrease=0.0,
-                                          bootstrap=True,
-                                          oob_score=False,
-                                          n_jobs=-1,
-                                          random_state=42,
-                                          verbose=0,
-                                          warm_start=False,
-                                          ccp_alpha=0.0,
-                                          max_samples=None,
-                                          monotonic_cst=None,
-                                          )
-            model.fit(X_train, y_train)
-            prediction = model.predict(X_test)
-            observed = y_test
-
-        elif 'NN' in model_name:
-            prediction, y_true, model, loss, valid_loss = self.fnn(X_train, y_train, X_test, y_test,
-                                                                   epoch_num=10000, batch_size=len(X_train), lr=0.01)
-            observed = y_true
-            # モデルのstate_dictを保存
-            torch.save(model, 'nn/' + self.trajectory_dir + 'nn_model_' + mode + '.pth')
-
-            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-            ax.plot(loss)
-            ax.set_xlabel('Epoch')
-            ax.set_ylabel('Loss')
-            ax.set_yscale('log')
-            # plt.show()
-            os.makedirs('fig/NN/' + self.trajectory_dir + 'loss/', exist_ok=True)
-            fig.savefig('fig/NN/' + self.trajectory_dir + 'loss/' + mode + '.png')
-            plt.close()
-
-            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-            ax.plot(valid_loss)
-            ax.set_xlabel('Epoch')
-            ax.set_ylabel('Validation Loss')
-            ax.set_yscale('log')
-            os.makedirs('fig/NN/' + self.trajectory_dir + 'valid_loss/', exist_ok=True)
-            fig.savefig('fig/NN/' + self.trajectory_dir + 'valid_loss/' + mode + '.png')
-            plt.close()
-
-        else:
-            print('Model is not found')
-            return -1
-
-        # モデルの保存
-        if model_name != 'NN':
-            os.makedirs(model_name + '/' + self.trajectory_dir, exist_ok=True)
-            joblib.dump(model, model_name + '/' + self.trajectory_dir + model_name + '_model_' + mode + '.pkl')
-
-        fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-        ax.scatter(prediction, observed, s=0.05, alpha=1.0)
-        ax.set_xlabel('Predicted Cooperative RMSE')
-        ax.set_ylabel('Cooperative RMSE')
-        ax.plot([0, 1], [0, 1], transform=ax.transAxes, color='black', linestyle='--')
-        os.makedirs('fig/' + model_name + '/' + self.trajectory_dir + 'Scatter/', exist_ok=True)
-        fig.savefig('fig/' + model_name + '/' + self.trajectory_dir + 'Scatter/' + 'Scatter_CooperativeRMSE_' + mode + '.png')
-        plt.close()
-
-    def performance_check_model(self, model_name, X_test, y_test, mode):
-        # モデルの保存
-        if 'NN' in model_name:
-            model_path = 'nn/' + self.trajectory_dir + 'nn_model_' + mode + '.pth'
-            prediction = self.fnn_predict(model_path, X_test, y_test)
-        else:
-            model = joblib.load(model_name + '/' + self.trajectory_dir + model_name + '_model_' + mode + '.pkl')
-
-            if 'RBF' in model_name:
-                X_train = joblib.load(model_name + self.trajectory_dir + 'train-data_' + mode + '.pkl')
-                Kx = rbf_kernel(X_test, X_train)
-                prediction = model.predict(Kx)
-
-            else:
-                prediction = model.predict(X_test)
-
-        return prediction
-
-
-    def nlr_check(self, size='Dyad'):
-        input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                               'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
-
-        df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, cutoff=1.0)
-        # df = self.get_test_data_for_model()
-
-        df, input_labels = self.get_interaction(df, input_labels_origin)
-        input_labels = input_labels_origin.copy()
-
-        input_element = ' + '.join(input_labels)
-        formula = 'RMSE ~ ' + input_element
-
-        Groups = df['Group'].unique()
-
-        clf = joblib.load('nlr/' + self.trajectory_dir + 'nlr_model_' + size + '.pkl')
-
-        for i in range(len(Groups)):
-            df_g = df[df['Group'] == Groups[i]]
-
-            y_test, X_test = dmatrices(formula, data=df_g, return_type='dataframe')
-
-            prediction = clf.predict(X_test)
-
-            fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=150)
-            ax.plot(df_g['Time'], prediction, label='Predicted')
-            ax.plot(df_g['Time'], df_g['RMSE'], label='Actual')
-
-            ax.set_xlabel('Time (s)')
-            ax.set_ylabel('Cooperative RMSE')
-            ax.legend()
-        plt.show()
 
     def lrm_size(self, sigma: int = 'none'):
         dyad_p_tot, dyad_f_tot, dyad_pa_tot, dyad_fa_tot = self.dyad_cfo.summation_ave_cfo(mode='b_abs')
@@ -2281,11 +1210,6 @@ class combine:
         dyad_p_sub, dyad_f_sub, dyad_pa_sub, dyad_fa_sub = self.dyad_cfo.subtraction_ave_cfo()
         triad_p_sub, triad_f_sub, triad_pa_sub, triad_fa_sub = self.triad_cfo.subtraction_ave_cfo()
         tetrad_p_sub, tetrad_f_sub, tetrad_pa_sub, tetrad_fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
-
-        dyad_p_dev, dyad_f_dev, dyad_pa_dev, dyad_fa_dev = self.dyad_cfo.deviation_ave_cfo()
-        triad_p_dev, triad_f_dev, triad_pa_dev, triad_fa_dev = self.triad_cfo.deviation_ave_cfo()
-        tetrad_p_dev, tetrad_f_dev, tetrad_pa_dev, tetrad_fa_dev = self.tetrad_cfo.deviation_ave_cfo()
-
 
         error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
@@ -2302,125 +1226,110 @@ class combine:
         cfo_f = [
             [dyad_f_tot, triad_f_tot, tetrad_f_tot],
             [dyad_f_sum, triad_f_sum, tetrad_f_sum],
-            # [dyad_f_sub, triad_f_sub, tetrad_f_sub],
-            [dyad_f_dev, triad_f_dev, tetrad_f_dev],
+            [dyad_f_sub, triad_f_sub, tetrad_f_sub],
         ]
 
         cfo_p = [
             [dyad_p_tot, triad_p_tot, tetrad_p_tot],
             [dyad_p_sum, triad_p_sum, tetrad_p_sum],
-            # [dyad_p_sub, triad_p_sub, tetrad_p_sub],
-            [dyad_p_dev, triad_p_dev, tetrad_p_dev],
+            [dyad_p_sub, triad_p_sub, tetrad_p_sub],
         ]
 
         cfo_fa = [
             [dyad_fa_tot, triad_fa_tot, tetrad_fa_tot],
             [dyad_fa_sum, triad_fa_sum, tetrad_fa_sum],
-            # [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
-            [dyad_fa_dev, triad_fa_dev, tetrad_fa_dev],
+            [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
         ]
 
         cfo_pa = [
             [dyad_pa_tot, triad_pa_tot, tetrad_pa_tot],
             [dyad_pa_sum, triad_pa_sum, tetrad_pa_sum],
-            # [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
-            [dyad_pa_dev, triad_pa_dev, tetrad_pa_dev],
+            [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
         ]
 
-        input_labels_origin = ['$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{dev}$',
-                        '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{dev}$',
-                        # '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
-                        # '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
+        cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
+        input_labels = ['$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
+                        '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
                         # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
                         # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
                         ]
-        input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
-                               'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
 
-        smp = 0.0001
-        time = np.arange(0, len(dyad_p_sub[0]) * smp, smp)
-
-        dec = 1000
-
-        df_ = []
-        for i in range(len(size)):
-            for j in range(len(cfo_f[0][i])):
-               df_.append(pd.DataFrame({
-                        input_labels_origin[0]: cfo_f[0][i][j][::dec],
-                        input_labels_origin[1]: cfo_f[1][i][j][::dec],
-                        input_labels_origin[2]: cfo_f[2][i][j][::dec],
-                        input_labels_origin[3]: cfo_p[0][i][j][::dec],
-                        input_labels_origin[4]: cfo_p[1][i][j][::dec],
-                        input_labels_origin[5]: cfo_p[2][i][j][::dec],
-                        # input_labels_origin[6]: cfo_fa[0][i][j][::dec],
-                        # input_labels_origin[7]: cfo_fa[1][i][j][::dec],
-                        # input_labels_origin[8]: cfo_fa[2][i][j][::dec],
-                        # input_labels_origin[9]: cfo_pa[0][i][j][::dec],
-                        # input_labels_origin[10]: cfo_pa[1][i][j][::dec],
-                        # input_labels_origin[11]: cfo_pa[2][i][j][::dec],
-                        'Time': time[::dec],
-                        'RMSE': performance[i][j][::dec],
-                        'Group Size': size[i],
-                        'Group': str(j + 1)
-                })
-                )
-        df = pd.concat([i for i in df_], axis=0)
-
-        values = [df[input_labels_origin[i]] for i in range(len(input_labels_origin))]
-        list_values = dict(zip(input_labels_origin, values))
-
-        combinations = []
-        for i in range(len(input_labels_origin) - 1):
-            combinations_ = list(itertools.combinations(input_labels_origin, i + 2))
-            combinations.extend(combinations_)
-
-        result_list = []
-        formatted_combinations = []
-        for combo in combinations:
-            formatted_combo = '*'.join(combo)
-            formatted_combinations.append(formatted_combo)
-
-            # 組み合わせの各要素に対応する数値を取得し、掛け合わせる
-            product_value = 1  # 掛け合わせの初期値は1
-            for item in combo:
-                product_value *= list_values[item]
-            result_list.append((combo, product_value))
-
-        for i in range(len(formatted_combinations)):
-            df[formatted_combinations[i]] = result_list[i][1]
-
-        # print(df)
-        input_labels = input_labels_origin.copy()
-        input_labels.extend(formatted_combinations)
-
+        feature_importances = []
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=200)
         for i in range(len(size)):
-            df_size = df[df['Group Size'] == size[i]]
+            cfo_f_tot_re = cfo_f[0][i].reshape(1, -1)
+            cfo_f_sum_re = cfo_f[1][i].reshape(1, -1)
+            cfo_f_sub_re = cfo_f[2][i].reshape(1, -1)
+            cfo_p_tot_re = cfo_p[0][i].reshape(1, -1)
+            cfo_p_sum_re = cfo_p[1][i].reshape(1, -1)
+            cfo_p_sub_re = cfo_p[2][i].reshape(1, -1)
+            cfo_fa_tot_re = cfo_fa[0][i].reshape(1, -1)
+            cfo_fa_sum_re = cfo_fa[1][i].reshape(1, -1)
+            cfo_fa_sub_re = cfo_fa[2][i].reshape(1, -1)
+            cfo_pa_tot_re = cfo_pa[0][i].reshape(1, -1)
+            cfo_pa_sum_re = cfo_pa[1][i].reshape(1, -1)
+            cfo_pa_sub_re = cfo_pa[2][i].reshape(1, -1)
 
-            input_element = ' + '.join(input_labels)
-            formula = 'RMSE ~ ' + input_element
-            y_train, X_train = dmatrices(formula, data=df[df['Time'] < 40.0], return_type='dataframe')
-            y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe')
+            performance_re = performance[i].reshape(1, -1)
 
-            # # 訓練データとテストデータに分割
-            # y, X = dmatrices(formula, data=df, return_type='dataframe')
-            # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,
-            #                                                     random_state=42, shuffle=True)
+            input = np.column_stack((cfo_f_tot_re[0],
+                                     cfo_f_sum_re[0],
+                                     cfo_f_sub_re[0],
+                                     cfo_p_tot_re[0],
+                                     cfo_p_sum_re[0],
+                                     cfo_p_sub_re[0],
+                                     # cfo_fa_tot_re[0],
+                                     # cfo_fa_sum_re[0],
+                                     # cfo_fa_sub_re[0],
+                                     # cfo_pa_tot_re[0],
+                                     # cfo_pa_sum_re[0],
+                                     # cfo_pa_sub_re[0],
+                                     cfo_f_tot_re[0] * cfo_f_sum_re[0],
+                                     cfo_f_tot_re[0] * cfo_f_sub_re[0],
+                                     cfo_f_tot_re[0] * cfo_p_tot_re[0],
+                                     cfo_f_tot_re[0] * cfo_p_sum_re[0],
+                                     cfo_f_tot_re[0] * cfo_p_sub_re[0],
+
+                                     cfo_f_sum_re[0] * cfo_f_sub_re[0],
+                                     cfo_f_sum_re[0] * cfo_p_tot_re[0],
+                                     cfo_f_sum_re[0] * cfo_p_sum_re[0],
+                                     cfo_f_sum_re[0] * cfo_p_sub_re[0],
+
+                                     cfo_f_sub_re[0] * cfo_p_tot_re[0],
+                                     cfo_f_sub_re[0] * cfo_p_sum_re[0],
+                                     cfo_f_sub_re[0] * cfo_p_sub_re[0],
+
+                                     cfo_p_tot_re[0] * cfo_p_sum_re[0],
+                                     cfo_p_tot_re[0] * cfo_p_sub_re[0],
+
+                                     cfo_p_sum_re[0] * cfo_p_sub_re[0],
+
+                                     ))
+
+            # 訓練データとテストデータに分割
+            X_train, X_test, y_train, y_test = train_test_split(input[::100], performance_re[0][::100], test_size=0.2,
+                                                                random_state=42, shuffle=True)
+
+
+            # 説明変数行列に定数項を追加
+            X = sm.add_constant(X_train)
 
             # 回帰モデルの作成
-            model = sm.OLS(y_train, X_train).fit()
+            model = sm.OLS(y_train, X).fit()
             print(model.summary())
 
-            # # モデルをファイルに保存
-            # os.makedirs('lrm/' + self.trajectory_dir, exist_ok=True)
-            # joblib.dump(model, 'lrm/' + self.trajectory_dir + 'lrm_model_' + size[i] + '.pkl')
-            #
-            # # 保存されたモデルをロード
-            # model: RandomForestRegressor = joblib.load(
-            #     'lrm/' + self.trajectory_dir + 'lrm_model_' + size[i] + '.pkl')
+            # モデルをファイルに保存
+            os.makedirs('lrm/' + self.trajectory_dir, exist_ok=True)
+            joblib.dump(model, 'lrm/' + self.trajectory_dir + 'lrm_model_' + size[i] + '.pkl')
+
+            # 保存されたモデルをロード
+            model: RandomForestRegressor = joblib.load(
+                'lrm/' + self.trajectory_dir + 'lrm_model_' + size[i] + '.pkl')
 
 
-            predicted_values = model.predict(X_test)
+            X_ = sm.add_constant(X_test)
+
+            predicted_values = model.predict(X_)
             # sns.regplot(x=predicted_values[::100], y=performance_re[0][::100], ax=ax,
             #             scatter_kws={'s': 0.05, 'alpha': 0.1}, line_kws={'lw': 2},
             #             )
@@ -2437,9 +1346,9 @@ class combine:
             ax.set_xlim(-0.03, 0.03)
 
         plt.subplots_adjust(wspace=1.0)  # 横方向の余白を調整
-        # os.makedirs('fig/LRM/' + self.trajectory_dir, exist_ok=True)
-        # plt.savefig('fig/LRM/' + self.trajectory_dir + 'performance_predict_LRM_size.png')
-        plt.show()
+        os.makedirs('fig/LRM/' + self.trajectory_dir, exist_ok=True)
+        plt.savefig('fig/LRM/' + self.trajectory_dir + 'performance_predict_LRM_size.png')
+
 
     def lrm_check(self, sigma: int = 'none', mode: str = 'all'):
         if mode not in ['all', 'size', 'each']:
@@ -2770,10 +1679,6 @@ class combine:
         triad_p_sub, triad_f_sub, triad_pa_sub, triad_fa_sub = self.triad_cfo.subtraction_ave_cfo()
         tetrad_p_sub, tetrad_f_sub, tetrad_pa_sub, tetrad_fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
 
-        dyad_p_dev, dyad_f_dev, dyad_pa_dev, dyad_fa_dev = self.dyad_cfo.deviation_ave_cfo()
-        triad_p_dev, triad_f_dev, triad_pa_dev, triad_fa_dev = self.triad_cfo.deviation_ave_cfo()
-        tetrad_p_dev, tetrad_f_dev, tetrad_pa_dev, tetrad_fa_dev = self.tetrad_cfo.deviation_ave_cfo()
-
         error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
@@ -2789,45 +1694,33 @@ class combine:
         cfo_f = [
             [dyad_f_tot, triad_f_tot, tetrad_f_tot],
             [dyad_f_sum, triad_f_sum, tetrad_f_sum],
-            # [dyad_f_sub, triad_f_sub, tetrad_f_sub],
-            [dyad_f_dev, triad_f_dev, tetrad_f_dev],
+            [dyad_f_sub, triad_f_sub, tetrad_f_sub],
         ]
 
         cfo_p = [
             [dyad_p_tot, triad_p_tot, tetrad_p_tot],
             [dyad_p_sum, triad_p_sum, tetrad_p_sum],
-            # [dyad_p_sub, triad_p_sub, tetrad_p_sub],
-            [dyad_p_dev, triad_p_dev, tetrad_p_dev],
+            [dyad_p_sub, triad_p_sub, tetrad_p_sub],
         ]
 
         cfo_fa = [
             [dyad_fa_tot, triad_fa_tot, tetrad_fa_tot],
             [dyad_fa_sum, triad_fa_sum, tetrad_fa_sum],
-            # [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
-            [dyad_fa_dev, triad_fa_dev, tetrad_fa_dev],
+            [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
         ]
 
         cfo_pa = [
             [dyad_pa_tot, triad_pa_tot, tetrad_pa_tot],
             [dyad_pa_sum, triad_pa_sum, tetrad_pa_sum],
-            # [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
-            [dyad_pa_dev, triad_pa_dev, tetrad_pa_dev],
+            [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
         ]
 
-        # cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
-        # input_labels = [
-        #     '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
-        #     '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
-        #     # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
-        #     # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
-        # ]
-
-        input_labels = [
-            '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{dev}$',
-            '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{dev}$',
-            # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
-            # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
-        ]
+        cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
+        input_labels = ['$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
+                        '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
+                        # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
+                        # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
+                        ]
 
         feature_importances = []
         fig, ax = plt.subplots(1, 1, figsize=(5, 5), dpi=200)
@@ -2862,19 +1755,16 @@ class combine:
                                      ))
 
             # 訓練データとテストデータに分割
-            X_train, X_test, y_train, y_test = train_test_split(input[::100], performance_re[0][::100], test_size=0.8,
+            X_train, X_test, y_train, y_test = train_test_split(input[::100], performance_re[0][::100], test_size=0.2,
                                                                 random_state=42, shuffle=True)
 
             # 各入力の最大値を保存
             max_values = np.max(X_train, axis=0)
             joblib.dump(max_values, 'random_forest/' + self.trajectory_dir + 'max_values_' + size[i] + '.pkl')
-            min_values = np.min(X_train, axis=0)
-            joblib.dump(min_values, 'random_forest/' + self.trajectory_dir + 'min_values_' + size[i] + '.pkl')
 
             # ランダムフォレストモデルの構築
             model = RandomForestRegressor(n_estimators=100, random_state=42)
             model.fit(X_train, y_train)
-
             # モデルをファイルに保存
             os.makedirs('random_forest/' + self.trajectory_dir, exist_ok=True)
             joblib.dump(model, 'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '.pkl')
@@ -2883,7 +1773,7 @@ class combine:
             model: RandomForestRegressor = joblib.load(
                 'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '.pkl')
 
-            # SHAP値の計算
+            # # SHAP値の計算
             # explainer = shap.Explainer(model, X_train)
             # shap_values = explainer(X_test[:100])
             # print(shap_values)
@@ -2918,7 +1808,7 @@ class combine:
 
         plt.subplots_adjust(wspace=1.0)  # 横方向の余白を調整
         os.makedirs('fig/random_forest/' + self.trajectory_dir, exist_ok=True)
-        # plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_size.png')
+        plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_size.png')
 
         # 特徴量の重要度を可視化
         fig, ax = plt.subplots(1, 1, figsize=(8, 6), dpi=200, sharex=True, sharey=True)
@@ -2947,8 +1837,8 @@ class combine:
         ax.set_ylabel('Feature Importance')
         ax.set_xlabel('Feature')
         plt.subplots_adjust(wspace=0.4)  # 横方向の余白を調整
-        # plt.savefig('fig/random_forest/' + self.trajectory_dir + 'feature_importance_random_forest_size.png')
-        plt.show()
+        plt.savefig('fig/random_forest/' + self.trajectory_dir + 'feature_importance_random_forest_size.png')
+        # plt.show()
 
     def random_forest_each(self, sigma: int = 'none'):
         dyad_p_tot, dyad_f_tot, dyad_pa_tot, dyad_fa_tot = self.dyad_cfo.summation_ave_cfo(mode='b_abs')
@@ -2962,10 +1852,6 @@ class combine:
         dyad_p_sub, dyad_f_sub, dyad_pa_sub, dyad_fa_sub = self.dyad_cfo.subtraction_ave_cfo()
         triad_p_sub, triad_f_sub, triad_pa_sub, triad_fa_sub = self.triad_cfo.subtraction_ave_cfo()
         tetrad_p_sub, tetrad_f_sub, tetrad_pa_sub, tetrad_fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
-
-        dyad_p_dev, dyad_f_dev, dyad_pa_dev, dyad_fa_dev = self.dyad_cfo.deviation_ave_cfo()
-        triad_p_dev, triad_f_dev, triad_pa_dev, triad_fa_dev = self.triad_cfo.deviation_ave_cfo()
-        tetrad_p_dev, tetrad_f_dev, tetrad_pa_dev, tetrad_fa_dev = self.tetrad_cfo.deviation_ave_cfo()
 
         error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
@@ -2982,42 +1868,31 @@ class combine:
         cfo_f = [
             [dyad_f_tot, triad_f_tot, tetrad_f_tot],
             [dyad_f_sum, triad_f_sum, tetrad_f_sum],
-            # [dyad_f_sub, triad_f_sub, tetrad_f_sub],
-            [dyad_f_dev, triad_f_dev, tetrad_f_dev],
+            [dyad_f_sub, triad_f_sub, tetrad_f_sub],
         ]
 
         cfo_p = [
             [dyad_p_tot, triad_p_tot, tetrad_p_tot],
             [dyad_p_sum, triad_p_sum, tetrad_p_sum],
-            # [dyad_p_sub, triad_p_sub, tetrad_p_sub],
-            [dyad_p_dev, triad_p_dev, tetrad_p_dev],
+            [dyad_p_sub, triad_p_sub, tetrad_p_sub],
         ]
 
         cfo_fa = [
             [dyad_fa_tot, triad_fa_tot, tetrad_fa_tot],
             [dyad_fa_sum, triad_fa_sum, tetrad_fa_sum],
-            # [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
-            [dyad_fa_dev, triad_fa_dev, tetrad_fa_dev],
+            [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
         ]
 
         cfo_pa = [
             [dyad_pa_tot, triad_pa_tot, tetrad_pa_tot],
             [dyad_pa_sum, triad_pa_sum, tetrad_pa_sum],
-            # [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
-            [dyad_pa_dev, triad_pa_dev, tetrad_pa_dev],
+            [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
         ]
 
-        # cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
-        # input_labels = [
-        #     '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
-        #     '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
-        #     # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
-        #     # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
-        # ]
-
+        cfo_labels = ['Total FCFO', 'Summation FCFO', 'Subtraction FCFO']
         input_labels = [
-            '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{dev}$',
-            '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{dev}$',
+            '$\sigma_F^{tot}$', '$\sigma_F^{sum}$', '$\sigma_F^{sub}$',
+            '$\sigma_P^{tot}$', '$\sigma_P^{sum}$', '$\sigma_P^{sub}$',
             # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
             # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
         ]
@@ -3071,17 +1946,16 @@ class combine:
                 # ランダムフォレストモデルの構築
                 model = RandomForestRegressor(n_estimators=100, random_state=42)
                 model.fit(X_train, y_train)
+                # モデルをファイルに保存
+                os.makedirs('random_forest/' + self.trajectory_dir, exist_ok=True)
+                joblib.dump(model,
+                            'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '_Group' + str(
+                                j + 1) + '.pkl')
 
-                # # モデルをファイルに保存
-                # os.makedirs('random_forest/' + self.trajectory_dir, exist_ok=True)
-                # joblib.dump(model,
-                #             'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '_Group' + str(
-                #                 j + 1) + '.pkl')
-                #
-                # # 保存されたモデルをロード
-                # model: RandomForestRegressor = joblib.load(
-                #     'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '_Group' + str(
-                #         j + 1) + '.pkl')
+                # 保存されたモデルをロード
+                model: RandomForestRegressor = joblib.load(
+                    'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size[i] + '_Group' + str(
+                        j + 1) + '.pkl')
 
                 # # SHAP値の計算
                 # explainer = shap.Explainer(model, X_train)
@@ -3113,11 +1987,11 @@ class combine:
         axs[2].set_xlabel('Predicted Cooperative RMSE')
         axs[1].set_ylabel('Cooperative RMSE')
 
-        # os.makedirs('fig/random_forest/' + self.trajectory_dir, exist_ok=True)
-        # plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_each.png')
-        # plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_each.pdf')
+        os.makedirs('fig/random_forest/' + self.trajectory_dir, exist_ok=True)
+        plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_each.png')
+        plt.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_each.pdf')
 
-        plt.show()
+        # plt.show()
 
         # 特徴量の重要度を可視化
         fig, axs = plt.subplots(3, 1, figsize=(6, 12), dpi=200, sharex=True, sharey=True)
@@ -3178,30 +2052,26 @@ class combine:
     def simulation_all(self):
         # 各入力の最大値をロード
         max_values = joblib.load('random_forest/' + self.trajectory_dir + 'max_values.pkl')
-        min_values = joblib.load('random_forest/' + self.trajectory_dir + 'min_values.pkl')
         model: RandomForestRegressor = joblib.load(
             'random_forest/' + self.trajectory_dir + 'random_forest_model_all.pkl')
 
-        self.simulation(model, max_values, min_values, 'All/')
+        self.simulation(model, max_values, 'All/')
 
     def simulation_size(self, size: str):
         if size not in ['Dyad', 'Triad', 'Tetrad']:
             raise ValueError('size is not Dyad, Triad, Tetrad')
         # 各入力の最大値をロード
         max_values = joblib.load('random_forest/' + self.trajectory_dir + 'max_values_' + size + '.pkl')
-        min_values = joblib.load('random_forest/' + self.trajectory_dir + 'min_values_' + size + '.pkl')
         model: RandomForestRegressor = joblib.load(
             'random_forest/' + self.trajectory_dir + 'random_forest_model_' + size + '.pkl')
 
-        self.simulation(model, max_values, min_values, size + '/')
+        self.simulation(model, max_values, size + '/')
 
-    def simulation(self, model: RandomForestRegressor, max_values: np.ndarray, min_values: np.ndarray, save_dir):
-        rewrite = True
+    def simulation(self, model: RandomForestRegressor, max_values: np.ndarray, save_dir):
+        rewrite = False
         cfo_labels = ['$\sigma_1^{F}$', '$\sigma_2^{F}$', '$\sigma_1^{P}$', '$\sigma_2^{P}$']
-        input_labels = ['$\sigma^{F,tot}$', '$\sigma^{F,sum}$', '$\sigma^{F,dev}$',
-                        '$\sigma^{P,tot}$', '$\sigma^{P,sum}$', '$\sigma^{P,dev}$',
-                        # '$\sigma^{F,tot}$', '$\sigma^{F,sum}$', '$\sigma^{F,sub}$',
-                        # '$\sigma^{P,tot}$', '$\sigma^{P,sum}$', '$\sigma^{P,sub}$',
+        input_labels = ['$\sigma^{F,tot}$', '$\sigma^{F,sum}$', '$\sigma^{F,sub}$',
+                        '$\sigma^{P,tot}$', '$\sigma^{P,sum}$', '$\sigma^{P,sub}$',
                         # '$\sigma_{FA}^{tot}$', '$\sigma_{FA}^{sum}$', '$\sigma_{FA}^{sub}$',
                         # '$\sigma_{PA}^{tot}$', '$\sigma_{PA}^{sum}$', '$\sigma_{PA}^{sub}$'
                         ]
@@ -3237,8 +2107,8 @@ class combine:
                         cfo_pattern[1][steps ** 3 * i + steps ** 2 * j + steps * k + l] = k
                         cfo_pattern[0][steps ** 3 * i + steps ** 2 * j + steps * k + l] = l
 
-        g_cfo_f = 8.0 / level
-        g_cfo_p = 0.8 / level
+        g_cfo_f = 2.0 / level
+        g_cfo_p = 0.2 / level
         g_cfo = [
             g_cfo_f, g_cfo_f, g_cfo_p, g_cfo_p
         ]
@@ -3249,9 +2119,6 @@ class combine:
 
         for i in range(4):
             cfo[i] = cfo[i] + g_noise[i] * g_cfo[i] * noise[i]
-
-        avg_f = (cfo[0] + cfo[1]) / 2
-        avg_p = (cfo[2] + cfo[3]) / 2
 
         cfo_f = np.array([
             # g * np.sin(2 * np.pi * f * time),
@@ -3266,11 +2133,9 @@ class combine:
             # g_triangle[1] * triangle[1]+ g_noise[1] * noise[1] + offset[1],
             # g_triangle[2] * triangle[2]+ g_noise[2] * noise[2] + offset[2],
 
-            (np.abs(cfo[0]) + np.abs(cfo[1])) / 2,
-            # np.abs(cfo[0] + cfo[1]),
-            (cfo[0] + cfo[1]) / 2,
-            # np.abs(cfo[0] - cfo[1]),
-            (np.abs(cfo[0] - avg_f) + np.abs(cfo[1] - avg_f)) / 2,
+            np.abs(cfo[0]) + np.abs(cfo[1]),
+            np.abs(cfo[0] + cfo[1]),
+            np.abs(cfo[0] - cfo[1]),
         ])
 
         cfo_p = np.array([
@@ -3286,11 +2151,9 @@ class combine:
             # g_triangle[4] * triangle[4] + g_noise[4] * noise[4] + offset[4],
             # g_triangle[5] * triangle[5] + g_noise[5] * noise[5] + offset[5],
 
-            (np.abs(cfo[2]) + np.abs(cfo[3])) / 2,
-            (cfo[2] + cfo[3]) / 2,
-            # np.abs(cfo[2] + cfo[3]),
-            (np.abs(cfo[2] - avg_p) + np.abs(cfo[3] - avg_p)) / 2,
-            # np.abs(cfo[2] - cfo[3]),
+            np.abs(cfo[2]) + np.abs(cfo[3]),
+            np.abs(cfo[2] + cfo[3]),
+            np.abs(cfo[2] - cfo[3]),
         ])
 
         input = np.column_stack((
@@ -3308,21 +2171,9 @@ class combine:
             cfo_f = cfo_f[:, input[:, i] < max_values[i]]
             input = input[input[:, i] < max_values[i]]
 
-        for i in range(len(input_labels)):
-            cfo = cfo[:, input[:, i] > min_values[i]]
-            cfo_p = cfo_p[:, input[:, i] > min_values[i]]
-            cfo_f = cfo_f[:, input[:, i] > min_values[i]]
-            input = input[input[:, i] > min_values[i]]
-
-        print(f"{min_values=}")
-
-        # time = np.arange(0, len(input) * smp, smp)
-        time = np.linspace(0, len(input) * smp, len(input))
-        print(f"{cfo.shape=}")
-        print(f"{input.shape=}")
-        print(f"{time.shape=}")
         # print(input.shape)
         # print(len(time))
+        time = np.arange(0, len(input) * smp, smp)
 
         # modelを使って予測
         os.makedirs('simulation/' + self.trajectory_dir + save_dir, exist_ok=True)
@@ -3387,8 +2238,8 @@ class combine:
 
         os.makedirs('fig/simulation/' + self.trajectory_dir + save_dir, exist_ok=True)
         plt.savefig('fig/simulation/' + self.trajectory_dir + save_dir + 'simulation.png')
-        plt.show()
-        # return 0
+        # plt.show()
+        return 0
 
         # パフォーマンスと各CFOの関係
         # fig, ax = plt.subplots(1, len(input_labels), figsize=(60, 10), dpi=200)
@@ -3435,42 +2286,42 @@ class combine:
               [4, 5],
               [5]]
 
-        # lb = [[5, 4, 3, 2, 1],
-        #       [5, 4, 3, 2, 0],
-        #       [5, 4, 3, 1, 0],
-        #       [5, 4, 2, 1, 0],
-        #       [5, 3, 2, 1, 0]]
+        lb = [[5, 4, 3, 2, 1],
+              [5, 4, 3, 2, 0],
+              [5, 4, 3, 1, 0],
+              [5, 4, 2, 1, 0],
+              [5, 3, 2, 1, 0]]
 
-        fig, ax = plt.subplots(len(lb), len(lb[0]), figsize=(20, 20), dpi=200)
-        for i in range(len(input_labels) - 1):
-            for j in range(len(lb[i])):
-                x = input[:, i][::dec]
-                y = input[:, lb[i][j]][::dec]
-                # y = input[:, j][::dec]
-                xi = np.linspace(min(x), max(x), 100)
-                yi = np.linspace(min(y), max(y), 100)
-                xi, yi = np.meshgrid(xi, yi)
-                z = sim_performance[::dec]
-                zi = griddata((x, y), z, (xi, yi), method='cubic')
-                im = ax[i, j].imshow(zi, extent=(min(x), max(x), min(y), max(y)), origin='lower', cmap='gnuplot', aspect='auto')
+        # fig, ax = plt.subplots(len(lb), len(lb[0]), figsize=(20, 20), dpi=200)
+        # for i in range(len(input_labels) - 1):
+        #     for j in range(len(lb[i])):
+        #         x = input[:, i][::dec]
+        #         y = input[:, lb[i][j]][::dec]
+        #         # y = input[:, j][::dec]
+        #         xi = np.linspace(min(x), max(x), 100)
+        #         yi = np.linspace(min(y), max(y), 100)
+        #         xi, yi = np.meshgrid(xi, yi)
+        #         z = sim_performance[::dec]
+        #         zi = griddata((x, y), z, (xi, yi), method='cubic')
+        #         im = ax[i, j].imshow(zi, extent=(min(x), max(x), min(y), max(y)), origin='lower', cmap='gnuplot', aspect='auto')
+        #
+        #         # ax[i, j].set_xlabel(input_labels[i])
+        #         # ax[i, j].set_ylabel(input_labels[lb[i][j]])
+        #         # ax[i, j].set_ylabel(input_labels[j])
+        #         ax[i, j].set_xticks((min(x), max(x)))
+        #         ax[i, j].set_yticks((min(y), max(y)))
+        #         ax[i, j].set_xlim(min(x), max(x))
+        #         ax[i, j].set_ylim(min(y), max(y))
+        #
+        #         print(i, j)
 
-                # ax[i, j].set_xlabel(input_labels[i])
-                # ax[i, j].set_ylabel(input_labels[lb[i][j]])
-                # ax[i, j].set_ylabel(input_labels[j])
-                ax[i, j].set_xticks((min(x), max(x)))
-                ax[i, j].set_yticks((min(y), max(y)))
-                ax[i, j].set_xlim(min(x), max(x))
-                ax[i, j].set_ylim(min(y), max(y))
-
-                print(i, j)
-
-        # カラーバーを作成し、figの右側に配置
-        cbar = fig.colorbar(im, ax=ax[0,0], orientation='horizontal')
-        # cbar.set_label('Velocity (m/s)')
-        # カラーバーの目盛りの間隔を設定
-        cbar.locator = MaxNLocator(nbins=6)  # 例として5つの目盛りを設定
-        cbar.update_ticks()
-        plt.tight_layout()
+        # # カラーバーを作成し、figの右側に配置
+        # cbar = fig.colorbar(im, ax=ax[0,0], orientation='horizontal')
+        # # cbar.set_label('Velocity (m/s)')
+        # # カラーバーの目盛りの間隔を設定
+        # cbar.locator = MaxNLocator(nbins=6)  # 例として5つの目盛りを設定
+        # cbar.update_ticks()
+        # plt.tight_layout()
         plt.subplots_adjust(wspace=0.4, hspace=0.4)  # 横方向の余白を調整
         plt.savefig('fig/simulation/' + self.trajectory_dir + save_dir + 'simulation_CFO-Performance_color' + str(level) + '.pdf')
         plt.show()
@@ -3617,10 +2468,6 @@ class combine:
         triad_p_sub, triad_f_sub, triad_pa_sub, triad_fa_sub = self.triad_cfo.subtraction_ave_cfo()
         tetrad_p_sub, tetrad_f_sub, tetrad_pa_sub, tetrad_fa_sub = self.tetrad_cfo.subtraction_ave_cfo()
 
-        dyad_p_dev, dyad_f_dev, dyad_pa_dev, dyad_fa_dev = self.dyad_cfo.deviation_ave_cfo()
-        triad_p_dev, triad_f_dev, triad_pa_dev, triad_fa_dev = self.triad_cfo.deviation_ave_cfo()
-        tetrad_p_dev, tetrad_f_dev, tetrad_pa_dev, tetrad_fa_dev = self.tetrad_cfo.deviation_ave_cfo()
-
         error_ts_dyad, error_dot_ts_dyad = self.dyad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_triad, error_dot_ts_triad = self.triad_cfo.time_series_performance_cooperation(sigma=sigma)
         error_ts_tetrad, error_dot_ts_tetrad = self.tetrad_cfo.time_series_performance_cooperation(sigma=sigma)
@@ -3636,29 +2483,25 @@ class combine:
         cfo_f = [
             [dyad_f_tot, triad_f_tot, tetrad_f_tot],
             [dyad_f_sum, triad_f_sum, tetrad_f_sum],
-            # [dyad_f_sub, triad_f_sub, tetrad_f_sub],
-            [dyad_f_dev, triad_f_dev, tetrad_f_dev],
+            [dyad_f_sub, triad_f_sub, tetrad_f_sub],
         ]
 
         cfo_p = [
             [dyad_p_tot, triad_p_tot, tetrad_p_tot],
             [dyad_p_sum, triad_p_sum, tetrad_p_sum],
-            # [dyad_p_sub, triad_p_sub, tetrad_p_sub],
-            [dyad_p_dev, triad_p_dev, tetrad_p_dev],
+            [dyad_p_sub, triad_p_sub, tetrad_p_sub],
         ]
 
         cfo_fa = [
             [dyad_fa_tot, triad_fa_tot, tetrad_fa_tot],
             [dyad_fa_sum, triad_fa_sum, tetrad_fa_sum],
-            # [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
-            [dyad_fa_dev, triad_fa_dev, tetrad_fa_dev],
+            [dyad_fa_sub, triad_fa_sub, tetrad_fa_sub],
         ]
 
         cfo_pa = [
             [dyad_pa_tot, triad_pa_tot, tetrad_pa_tot],
             [dyad_pa_sum, triad_pa_sum, tetrad_pa_sum],
-            # [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
-            [dyad_pa_dev, triad_pa_dev, tetrad_pa_dev],
+            [dyad_pa_sub, triad_pa_sub, tetrad_pa_sub],
         ]
 
         model: RandomForestRegressor
@@ -3719,8 +2562,8 @@ class combine:
                 ax.set_title(size[i] + ' Group' + str(j + 1))
                 os.makedirs('fig/random_forest/' + self.trajectory_dir + 'TimeSeries', exist_ok=True)
                 # fig.savefig('fig/random_forest/' + self.trajectory_dir + 'TimeSeries/Performance_predict_' + size[i] + '_Group' + str(j + 1) + '_' + mode + '.png')
-                # fig.savefig('fig/random_forest/' + self.trajectory_dir + 'TimeSeries/Performance_predict_' + size[
-                #     i] + '_Group' + str(j + 1) + '_' + mode + '.pdf')
+                fig.savefig('fig/random_forest/' + self.trajectory_dir + 'TimeSeries/Performance_predict_' + size[
+                    i] + '_Group' + str(j + 1) + '_' + mode + '.pdf')
 
 
                 # 訓練データとテストデータに分割
@@ -3748,9 +2591,9 @@ class combine:
             ax_scat.plot([0, 1], [0, 1], transform=ax_scat.transAxes, color='black', linestyle='--')
             fig_scat.subplots_adjust(wspace=1.0)  # 横方向の余白を調整
             os.makedirs('fig/random_forest/' + self.trajectory_dir, exist_ok=True)
-            # fig_scat.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_group_' + size[i] +'.pdf')
+            fig_scat.savefig('fig/random_forest/' + self.trajectory_dir + 'performance_predict_random_forest_group_' + size[i] +'.pdf')
 
-        plt.show()
+        # plt.show()
 
     def simulation_verification_all(self, sigma: int = 'none'):
         dyad_p_tot, dyad_f_tot, dyad_pa_tot, dyad_fa_tot = self.dyad_cfo.summation_ave_cfo(mode='b_abs')

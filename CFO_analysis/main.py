@@ -174,9 +174,9 @@ if __name__ == '__main__':
     # com.performance_comparison('h-h')
     # com.performance_comparison('m-m')
 
-    # com.dyad_cfo.period_performance_cooperation_and_solo(graph=True)
+    com.dyad_cfo.period_performance_cooperation_and_solo(graph=True)
     # com.triad_cfo.period_performance_cooperation_and_solo(graph=True)
-    com.tetrad_cfo.period_performance_cooperation_and_solo(graph=True)
+    # com.tetrad_cfo.period_performance_cooperation_and_solo(graph=True)
 
 
     ##OCFOとパフォーマンスの確認

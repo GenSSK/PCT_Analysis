@@ -6,80 +6,80 @@ import matplotlib.patheffects as path_effects
 
 
 def stft(signal, time, t_wndw=100.0e-3, n_stft=100, wndw='hamming'):
-    tm_sp_, freq_sp_, sp_ = [], [], []
-    signal_flatten = signal.reshape(-1, signal.shape[-1])
-    t = time
-    if signal.shape != time.shape:
-        t = np.array([time for i in range(len(signal_flatten))])
-    for i in range(len(signal_flatten)):
-        tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal_flatten[i], t[i], t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
-        tm_sp_.append(tm_sp_ret)
-        freq_sp_.append(freq_sp_ret)
-        sp_.append(sp_ret)
-    tm_sp_array = np.array([_ for _ in tm_sp_])
-    freq_sp_array = np.array([_ for _ in freq_sp_])
-    sp_array = np.array([_ for _ in sp_])
-    tm_sp = tm_sp_array.reshape(signal.shape[:-1] + (-1,))
-    freq_sp = freq_sp_array.reshape(signal.shape[:-1] + (-1,))
-    sp = sp_array.reshape(signal.shape[:-1] + (sp_ret.shape))
-    #
-    # if signal.ndim == 1:
-    #     tm_sp, freq_sp, sp = calc_stft(signal, time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
-    # if signal.ndim == 2:
-    #     tm_sp_ = []
-    #     freq_sp_ = []
-    #     sp_ = []
-    #     for i in range(signal.shape[0]):
-    #         tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
-    #         tm_sp_.append(tm_sp_ret)
-    #         freq_sp_.append(freq_sp_ret)
-    #         sp_.append(sp_ret)
-    #     tm_sp = np.array([_ for _ in tm_sp_])
-    #     freq_sp = np.array([_ for _ in freq_sp_])
-    #     sp = np.array([_ for _ in sp_])
-    #
-    #     tm_sp = tm_sp.reshape([signal.shape[0], -1])
-    #     freq_sp = freq_sp.reshape([signal.shape[0], -1])
-    #     sp = sp.reshape([signal.shape[0], sp_ret.shape[0], -1])
-    #
-    #     return tm_sp, freq_sp, sp
-    #
-    # if signal.ndim == 3:
-    #     tm_sp_ = []
-    #     freq_sp_ = []
-    #     sp_ = []
-    #     for i in range(signal.shape[0]):
-    #         for j in range(signal.shape[1]):
-    #             tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, j, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
-    #             tm_sp_.append(tm_sp_ret)
-    #             freq_sp_.append(freq_sp_ret)
-    #             sp_.append(sp_ret)
-    #     tm_sp = np.array([_ for _ in tm_sp_])
-    #     freq_sp = np.array([_ for _ in freq_sp_])
-    #     sp = np.array([_ for _ in sp_])
-    #
-    #     tm_sp = tm_sp.reshape([signal.shape[0], signal.shape[1], -1])
-    #     freq_sp = freq_sp.reshape([signal.shape[0], signal.shape[1], -1])
-    #     sp = sp.reshape([signal.shape[0], signal.shape[1], sp_ret.shape[0], -1])
-    #
-    # if signal.ndim == 4:
-    #     tm_sp_ = []
-    #     freq_sp_ = []
-    #     sp_ = []
-    #     for i in range(signal.shape[0]):
-    #         for j in range(signal.shape[1]):
-    #             for k in range(signal.shape[2]):
-    #                 tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, j, k, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
-    #                 tm_sp_.append(tm_sp_ret)
-    #                 freq_sp_.append(freq_sp_ret)
-    #                 sp_.append(sp_ret)
-    #     tm_sp = np.array([_ for _ in tm_sp_])
-    #     freq_sp = np.array([_ for _ in freq_sp_])
-    #     sp = np.array([_ for _ in sp_])
-    #
-    #     tm_sp = tm_sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], -1])
-    #     freq_sp = freq_sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], -1])
-    #     sp = sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], sp_ret.shape[0], -1])
+    # tm_sp_, freq_sp_, sp_ = [], [], []
+    # signal_flatten = signal.reshape(-1, signal.shape[-1])
+    # t = time
+    # if signal.shape != time.shape:
+    #     t = np.array([time for i in range(len(signal_flatten))])
+    # for i in range(len(signal_flatten)):
+    #     tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal_flatten[i], t[i], t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
+    #     tm_sp_.append(tm_sp_ret)
+    #     freq_sp_.append(freq_sp_ret)
+    #     sp_.append(sp_ret)
+    # tm_sp_array = np.array([_ for _ in tm_sp_])
+    # freq_sp_array = np.array([_ for _ in freq_sp_])
+    # sp_array = np.array([_ for _ in sp_])
+    # tm_sp = tm_sp_array.reshape(signal.shape[:-1] + (-1,))
+    # freq_sp = freq_sp_array.reshape(signal.shape[:-1] + (-1,))
+    # sp = sp_array.reshape(signal.shape[:-1] + (sp_ret.shape))
+
+    if signal.ndim == 1:
+        tm_sp, freq_sp, sp = calc_stft(signal, time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
+    if signal.ndim == 2:
+        tm_sp_ = []
+        freq_sp_ = []
+        sp_ = []
+        for i in range(signal.shape[0]):
+            tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
+            tm_sp_.append(tm_sp_ret)
+            freq_sp_.append(freq_sp_ret)
+            sp_.append(sp_ret)
+        tm_sp = np.array([_ for _ in tm_sp_])
+        freq_sp = np.array([_ for _ in freq_sp_])
+        sp = np.array([_ for _ in sp_])
+
+        tm_sp = tm_sp.reshape([signal.shape[0], -1])
+        freq_sp = freq_sp.reshape([signal.shape[0], -1])
+        sp = sp.reshape([signal.shape[0], sp_ret.shape[0], -1])
+
+        return tm_sp, freq_sp, sp
+
+    if signal.ndim == 3:
+        tm_sp_ = []
+        freq_sp_ = []
+        sp_ = []
+        for i in range(signal.shape[0]):
+            for j in range(signal.shape[1]):
+                tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, j, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
+                tm_sp_.append(tm_sp_ret)
+                freq_sp_.append(freq_sp_ret)
+                sp_.append(sp_ret)
+        tm_sp = np.array([_ for _ in tm_sp_])
+        freq_sp = np.array([_ for _ in freq_sp_])
+        sp = np.array([_ for _ in sp_])
+
+        tm_sp = tm_sp.reshape([signal.shape[0], signal.shape[1], -1])
+        freq_sp = freq_sp.reshape([signal.shape[0], signal.shape[1], -1])
+        sp = sp.reshape([signal.shape[0], signal.shape[1], sp_ret.shape[0], -1])
+
+    if signal.ndim == 4:
+        tm_sp_ = []
+        freq_sp_ = []
+        sp_ = []
+        for i in range(signal.shape[0]):
+            for j in range(signal.shape[1]):
+                for k in range(signal.shape[2]):
+                    tm_sp_ret, freq_sp_ret, sp_ret = calc_stft(signal[i, j, k, :], time, t_wndw=t_wndw, n_stft=n_stft, wndw=wndw)
+                    tm_sp_.append(tm_sp_ret)
+                    freq_sp_.append(freq_sp_ret)
+                    sp_.append(sp_ret)
+        tm_sp = np.array([_ for _ in tm_sp_])
+        freq_sp = np.array([_ for _ in freq_sp_])
+        sp = np.array([_ for _ in sp_])
+
+        tm_sp = tm_sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], -1])
+        freq_sp = freq_sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], -1])
+        sp = sp.reshape([signal.shape[0], signal.shape[1], signal.shape[2], sp_ret.shape[0], -1])
 
     return tm_sp, freq_sp, sp
 
@@ -109,9 +109,9 @@ def calc_stft(signal, time, t_wndw=100.0e-3, n_stft=100, wndw='hamming'):
 
     if wndw == 'hamming':
         wndw = np.hamming(n_wndw)  # hamming窓
-    if wndw == 'hanning':
+    elif wndw == 'hanning':
         wndw = np.hanning(n_wndw)  # hanning窓
-    if wndw == 'rect':
+    elif wndw == 'rect':
         wndw = np.ones(n_wndw)  # 矩形窓
 
     for i in range(n_stft):
@@ -497,7 +497,7 @@ if __name__ == "__main__":
 
     norm = mpl.colors.Normalize(vmin=-180.0, vmax=180.0)
     cmap = mpl.cm.hsv
-    ax_phs.contourf(tm_sp01, freq_sp01, np.where(coh >= 0.75, phs, None),
+    ax_phs.contourf(tm_sp01, freq_sp01, np.where(coh >= 0.75, phs, np.nan),
                     norm=norm, levels=16, cmap=cmap)
 
     ax_phs.text(0.99, 0.97, "phase", color='white', ha='right', va='top',

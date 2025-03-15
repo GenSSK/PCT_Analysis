@@ -5,6 +5,7 @@ import seaborn as sns
 from scipy.spatial.distance import correlation
 from statannotations.Annotator import Annotator
 import statsmodels.api as sm
+from statsmodels.stats.anova import AnovaRM
 from statsmodels.formula.api import ols
 
 # https://github.com/trevismd/statannotations
@@ -20,18 +21,18 @@ def t_test(ax, pairs, data: pd.DataFrame, x="variable", y="value",
 
 # 多重比較検定
 def t_test_multi(ax, pairs, data: pd.DataFrame, x="variable", y="value",
-                 test='t-test_ind', comparisons_correction="Bonferroni"):
+                 hue=None, order=None, test='t-test_ind', comparisons_correction="Bonferroni"):
     # comparisons_correction="BH", "Bonferroni"
     # Bonferroni
     # Holm-Bonferroni
     # Benjamini-Hochberg
     # Benjamini-Yekutieli
 
-    annotator = Annotator(ax, pairs, x=x, y=y, data=data, sym="")
+    annotator = Annotator(ax, pairs, x=x, y=y, hue=hue, order=order, data=data, sym="")
     annotator.configure(test=test, text_format='star', loc='inside')
     # annotator.apply_and_annotate()
 
-    annotator.new_plot(ax=ax, x=x, y=y, data=data)
+    annotator.new_plot(ax=ax, x=x, y=y, hue=hue, order=order, data=data)
     annotator.configure(comparisons_correction=comparisons_correction, verbose=2)  # 補正
     test_results = annotator.apply_test().annotate()
 
@@ -56,6 +57,12 @@ def anova(data: pd.DataFrame, variable='variable', value='value'):
     ss_total = anova['sum_sq'][n_groups - 1]
     eta_squared = ss_treatment / ss_total
     print(f"Eta squared: {eta_squared}")
+
+def anova_RM(data: pd.DataFrame, subject='subject', variable='variable', value='value'):
+    data.rename(columns={subject: 'subject', variable: 'variable', value: 'value'}, inplace=True)
+    aovrm = AnovaRM(data, 'value', 'subject', within=['variable'])
+    res = aovrm.fit()
+    print(res)
 
 
 # 決定係数
