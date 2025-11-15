@@ -3,20 +3,35 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patheffects as path_effects
 from matplotlib.colors import Normalize
+from patsy import dmatrices
 
 import pandas as pd
 import seaborn as sns
 import os
 import time
+import pickle, shap, itertools, joblib, tqdm, cmath
+
 
 from scipy import optimize
 from scipy import signal
 from scipy.ndimage import gaussian_filter
 
+from scipy import signal
+from scipy.interpolate import griddata
+from scipy.ndimage import gaussian_filter
+from scipy.spatial.distance import correlation
+
+# from minepy import MINE
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
+from statannotations.Annotator import Annotator
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.kernel_ridge import KernelRidge
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.linear_model import Lasso, Ridge, ElasticNet, LinearRegression
 
 from mypackage.mystatistics import myHilbertTransform as HT
 from mypackage.mystatistics import mySTFT as STFT
@@ -24,6 +39,7 @@ from mypackage.mystatistics import myhistogram as hist
 from mypackage.mystatistics import myFilter as Filter
 from mypackage.mystatistics import statistics as mystat
 from mypackage import ParallelExecutor
+from mypackage import StringUtils as su
 
 def fit_func_2nd(parameter, *args):
     accel, velo, y = args
@@ -771,6 +787,46 @@ class CFO:
 
         return subtraction[0], subtraction[1]
 
+    def deviation_cfo(self, graph=False, cutoff: float = 'none'):
+        deviation = np.zeros([4, len(self.cfo), self.end_num - self.start_num])
+        types = ['p_pcfo', 'r_pcfo', 'p_fcfo', 'r_fcfo']
+
+        for i, type in enumerate(types):
+            for j in range(len(self.cfo)):
+                data = self.cfo[j]
+                if self.group_type == 'dyad':
+                    avg = ((data['i1_' + type][self.start_num:self.end_num]
+                            + data['i2_' + type][self.start_num:self.end_num])
+                           / 2)
+                    deviation[i][j] = ((np.abs(data['i1_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i2_' + type][self.start_num:self.end_num] - avg))
+                                       / 2)
+                elif self.group_type == 'triad':
+                    avg = ((data['i1_' + type][self.start_num:self.end_num]
+                            + data['i2_' + type][self.start_num:self.end_num]
+                            + data['i3_' + type][self.start_num:self.end_num])
+                           / 3)
+                    deviation[i][j] = ((np.abs(data['i1_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i2_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i3_' + type][self.start_num:self.end_num] - avg))
+                                       / 3)
+                elif self.group_type == 'tetrad':
+                    avg = ((data['i1_' + type][self.start_num:self.end_num]
+                            + data['i2_' + type][self.start_num:self.end_num]
+                            + data['i3_' + type][self.start_num:self.end_num]
+                            + data['i4_' + type][self.start_num:self.end_num])
+                           / 4)
+                    deviation[i][j] = ((np.abs(data['i1_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i2_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i3_' + type][self.start_num:self.end_num] - avg)
+                                        + np.abs(data['i4_' + type][self.start_num:self.end_num] - avg))
+                                       / 4)
+
+                if cutoff != 'none':
+                    deviation[i][j] = Filter.low_pass_filter(deviation[i][j], smp=self.smp, cutoff=cutoff)
+
+        return deviation[0], deviation[1], deviation[2], deviation[3]
+
     def subtraction_cfo_3sec_combine(self):
         pcfo_subtraction, fcfo_subtraction = CFO.subtraction_cfo_combine(self)
 
@@ -781,6 +837,25 @@ class CFO:
         fcfo_subtraction_3sec = np.average(fcfo_subtraction_3sec, axis=2)
 
         return pcfo_subtraction_3sec, fcfo_subtraction_3sec
+
+    def deviation_cfo_combine(self, graph=False, cutoff: float = 'none'):
+        dev = CFO.deviation_cfo(self, graph=False, cutoff=cutoff)
+
+        dev_pcfo = dev[0] + dev[1]
+        dev_fcfo = dev[2] + dev[3]
+
+        return dev_pcfo, dev_fcfo
+
+    def deviation_cfo_3sec_combine(self, cutoff: float = 'none'):
+        dev_pcfo, dev_fcfo = CFO.deviation_cfo_combine(self, graph=False, cutoff=cutoff)
+
+        dev_pcfo_3sec = dev_pcfo.reshape([len(self.cfo), -1, self.num])
+        dev_pcfo_3sec = np.average(dev_pcfo_3sec, axis=2)
+
+        dev_fcfo_3sec = dev_fcfo.reshape([len(self.cfo), -1, self.num])
+        dev_fcfo_3sec = np.average(dev_fcfo_3sec, axis=2)
+
+        return dev_pcfo_3sec, dev_fcfo_3sec
 
 
     def performance_calc(self, data, ballx, bally):
@@ -1001,6 +1076,60 @@ class CFO:
                 #             + 'Group' + str(i + 1) + '_' + str(self.group_type) + '.png')
 
             plt.show()
+
+    def deviation_performance_combine(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        pcfo_dev_3sec, fcfo_dev_3sec = CFO.deviation_cfo_3sec_combine(self)
+
+        performance = ['RMSE', 'Time']
+        xlabel = ['Deviation PCFO', 'Deviation FCFO']
+
+        df = []
+        for i in range(len(self.cfo)):
+            df.append(pd.DataFrame({
+                performance[0]: error_period[i],
+                performance[1]: spend_period[i],
+                xlabel[0]: pcfo_dev_3sec[i],
+                xlabel[1]: fcfo_dev_3sec[i],
+            }))
+
+            df[i]['Group'] = 'Group' + str(i + 1)
+
+        df_all = pd.concat([i for i in df], axis=0)
+        # print(df_all)
+
+        marker_size = 40
+
+        cmap = ['Blues_r', 'Blues']
+
+        if self.group_type == 'dyad':
+            xlim = [0.2, 2.0]
+        elif self.group_type == 'triad':
+            xlim = [0.6, 10.0]
+        else:
+            xlim = [0.8, 10.0]
+
+        fig = plt.figure(figsize=(8, 7), dpi=200)
+        for i in range(2):
+            for j in range(2):
+                ax = fig.add_subplot(2, 2, 2 * i + j + 1)
+                ax.set_xlim(0, xlim[j])
+                # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
+                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i], hue='Group', s=marker_size)
+                r2 = np.corrcoef(df_all[xlabel[j]].values, df_all[performance[i]].values)
+                ax.text(0.99, 0.02, '$r = {:.2f}$'.format(r2[0][1]), horizontalalignment='right', transform=ax.transAxes, fontsize="large")
+                for lh in g.legend_.legendHandles:
+                    lh.set_alpha(1)
+                    lh._sizes = [10]
+
+                ax.set_xlabel(xlabel[j])
+                ax.set_ylabel(performance[i])
+
+        plt.tight_layout()
+        dir = 'fig/CFO-Performance/Deviation/Combine/'
+        os.makedirs(dir, exist_ok=True)
+        plt.savefig(dir + 'COM_DeviationCFO_Performance_' + str(self.group_type) + '.pdf')
+        plt.show()
 
 
     def performance_calc_each_axis(self, data, ballx, bally):

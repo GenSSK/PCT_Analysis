@@ -1212,6 +1212,7 @@ class combine:
             plt.show()
 
         return df
+
     def get_group_cfo_for_model(self, size='Dyad', labels: list = any, smp=0.0001, dec=1, cutoff: float = 'none', delay=0.0):
         if size == 'Triad':
             p_tot, f_tot, pa_tot, fa_tot = self.triad_cfo.summation_ave_cfo(mode='b_abs', cutoff=cutoff)
@@ -1334,6 +1335,88 @@ class combine:
 
         df_ = []
         for i in range(len(f_tot)):
+            data = {
+                'Time': time[delay_num::dec],
+                'RMSE': error_ts[i][delay_num::dec],
+                'RMSE_x': error_ts_x[i][delay_num::dec],
+                'RMSE_y': error_ts_y[i][delay_num::dec],
+                'RMSE_radius': error_ts_radius[i][delay_num::dec],
+                'RMSE_angle': error_ts_angle[i][delay_num::dec],
+                'Group': str(i + 1)
+            }
+
+            # Adding selected CFO data to dataframe based on labels
+            for label in labels:
+                data[label] = cfo_dict[label][i][:end_num - delay_num:dec]
+
+            df_.append(pd.DataFrame(data))
+        df = pd.concat([i for i in df_], axis=0)
+        df.reset_index(drop=True, inplace=True)
+
+        return df
+
+    def get_group_cfo_period_for_model(self, size='Dyad', labels: list = any, smp=0.0001, dec=1, cutoff: float = 'none'):
+        if size == 'Triad':
+            error_ts, error_dot_ts = self.triad_cfo.period_performance_cooperation()
+            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.triad_cfo.summation_cfo_3sec(mode='b_abs')
+            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.triad_cfo.summation_cfo_3sec(mode='a_abs')
+            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.triad_cfo.subtraction_cfo_3sec()
+            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.triad_cfo.deviation_cfo_3sec()
+
+        elif size == 'Tetrad':
+            error_ts, error_dot_ts = self.tetrad_cfo.period_performance_cooperation()
+            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.tetrad_cfo.summation_cfo_3sec(mode='b_abs')
+            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.tetrad_cfo.summation_cfo_3sec(mode='a_abs')
+            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.tetrad_cfo.subtraction_cfo_3sec()
+            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.tetrad_cfo.deviation_cfo_3sec()
+
+        else:
+            error_ts, error_dot_ts = self.dyad_cfo.period_performance_cooperation()
+            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.dyad_cfo.summation_cfo_3sec(mode='b_abs')
+            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.dyad_cfo.summation_cfo_3sec(mode='a_abs')
+            p_p_sub, r_p_sub, p_f_sub, r_f_sub = self.dyad_cfo.subtraction_cfo_3sec()
+            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.dyad_cfo.deviation_cfo_3sec()
+
+        f_tot_radius = np.hypot(p_f_tot, r_f_tot)
+        f_sum_radius = np.hypot(p_f_sum, r_f_sum)
+        f_sub_radius = np.hypot(p_f_sub, r_f_sub)
+        f_dev_radius = np.hypot(p_f_dev, r_f_dev)
+        p_tot_radius = np.hypot(p_p_tot, r_p_tot)
+        p_sum_radius = np.hypot(p_p_sum, r_p_sum)
+        p_sub_radius = np.hypot(p_p_sub, r_p_sub)
+        p_dev_radius = np.hypot(p_p_dev, r_p_dev)
+
+        f_tot_angle = np.arctan2(r_f_tot, p_f_tot)
+        f_sum_angle = np.arctan2(r_f_sum, p_f_sum)
+        f_sub_angle = np.arctan2(r_f_sub, p_f_sub)
+        f_dev_angle = np.arctan2(r_f_dev, p_f_dev)
+        p_tot_angle = np.arctan2(r_p_tot, p_p_tot)
+        p_sum_angle = np.arctan2(r_p_sum, p_p_sum)
+        p_sub_angle = np.arctan2(r_p_sub, p_p_sub)
+        p_dev_angle = np.arctan2(r_p_dev, p_p_dev)
+
+        cfo_dict = {
+            'σ_p_F_tot': p_f_tot,
+            'σ_p_F_sum': p_f_sum,
+            'σ_p_F_sub': p_f_sub,
+            'σ_p_F_dev': p_f_dev,
+            'σ_p_P_tot': p_p_tot,
+            'σ_p_P_sum': p_p_sum,
+            'σ_p_P_sub': p_p_sub,
+            'σ_p_P_dev': p_p_dev,
+            'σ_r_F_tot': r_f_tot,
+            'σ_r_F_sum': r_f_sum,
+            'σ_r_F_sub': r_f_sub,
+            'σ_r_F_dev': r_f_dev,
+            'σ_r_P_tot': r_p_tot,
+            'σ_r_P_sum': r_p_sum,
+            'σ_r_P_sub': r_p_sub,
+            'σ_r_P_dev': r_p_dev,
+
+        }
+
+        df_ = []
+        for i in range(len(p_f_tot)):
             data = {
                 'Time': time[delay_num::dec],
                 'RMSE': error_ts[i][delay_num::dec],
@@ -1888,6 +1971,61 @@ class combine:
 
 
     def performance_learn_model_size(self, size='Dyad', model_name=any, delay=0.0, test=False):
+        if 'Polar' in model_name:
+            input_labels_origin = ['σ_F_tot_radius', 'σ_F_sum_radius', 'σ_F_dev_radius',
+                                   'σ_P_tot_radius', 'σ_P_sum_radius', 'σ_P_dev_radius',
+                                   'σ_F_tot_angle', 'σ_F_sum_angle', 'σ_F_dev_angle',
+                                   'σ_P_tot_angle', 'σ_P_sum_angle', 'σ_P_dev_angle',]
+        else:
+            input_labels_origin = ['σ_F_tot', 'σ_F_sum', 'σ_F_dev',
+                                   'σ_P_tot', 'σ_P_sum', 'σ_P_dev',]
+
+        if test:
+            df = self.get_test_data_for_model()
+            mode = 'TEST_' + size + '_Delay_' + su.format_significant(delay)
+
+        else:
+            df = self.get_group_cfo_for_model(size=size, labels=input_labels_origin, dec=100, cutoff=1.0, delay=delay)
+            mode = size + '_Delay_' + f"{delay:.1f}"
+
+
+        df, input_labels = self.get_interaction(df, input_labels_origin)
+        input_labels = input_labels_origin.copy()
+
+
+
+        if model_name == 'NN':
+            input_gain = [8.0, 8.0, 8.0, 0.8, 1.0, 0.8]
+            output_gain = 30.0
+
+            for i, label in enumerate(input_labels_origin):
+                df[label] = df[label] * input_gain[i]
+
+            df['RMSE'] = df['RMSE'] * output_gain
+
+            os.makedirs('nn/' + self.trajectory_dir, exist_ok=True)
+            joblib.dump(input_gain, 'nn/' + self.trajectory_dir + 'input_gain_' + mode + '.pkl')
+            joblib.dump(output_gain, 'nn/' + self.trajectory_dir + 'output_gain_' + mode + '.pkl')
+
+            input_labels = input_labels_origin.copy()
+
+            input_element = ' + '.join(input_labels)
+            formula = 'RMSE ~ ' + input_element + ' - 1'
+            y_train, X_train = dmatrices(formula, data=df[(df['Time'] > 10.0) & (df['Time'] < 40.0)], return_type='dataframe', eval_env=1, NA_action='raise')
+            y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
+
+            X_train, y_train, X_test, y_test = X_train.to_numpy(), y_train.to_numpy(), X_test.to_numpy(), y_test.to_numpy()
+
+        else:
+            input_element = ' + '.join(input_labels)
+            formula = 'RMSE ~ ' + input_element
+
+            y_train, X_train = dmatrices(formula, data=df[df['Time'] < 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
+            y_test, X_test = dmatrices(formula, data=df[df['Time'] > 40.0], return_type='dataframe', eval_env=1, NA_action='raise')
+
+        self.performance_learn_model(model_name, X_train, y_train, X_test, y_test, mode)
+
+    def performance_learn_model_size_period(self, size='Dyad', model_name=any, delay=0.0, test=False):
         if 'Polar' in model_name:
             input_labels_origin = ['σ_F_tot_radius', 'σ_F_sum_radius', 'σ_F_dev_radius',
                                    'σ_P_tot_radius', 'σ_P_sum_radius', 'σ_P_dev_radius',

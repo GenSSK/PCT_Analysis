@@ -9,7 +9,7 @@ import numpy as np
 import Npz
 import Combine_analysis
 
-plt.switch_backend('Qt5Agg')
+# plt.switch_backend('Qt5Agg')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -28,13 +28,13 @@ if __name__ == '__main__':
         #
         'dyad/2022-07-29_i.tsunokuni_k.tozuka_3124_CFO.npz',
         'dyad/2022-07-29_i.tsunokuni_y.inoue_1423_CFO.npz',
-        # 'dyad/2022-07-31_m.sugaya_n.ito_1234_CFO.npz',
-        # 'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
+        'dyad/2022-07-31_m.sugaya_n.ito_1234_CFO.npz',
+        'dyad/2022-08-23_r.yanase_ko.kobayashi_1324_CFO.npz',
         'dyad/2022-08-26_y.kobayashi_r.yanase_1423_CFO.npz',
-        # 'dyad/2022-09-05_s.watanabe_ko.kobayashi_1234_CFO.npz',
+        'dyad/2022-09-05_s.watanabe_ko.kobayashi_1234_CFO.npz',
         'dyad/2022-09-07_k.kobayashi_r.yanase_1324_CFO.npz',
         'dyad/2022-09-07_k.tozuka_ko.kobayashi_1423_CFO.npz',
-        # 'dyad/2022-09-07_y.inoue_k.kobayashi_1234_CFO.npz',
+        'dyad/2022-09-07_y.inoue_k.kobayashi_1234_CFO.npz',
     ]
 
     triad_npz_filename = [
@@ -53,10 +53,10 @@ if __name__ == '__main__':
         'triad/2022-07-31_m.sugaya_s.sanuka_m.nakamura_2134_CFO.npz',
         'triad/2022-08-23_s.watanabe_t.kassai_h.nishimura_3214_CFO.npz',
         'triad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_1234_CFO.npz',
-        # 'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_2314_CFO.npz',
-        # 'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_3421_CFO.npz',
-        # 'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_4132_CFO.npz',
-        # 'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_3412_CFO.npz',
+        'triad/2022-09-05_b.poitrimol_y.inoue_k.tozuka_2314_CFO.npz',
+        'triad/2022-09-07_b.poitrimol_k.tozuka_y.kobayashi_3421_CFO.npz',
+        'triad/2022-09-07_b.poitrimol_y.inoue_r.yanase_4132_CFO.npz',
+        'triad/2022-09-07_ko.kobayashi_k.kobayashi_y.kobayashi_3412_CFO.npz',
         'triad/2022-09-07_r.yanase_k.kobayashi_s.kamioka_1234_CFO.npz',
     ]
 
@@ -72,15 +72,15 @@ if __name__ == '__main__':
         # 'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_1234_CFO.npz',
         # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_1234_CFO.npz',
 
-        # 'tetrad/2022-07-30_k.ohya_r.tanaka_y.baba_m.nakamura_1234_CFO.npz',
+        'tetrad/2022-07-30_k.ohya_r.tanaka_y.baba_m.nakamura_1234_CFO.npz',
         'tetrad/2022-07-30_r.tanaka_h.nishimura_k.tozuka_b.poitrimol_4123_CFO.npz',
-        # 'tetrad/2022-07-30_s.watanabe_h.nishimura_y.baba_y.yoshida_3421_CFO.npz',
+        'tetrad/2022-07-30_s.watanabe_h.nishimura_y.baba_y.yoshida_3421_CFO.npz',
         'tetrad/2022-07-30_s.watanabe_ko.kobayashi_y.baba_k.tozuka_1324_CFO.npz',
-        # 'tetrad/2022-07-30_y.inoue_y.yoshida_n.ito_s.sanuka_1234_CFO.npz',
+        'tetrad/2022-07-30_y.inoue_y.yoshida_n.ito_s.sanuka_1234_CFO.npz',
         'tetrad/2022-08-26_k.kobayashi_r.yanase_ko.kobayashi_h.nishimura_3421_CFO.npz',
         'tetrad/2022-09-07_b.poitrimol_y.kobayashi_s.kamioka_y.inoue_1234_CFO.npz',
         'tetrad/2022-09-07_k.kobayashi_y.kobayashi_s.kamioka_r.yanase_2413_CFO.npz',
-        # 'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341_CFO.npz',
+        'tetrad/2022-09-07_r.yanase_ko.kobayashi_b.poitrimol_y.kobayashi_2341_CFO.npz',
 
         # 'tetrad/2022-10-07_t.test_t.test_t.test_t.test_1234_CFO.npz',
     ]
@@ -174,7 +174,7 @@ if __name__ == '__main__':
     # com.performance_comparison('h-h')
     # com.performance_comparison('m-m')
 
-    com.dyad_cfo.period_performance_cooperation_and_solo(graph=True)
+    # com.dyad_cfo.period_performance_cooperation_and_solo(graph=True)
     # com.triad_cfo.period_performance_cooperation_and_solo(graph=True)
     # com.tetrad_cfo.period_performance_cooperation_and_solo(graph=True)
 
@@ -202,6 +202,10 @@ if __name__ == '__main__':
     # com.dyad_cfo.summation_performance('a_abs')
     # com.triad_cfo.summation_performance('a_abs')
     # com.tetrad_cfo.summation_performance('a_abs')
+
+    # com.dyad_cfo.deviation_performance_combine()
+    com.dyad_cfo.summation_performance_combine()
+    # com.dyad_cfo.deviation_performance_combine()
 
     ##CFOの和とCFOの差とパフォーマンスの関係
     # com.dyad_cfo.sum_sub_performance()

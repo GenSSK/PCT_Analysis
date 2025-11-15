@@ -455,59 +455,246 @@ class CFO:
             return
         return ball_x, ball_y
 
-    def cfo_sub(self):
+    def pcfo_sub(self):
+
+        axis = ['Pitch', 'Roll']
+        axis_label = ['p', 'r']
+        colors = ['tab:blue', 'tab:orange']
 
         for j in range(len(self.cfo)):
             data = self.cfo[j]
 
-            fig, (ppcfo, rpcfo, pfcfo, rfcfo) = plt.subplots(4, 1, figsize=(5, 8), dpi=150, sharex=True)
+            fig, ax = plt.subplots(4, 1, figsize=(10, 12), dpi=200, sharex=True)
 
             # plt.xlim([10, 60])  # x軸の範囲
             # plt.xlim([0.28, 0.89])  # x軸の範囲
-            plt.xticks(np.arange(self.starttime-20.0, (self.endtime-20.0) * 2, self.duringtime))
+            # plt.xticks(np.arange(self.starttime-20.0, (self.endtime-20.0) * 2, self.duringtime))
             plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
             plt.xlabel("Time (sec)")
 
+            p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo()
+
+            time = data['time'][self.start_num:self.end_num] - 20.0
             for i in range(self.join):
-                interfacenum = 'i' + str(i + 1)
-                pcfoname = interfacenum + '_p_pcfo'
-                fcfoname = interfacenum + '_p_fcfo'
+                inum = 'i' + str(i + 1)
+                ax[0].plot(time[::100], data[f'{inum}_p_thm'][::100], label='Subject ' + str(i + 1), color=colors[i])
+                ax[2].plot(time[::100], data[f'{inum}_r_thm'][::100], label='Subject ' + str(i + 1), color=colors[i])
 
-                ppcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
-                           label='P' + str(i + 1))
-                pfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
-                           label='P' + str(i + 1))
+                ax[1].plot(time[::100], p_pcfo[j][i][::100], label='Subject ' + str(i + 1))
+                ax[3].plot(time[::100], r_pcfo[j][i][::100], label='Subject ' + str(i + 1))
 
-                pcfoname = interfacenum + '_r_pcfo'
-                fcfoname = interfacenum + '_r_fcfo'
+            for i in range(self.join):
+                inum = 'i' + str(i + 1)
+                ax[0].plot(time[::100], data[f'{inum}_p_thm_pre'][::100], label='Solo model ' + str(i + 1), linestyle='--', color=colors[i])
+                ax[2].plot(time[::100], data[f'{inum}_r_thm_pre'][::100], label='Solo model ' + str(i + 1), linestyle='--', color=colors[i])
 
-                rpcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[pcfoname][self.start_num:self.end_num:10],
-                           label='P' + str(i + 1))
-                rfcfo.plot(data['time'][self.start_num:self.end_num:10]-20.0, data[fcfoname][self.start_num:self.end_num:10],
-                           label='P' + str(i + 1))
 
-            ppcfo.set_ylabel('Pitch PCFO (rad)')
-            ppcfo.legend(ncol=2, columnspacing=1, loc='upper left')
-            ppcfo.set_yticks(np.arange(-10, 10, 0.5))
-            ppcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
 
-            rpcfo.set_ylabel('Roll PCFO (rad)')
-            rpcfo.legend(ncol=2, columnspacing=1, loc='upper left')
-            rpcfo.set_yticks(np.arange(-10, 10, 0.5))
-            rpcfo.set_ylim([-1.5, 1.5])  # y軸の範囲
+            ax[0].set_ylabel('Pitch angle (rad)')
+            ax[1].set_ylabel('Pich PCFO (rad)')
+            ax[2].set_ylabel('Roll angle (rad)')
+            ax[3].set_ylabel('Roll PCFO (rad)')
+            for i in range(4):
+                ax[i].legend(ncol=2, columnspacing=1, loc='upper left')
+            ax[0].set_yticks(np.arange(-3.0, 3.0, 0.5))
+            ax[2].set_yticks(np.arange(-3.0, 3.0, 0.5))
+            ax[1].set_yticks(np.arange(-4.0, 4.0, 0.1))
+            ax[3].set_yticks(np.arange(-4.0, 4.0, 0.1))
+            ax[0].set_ylim([-1.5, 1.5])  # y軸の範囲r
+            ax[2].set_ylim([-1.5, 1.5])  # y軸の範囲r
+            ax[1].set_ylim([-0.2, 0.2])  # y軸の範囲r
+            ax[3].set_ylim([-0.2, 0.2])  # y軸の範囲r
 
-            pfcfo.set_ylabel('Pitch FCFO (Nm)')
-            pfcfo.legend(ncol=2, columnspacing=1, loc='upper left')
-            pfcfo.set_yticks(np.arange(-8.0, 8.0, 2.0))
-            pfcfo.set_ylim([-6.0, 6.0])  # y軸の範囲
-
-            rfcfo.set_ylabel('Roll FCFO (Nm)')
-            rfcfo.legend(ncol=2, columnspacing=1, loc='upper left')
-            rfcfo.set_yticks(np.arange(-8.0, 8.0, 2.0))
-            rfcfo.set_ylim([-6.0, 6.0])  # y軸の範囲r
-
-            plt.tight_layout()
             # plt.savefig("response.png")
+            fig.align_labels()
+            os.makedirs(f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}PCFO/', exist_ok=True)
+            fig.savefig(f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}PCFO/PCFO_ts_Group{j+1}.pdf')
+
+        plt.show()
+
+    def fcfo_sub(self):
+
+        axis = ['Pitch', 'Roll']
+        axis_label = ['p', 'r']
+        colors = ['tab:blue', 'tab:orange']
+
+        for j in range(len(self.cfo)):
+            data = self.cfo[j]
+
+            fig, ax = plt.subplots(4, 1, figsize=(10, 12), dpi=200, sharex=True)
+
+            # plt.xlim([10, 60])  # x軸の範囲
+            # plt.xlim([0.28, 0.89])  # x軸の範囲
+            # plt.xticks(np.arange(self.starttime-20.0, (self.endtime-20.0) * 2, self.duringtime))
+            plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo()
+
+            time = self.get_time()
+            for i in range(self.join):
+                inum = 'i' + str(i + 1)
+                ax[0].plot(time[::100], data[f'{inum}_p_text'][::100], label='Subject ' + str(i + 1), color=colors[i])
+                ax[2].plot(time[::100], data[f'{inum}_r_text'][::100], label='Subject ' + str(i + 1), color=colors[i])
+
+                ax[1].plot(time[::100], p_fcfo[j][i][::100], label='Subject ' + str(i + 1), color=colors[i])
+                ax[3].plot(time[::100], r_fcfo[j][i][::100], label='Subject ' + str(i + 1), color=colors[i])
+
+            for i in range(self.join):
+                inum = 'i' + str(i + 1)
+                ax[0].plot(time[::100], data[f'{inum}_p_text_pre'][::100], label='Solo model ' + str(i + 1), linestyle='--', color=colors[i])
+                ax[2].plot(time[::100], data[f'{inum}_r_text_pre'][::100], label='Solo model ' + str(i + 1), linestyle='--', color=colors[i])
+
+
+
+            ax[0].set_ylabel('Pitch torque (Nm)')
+            ax[1].set_ylabel('Pich FCFO (Nm)')
+            ax[2].set_ylabel('Roll torque (Nm)')
+            ax[3].set_ylabel('Roll FCFO (Nm)')
+            for i in range(4):
+                ax[i].legend(ncol=2, columnspacing=1, loc='upper left')
+            ax[0].set_yticks(np.arange(-15, 15, 1.5))
+            ax[2].set_yticks(np.arange(-15, 15, 1.5))
+            ax[1].set_yticks(np.arange(-4.0, 4.0, 1.0))
+            ax[3].set_yticks(np.arange(-4.0, 4.0, 1.0))
+            ax[0].set_ylim([-3.0, 3.0])  # y軸の範囲r
+            ax[2].set_ylim([-3.0, 3.0])  # y軸の範囲r
+            ax[1].set_ylim([-2.0, 2.0])  # y軸の範囲r
+            ax[3].set_ylim([-2.0, 2.0])  # y軸の範囲r
+
+            # plt.savefig("response.png")
+            fig.align_labels()
+            os.makedirs(f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}FCFO/', exist_ok=True)
+            fig.savefig(f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}FCFO/FCFO_ts_Group{j+1}.pdf')
+
+        plt.show()
+
+    def pcfo_group_sub(self, cutoff:float='none'):
+
+        axis = ['Pitch', 'Roll']
+        axis_label = ['p', 'r']
+        colors = ['tab:blue', 'tab:orange']
+
+        for j in range(len(self.cfo)):
+            data = self.cfo[j]
+
+            fig, ax = plt.subplots(8, 1, figsize=(10, 16), dpi=200, sharex=True)
+
+            plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo()
+
+            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.summation_cfo(mode='b_abs', cutoff=cutoff)
+            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.summation_cfo(mode='a_abs', cutoff=cutoff)
+            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.deviation_cfo(cutoff=cutoff)
+
+            time = self.get_time()
+            for i in range(self.join):
+                ax[0].plot(time[::100], p_pcfo[j][i][::100], label='Subject ' + str(i + 1))
+                ax[4].plot(time[::100], r_pcfo[j][i][::100], label='Subject ' + str(i + 1))
+
+            ax[1].plot(time[::100], p_p_tot[j][::100])
+            ax[2].plot(time[::100], p_p_sum[j][::100])
+            ax[3].plot(time[::100], p_p_dev[j][::100])
+
+            ax[5].plot(time[::100], r_p_tot[j][::100])
+            ax[6].plot(time[::100], r_p_sum[j][::100])
+            ax[7].plot(time[::100], r_p_dev[j][::100])
+
+
+
+            ax[0].set_ylabel('$\sigma^{P, p}$ (rad)')
+            ax[4].set_ylabel('$\sigma^{P, r}$ (rad)')
+
+            ax[1].set_ylabel('$\sigma^{P, p, tot}$ (rad)')
+            ax[2].set_ylabel('$\sigma^{P, p, sum}$ (rad)')
+            ax[3].set_ylabel('$\sigma^{P, p, dev}$ (rad)')
+            ax[5].set_ylabel('$\sigma^{P, r, tot}$ (rad)')
+            ax[6].set_ylabel('$\sigma^{P, r, sum}$ (rad)')
+            ax[7].set_ylabel('$\sigma^{P, r, dev}$ (rad)')
+            for i in range(8):
+                ax[i].legend(ncol=2, columnspacing=1, loc='upper left')
+            for i in range(2):
+                # ax[0 + i*4].set_yticks(np.arange(-3.0, 3.0, 0.5))
+                # ax[1 + i*4].set_yticks(np.arange(-3.0, 3.0, 0.5))
+                # ax[2 + i*4].set_yticks(np.arange(-4.0, 4.0, 0.1))
+                # ax[3 + i*4].set_yticks(np.arange(-4.0, 4.0, 0.1))
+                ax[0 + i*4].set_ylim([-0.2, 0.2])  # y軸の範囲r
+                ax[1 + i*4].set_ylim([0.0, 0.2])  # y軸の範囲r
+                ax[2 + i*4].set_ylim([0.0, 0.4])  # y軸の範囲r
+                ax[3 + i*4].set_ylim([0.0, 0.1])  # y軸の範囲r
+
+            # plt.savefig("response.png")
+            fig.align_labels()
+            dir = f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}GroupPCFO/'
+            os.makedirs(dir, exist_ok=True)
+            fig.savefig(f'{dir}/GroupPCFO_ts_Group{j+1}.pdf')
+
+        plt.show()
+
+    def fcfo_group_sub(self, cutoff:float='none'):
+
+        axis = ['Pitch', 'Roll']
+        axis_label = ['p', 'r']
+        colors = ['tab:blue', 'tab:orange']
+
+        for j in range(len(self.cfo)):
+            data = self.cfo[j]
+
+            fig, ax = plt.subplots(8, 1, figsize=(10, 16), dpi=200, sharex=True)
+
+            plt.xlim([self.starttime-20.0, self.endtime-20.0])  # x軸の範囲
+            plt.xlabel("Time (sec)")
+
+            p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo()
+
+            p_p_tot, r_p_tot, p_f_tot, r_f_tot = self.summation_cfo(mode='b_abs', cutoff=cutoff)
+            p_p_sum, r_p_sum, p_f_sum, r_f_sum = self.summation_cfo(mode='a_abs', cutoff=cutoff)
+            p_p_dev, r_p_dev, p_f_dev, r_f_dev = self.deviation_cfo(cutoff=cutoff)
+
+            time = self.get_time()
+            for i in range(self.join):
+                ax[0].plot(time[::100], p_fcfo[j][i][::100], label='Subject ' + str(i + 1))
+                ax[4].plot(time[::100], r_fcfo[j][i][::100], label='Subject ' + str(i + 1))
+
+            ax[1].plot(time[::100], p_f_tot[j][::100])
+            ax[2].plot(time[::100], p_f_sum[j][::100])
+            ax[3].plot(time[::100], p_f_dev[j][::100])
+
+            ax[5].plot(time[::100], r_f_tot[j][::100])
+            ax[6].plot(time[::100], r_f_sum[j][::100])
+            ax[7].plot(time[::100], r_f_dev[j][::100])
+
+
+
+            ax[0].set_ylabel('$\sigma^{F, p}$ (rad)')
+            ax[4].set_ylabel('$\sigma^{F, r}$ (rad)')
+
+            ax[1].set_ylabel('$\sigma^{F, p, tot}$ (rad)')
+            ax[2].set_ylabel('$\sigma^{F, p, sum}$ (rad)')
+            ax[3].set_ylabel('$\sigma^{F, p, dev}$ (rad)')
+            ax[5].set_ylabel('$\sigma^{F, r, tot}$ (rad)')
+            ax[6].set_ylabel('$\sigma^{F, r, sum}$ (rad)')
+            ax[7].set_ylabel('$\sigma^{F, r, dev}$ (rad)')
+            for i in range(8):
+                ax[i].legend(ncol=2, columnspacing=1, loc='upper left')
+            for i in range(2):
+                # ax[0 + i*4].set_yticks(np.arange(-3.0, 3.0, 0.5))
+                # ax[1 + i*4].set_yticks(np.arange(-3.0, 3.0, 0.5))
+                # ax[2 + i*4].set_yticks(np.arange(-4.0, 4.0, 0.1))
+                # ax[3 + i*4].set_yticks(np.arange(-4.0, 4.0, 0.1))
+                ax[0 + i*4].set_ylim([-2.0, 2.0])  # y軸の範囲r
+                ax[1 + i*4].set_ylim([0.0, 2.0])  # y軸の範囲r
+                ax[2 + i*4].set_ylim([0.0, 1.0])  # y軸の範囲r
+                ax[3 + i*4].set_ylim([0.0, 1.0])  # y軸の範囲r
+
+            # plt.savefig("response.png")
+            fig.align_labels()
+            dir = f'fig/CFO/TimeSeries/{self.group_dir}{self.trajectory_dir}GroupFCFO/'
+            os.makedirs(dir, exist_ok=True)
+            fig.savefig(f'{dir}/GroupFCFO_ts_Group{j+1}.pdf')
+
         plt.show()
 
     def cfo_combine_all_sub(self, cutoff: float = 'none'):
@@ -573,7 +760,7 @@ class CFO:
         axis = ['Pitch', 'Roll']
 
 
-        p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo_combine()
+        p_pcfo, r_pcfo, p_fcfo, r_fcfo = self.get_cfo()
 
 
         pcfo = [p_pcfo, r_pcfo]
@@ -780,8 +967,8 @@ class CFO:
                     summation[k][j] = np.sum(Filter.low_pass_filter(summation_, smp=self.smp, cutoff=cutoff), axis=0)
 
         summation = summation / self.cfo[0]['join'][0]
-        # if mode == 'a_abs':
-        #     summation = np.abs(summation)
+        if mode == 'a_abs':
+            summation = np.abs(summation)
 
         if graph:
             fig, ax = plt.subplots(4, 1, figsize=(20, 10), dpi=150, sharex=True)
@@ -1052,6 +1239,24 @@ class CFO:
         rfcfo_subtraction_3sec = np.average(rfcfo_subtraction_3sec, axis=2)
 
         return ppcfo_subtraction_3sec, rpcfo_subtraction_3sec, pfcfo_subtraction_3sec, rfcfo_subtraction_3sec
+
+    def deviation_cfo_3sec(self):
+        ppcfo_deviation, rpcfo_deviation, pfcfo_deviation, rfcfo_deviation = CFO.deviation_cfo(self)
+
+        ppcfo_deviation_3sec = ppcfo_deviation.reshape([len(self.cfo), -1, self.num])
+        ppcfo_deviation_3sec = np.average(ppcfo_deviation_3sec, axis=2)
+
+        rpcfo_deviation_3sec = rpcfo_deviation.reshape([len(self.cfo), -1, self.num])
+        rpcfo_deviation_3sec = np.average(rpcfo_deviation_3sec, axis=2)
+
+        pfcfo_deviation_3sec = pfcfo_deviation.reshape([len(self.cfo), -1, self.num])
+        pfcfo_deviation_3sec = np.average(pfcfo_deviation_3sec, axis=2)
+
+        rfcfo_deviation_3sec = rfcfo_deviation.reshape([len(self.cfo), -1, self.num])
+        rfcfo_deviation_3sec = np.average(rfcfo_deviation_3sec, axis=2)
+
+        return ppcfo_deviation_3sec, rpcfo_deviation_3sec, pfcfo_deviation_3sec, rfcfo_deviation_3sec
+
 
     def subtraction_cfo_combine(self, graph=False):
         subtraction = self.cfo[0]['i1_p_pcfo'][self.start_num:self.end_num]
@@ -1722,8 +1927,10 @@ class CFO:
 
 
     def period_performance_cooperation(self, graph=False):
-        error_period_human, spent_period_human = CFO.period_performance(self, mode='H-H')
-        error_period_model, spent_period_model = CFO.period_performance(self, mode='M-M')
+        # error_period_human, spent_period_human = CFO.period_performance(self, mode='H-H')
+        # error_period_model, spent_period_model = CFO.period_performance(self, mode='M-M')
+        error_period_human, spent_period_human = CFO.period_performance_New(self, mode='H-H')
+        error_period_model, spent_period_model = CFO.period_performance_New(self, mode='M-M')
 
         error_period = np.subtract(error_period_human, error_period_model)
         spent_period = np.subtract(spent_period_human, spent_period_model)
@@ -1865,6 +2072,60 @@ class CFO:
 
         return errorx, errory, spentx, spenty
 
+    def period_performance_each_axis_NEW(self, mode='H-H', graph=False):
+        error_period_x = np.zeros((len(self.cfo), self.join, self.period))
+        error_dot_period_x = np.zeros((len(self.cfo), self.join, self.period))
+        error_period_ave_x = np.zeros((len(self.cfo), self.period))
+        error_dot_period_ave_x = np.zeros((len(self.cfo), self.period))
+        error_period_best_x = np.zeros((len(self.cfo), self.period))
+        error_dot_period_best_x = np.zeros((len(self.cfo), self.period))
+
+        error_period_y = np.zeros((len(self.cfo), self.join, self.period))
+        error_dot_period_y = np.zeros((len(self.cfo), self.join, self.period))
+        error_period_ave_y = np.zeros((len(self.cfo), self.period))
+        error_dot_period_ave_y = np.zeros((len(self.cfo), self.period))
+        error_period_best_y = np.zeros((len(self.cfo), self.period))
+        error_dot_period_best_y = np.zeros((len(self.cfo), self.period))
+
+        for i in range(len(self.cfo)):
+            data = self.cfo[i]
+            best_join = 0
+            best_error = 10000
+            # best_error_dot = 10000
+            for j in range(self.join):
+                interface = 'i' + str(j + 1)
+                if mode == 'H-H':
+                    errorx, errory, error_dotx, error_doty = CFO.time_series_performance_calc_axis(self, data,
+                                                                        data['ballx'], data['bally'],
+                                                                        data['ballx_dot'], data['bally_dot'])
+                elif mode == 'M-M':
+                    errorx, errory, error_dotx, error_doty = CFO.time_series_performance_calc_axis(self, data,
+                                                                        data[interface+'_ballx_pre'], data[interface+'_bally_pre'],
+                                                                        data[interface+'_ballx_pre_dot'], data[interface+'_bally_pre_dot'])
+
+                error_period_x[i][j] = errorx.reshape([self.period, -1]).mean(axis=1)
+                error_period_y[i][j] = errory.reshape([self.period, -1]).mean(axis=1)
+                error_dot_period_x[i][j] = error_dotx.reshape([self.period, -1]).mean(axis=1)
+                error_dot_period_y[i][j] = error_doty.reshape([self.period, -1]).mean(axis=1)
+
+
+                if np.average(errorx) < best_error:
+                    best_error = np.average(errorx, axis=0)
+                    best_join = j
+
+            error_period_ave_x[i] = np.average(error_period_x[i], axis=0)
+            error_dot_period_ave_x[i] = np.average(error_dot_period_x[i], axis=0)
+            error_period_best_x[i] = error_period_x[i][best_join]
+            error_dot_period_best_x[i] = error_dot_period_x[i][best_join]
+
+            error_period_ave_y[i] = np.average(error_period_y[i], axis=0)
+            error_dot_period_ave_y[i] = np.average(error_dot_period_y[i], axis=0)
+            error_period_best_y[i] = error_period_y[i][best_join]
+            error_dot_period_best_y[i] = error_dot_period_y[i][best_join]
+
+        return error_period_best_x, error_dot_period_best_x, error_period_best_y, error_dot_period_best_y
+
+
     def period_performance_each_axis(self, mode='H-H', graph=False):
         errorx_period = []
         errory_period = []
@@ -1953,8 +2214,10 @@ class CFO:
         return errorx_period, errory_period, spentx_period, spenty_period
 
     def period_performance_cooperation_each_axis(self, graph=False):
-        errorx_period_human, errory_period_human, spentx_period_human, spenty_period_human = CFO.period_performance_each_axis(self, mode='H-H')
-        errorx_period_model, errory_period_model, spentx_period_model, spenty_period_model = CFO.period_performance_each_axis(self, mode='M-M')
+        errorx_period_human, errory_period_human, spentx_period_human, spenty_period_human = CFO.period_performance_each_axis_NEW(self, mode='H-H')
+        errorx_period_model, errory_period_model, spentx_period_model, spenty_period_model = CFO.period_performance_each_axis_NEW(self, mode='M-M')
+        # errorx_period_human, errory_period_human, spentx_period_human, spenty_period_human = CFO.period_performance_each_axis(self, mode='H-H')
+        # errorx_period_model, errory_period_model, spentx_period_model, spenty_period_model = CFO.period_performance_each_axis(self, mode='M-M')
 
         errorx_period = np.subtract(errorx_period_human, errorx_period_model)
         errory_period = np.subtract(errory_period_human, errory_period_model)
@@ -2118,6 +2381,34 @@ class CFO:
 
         plt.tight_layout()
         plt.show()
+
+
+    def tot_performance_combine(self):
+        error_period, spend_period = CFO.period_performance_cooperation(self)
+        pcfo_summation_3sec, fcfo_summation_3sec = CFO.summation_cfo_3sec_combine(self, 'b_abs')
+
+        error_period = error_period.flatten()
+        pcfo_summation_3sec = pcfo_summation_3sec.flatten()
+        fcfo_summation_3sec = fcfo_summation_3sec.flatten()
+
+        cmap = ['plasma_r', 'plasma']
+        fig, ax = plt.subplots(1, 1, figsize=(10, 7), dpi=300)
+
+        points = ax.scatter(x=fcfo_summation_3sec, y=pcfo_summation_3sec,
+                                            c=error_period, cmap=cmap[1], s=8)
+        plt.colorbar(points, label='RMSE', ax=ax)
+        ax.set_xlabel('Total FCFO')
+        ax.set_ylabel('Total PCFO')
+
+        r2 = np.corrcoef(fcfo_summation_3sec, pcfo_summation_3sec)
+        ax.text(0.99, 0.01, '$r = {:.2f}$'.format(r2[0][1]), horizontalalignment='right', fontsize="large", transform=ax.transAxes)
+
+        os.makedirs('fig/CFO-Performance/' + self.trajectory_dir + 'totCFO/', exist_ok=True)
+        fig.savefig('fig/CFO-Performance/' + self.trajectory_dir + 'totCFO/' + 'totCFO-Performance_' + str(self.group_type) + '.pdf')
+
+        plt.show()
+
+
 
     def sum_sub_performance(self):
         error_period, spend_period = CFO.period_performance_cooperation(self)
@@ -2358,11 +2649,12 @@ class CFO:
         return data_period
 
     def summation_performance(self, mode='no_abs'):
-        error_period, spend_period = CFO.period_performance_cooperation(self)
+        error_period, error_dot_period = CFO.period_performance_cooperation(self)
         ppcfo_summation_3sec, rpcfo_summation_3sec, pfcfo_summation_3sec, rfcfo_summation_3sec = CFO.summation_cfo_3sec(
             self, mode)
         if mode == 'no_abs':
-            xlabel = ['Pitch Summation PCFO', 'Roll Summation PCFO', 'Pitch Summation FCFO', 'Roll Summation FCFO']
+            xlabel = ['Pitch Summation PCFO', 'Roll Summation PCFO',
+                      'Pitch Summation FCFO', 'Roll Summation FCFO']
             xlim = [
                 [-0.04, 0.04],
                 [-0.04, 0.04],
@@ -2370,37 +2662,42 @@ class CFO:
                 [-0.2, 0.2],
             ]
         elif mode == 'b_abs':
-            xlabel = ['Before abs. Pitch Summation PCFO', 'Before abs. Roll Summation PCFO',
-                      'Before abs. Pitch Summation FCFO',
-                      'Before abs. Roll Summation FCFO']
+            xlabel = ['Pitch Total FCFO', 'Roll Total FCFO',
+                      'Pitch Total PCFO', 'Roll Total PCFO']
             xlim = [
-                [0.0, 0.15],
-                [0.0, 0.15],
-                [0.0, 2.0],
-                [0.0, 1.25],
+                [0.0, 1.0],
+                [0.0, 1.5],
+                [0.0, 0.1],
+                [0.0, 0.1],
             ]
         elif mode == 'a_abs':
-            xlabel = ['After abs. Pitch Summation PCFO', 'After abs. Roll Summation PCFO',
-                      'After abs. Pitch Summation FCFO',
-                      'After abs. Roll Summation FCFO']
+            xlabel = ['Pitch Summation FCFO', 'Roll Summation FCFO',
+                      'Pitch Summation PCFO', 'Roll Summation PCFO']
+            # xlim = [
+            #     [-0.03, 0.03],
+            #     [-0.03, 0.03],
+            #     [-0.1, 0.1],
+            #     [-0.1, 0.1],
+            # ]
+
             xlim = [
-                [0.0, 0.12],
-                [0.0, 0.12],
-                [0.0, 0.7],
-                [0.0, 0.6],
+                [0.0, 0.3],
+                [0.0, 0.3],
+                [0.0, 0.1],
+                [0.0, 0.1],
             ]
 
-        performance = ['RMSE', 'Time']
+        performance = ['RMSE', 'RMSVE']
 
         df = []
         for i in range(len(self.cfo)):
             df.append(pd.DataFrame({
                 performance[0]: error_period[i],
-                performance[1]: spend_period[i],
-                xlabel[0]: ppcfo_summation_3sec[i],
-                xlabel[1]: rpcfo_summation_3sec[i],
-                xlabel[2]: pfcfo_summation_3sec[i],
-                xlabel[3]: rfcfo_summation_3sec[i],
+                performance[1]: error_dot_period[i],
+                xlabel[0]: pfcfo_summation_3sec[i],
+                xlabel[1]: rfcfo_summation_3sec[i],
+                xlabel[2]: ppcfo_summation_3sec[i],
+                xlabel[3]: rpcfo_summation_3sec[i],
             }))
 
             df[i]['Group'] = 'Group' + str(i + 1)
@@ -2412,35 +2709,37 @@ class CFO:
 
         cmap = ['Blues_r', 'Blues']
 
-        fig = plt.figure(figsize=(20, 10), dpi=100)
-        for i in range(2):
-            for j in range(4):
-                ax = fig.add_subplot(2, 4, 4 * i + j + 1)
-                ax.set_xlim(xlim[j][0], xlim[j][1])
-                # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
-                g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i], hue='Group', s=marker_size)
-                # g.set(xscale="log")
+        fig = plt.figure(figsize=(12, 20), dpi=200)
+        for i in range(4):
+            for j in range(2):
+                ax = fig.add_subplot(4, 2, 2 * i + j + 1)
+                ax.set_xlim(xlim[i][0], xlim[i][1])
+                # ax.set_ylim(ylim[j][i][0], ylim[j][i][1])
+                g = sns.scatterplot(data=df_all, x=xlabel[i], y=performance[j], hue='Group', s=marker_size)
+                r2 = np.corrcoef(df_all[xlabel[i]].values, df_all[performance[j]].values)
+                ax.text(0.99, 0.02, '$r = {:.2f}$'.format(r2[0][1]), horizontalalignment='right', transform=ax.transAxes, fontsize="large")
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
                     lh._sizes = [10]
 
-                ax.set_xlabel(xlabel[j])
-                ax.set_ylabel(performance[i])
+                ax.set_xlabel(xlabel[i])
+                ax.set_ylabel(performance[j])
 
-        # plt.tight_layout()
-        # if mode == 'no_abs':
-        #     os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
-        #     plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_NoABS_' + str(self.group_type) + '.png')
-        # elif mode == 'b_abs':
-        #     os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
-        #     plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_BeforeABS_' + str(self.group_type) + '.png')
-        # elif mode == 'a_abs':
-        #     os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
-        #     plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_AfterABS_' + str(self.group_type) + '.png')
+        plt.tight_layout()
+        if mode == 'no_abs':
+            os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
+            plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_NoABS_' + str(self.group_type) + '.pdf')
+        elif mode == 'b_abs':
+            os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
+            plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_BeforeABS_' + str(self.group_type) + '.pdf')
+        elif mode == 'a_abs':
+            os.makedirs('fig/CFO-Performance/Summation/', exist_ok=True)
+            plt.savefig('fig/CFO-Performance/Summation/SummationCFO-Performance_AfterABS_' + str(self.group_type) + '.pdf')
         plt.show()
 
     def summation_performance_each_axis(self, mode='no_abs'):
         errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
+        # errorx_period, errory_period, spendx_period, spendy_period = CFO.period_performance_cooperation_each_axis(self)
         ppcfo_summation_3sec, rpcfo_summation_3sec, pfcfo_summation_3sec, rfcfo_summation_3sec = CFO.summation_cfo_3sec(
             self, mode)
         if mode == 'no_abs':
@@ -2462,10 +2761,10 @@ class CFO:
                 'Before abs. Pitch Summation FCFO',
                 'Before abs. Roll Summation FCFO']
             xlim = [
-                [0.0, 0.15],
-                [0.0, 0.15],
-                [0.0, 2.0],
-                [0.0, 1.25],
+                [0.0, 0.1],
+                [0.0, 0.1],
+                [0.0, 1.0],
+                [0.0, 1.5],
             ]
         elif mode == 'a_abs':
             xlabel = [
@@ -2474,10 +2773,10 @@ class CFO:
                 'After abs. Pitch Summation FCFO',
                 'After abs. Roll Summation FCFO']
             xlim = [
-                [0.0, 0.12],
-                [0.0, 0.12],
-                [0.0, 0.7],
-                [0.0, 0.6],
+                [0.0, 0.1],
+                [0.0, 0.1],
+                [0.0, 0.3],
+                [0.0, 0.3],
             ]
 
         performance = [['Time at x-axis', 'RMSE at x-axis'], ['Time at y-axis', 'RMESE at y-axis']]
@@ -2511,6 +2810,8 @@ class CFO:
                 ax.set_xlim(xlim[j][0], xlim[j][1])
                 # ax.set_ylim(ylim[i][k][0], ylim[i][k][1])
                 g = sns.scatterplot(data=df_all, x=xlabel[j], y=performance[i][j % 2], hue='Group', s=marker_size)
+                r2 = np.corrcoef(df_all[xlabel[j]].values, df_all[performance[i][j % 2]].values)
+                ax.text(0.99, 0.02, '$r = {:.2f}$'.format(r2[0][1]), horizontalalignment='right', transform=ax.transAxes, fontsize="large")
                 # g.set(yscale="log")
                 for lh in g.legend_.legendHandles:
                     lh.set_alpha(1)
@@ -2761,6 +3062,62 @@ class CFO:
         plt.tight_layout()
         os.makedirs('fig/CFO-Performance/Subtraction/Combine/', exist_ok=True)
         plt.savefig('fig/CFO-Performance/Subtraction/Combine/SubtractionCFO_Performance_' + str(self.group_type) + '.png')
+        plt.show()
+
+    def deviation_performance(self):
+        error_period, error_dot_period = CFO.period_performance_cooperation(self)
+        ppcfo_deviation_3sec, rpcfo_deviation_3sec, pfcfo_deviation_3sec, rfcfo_deviation_3sec = CFO.deviation_cfo_3sec(self)
+
+        performance = ['RMSE', 'RMSVE']
+
+        df = []
+        for i in range(len(self.cfo)):
+            df.append(pd.DataFrame({
+                performance[0]: error_period[i],
+                performance[1]: error_dot_period[i],
+                'Pitch Deviation PCFO': ppcfo_deviation_3sec[i],
+                'Roll Deviation PCFO': rpcfo_deviation_3sec[i],
+                'Pitch Deviation FCFO': pfcfo_deviation_3sec[i],
+                'Roll Deviation FCFO': rfcfo_deviation_3sec[i],
+            }))
+
+            df[i]['Group'] = 'Group' + str(i + 1)
+
+        df_all = pd.concat([i for i in df], axis=0)
+        # print(df_all)
+
+        marker_size = 40
+
+        cmap = ['Blues_r', 'Blues']
+        xlabel = ['Pitch Deviation FCFO', 'Roll Deviation FCFO', 'Pitch Deviation PCFO', 'Roll Deviation PCFO']
+
+        if self.group_type == 'dyad':
+            xlim = [[1.0, 1.5, 0.04, 0.04],
+                    [1.0, 1.5, 0.05, 0.05]]
+        elif self.group_type == 'triad':
+            xlim = [0.3, 0.3, 4.0, 5.0]
+        else:
+            xlim = [0.4, 0.4, 5.0, 5.0]
+
+        fig = plt.figure(figsize=(12, 20), dpi=200)
+        for i in range(4):
+            for j in range(2):
+                ax = fig.add_subplot(4, 2, 2 * i + j + 1)
+                ax.set_xlim(0, xlim[j][i])
+                # ax.set_ylim(ylim[j][i][0], ylim[j][i][1])
+                g = sns.scatterplot(data=df_all, x=xlabel[i], y=performance[j], hue='Group', s=marker_size)
+                r2 = np.corrcoef(df_all[xlabel[i]].values, df_all[performance[j]].values)
+                ax.text(0.99, 0.02, '$r = {:.2f}$'.format(r2[0][1]), horizontalalignment='right', transform=ax.transAxes, fontsize="large")
+                for lh in g.legend_.legendHandles:
+                    lh.set_alpha(1)
+                    lh._sizes = [10]
+
+                ax.set_xlabel(xlabel[i])
+                ax.set_ylabel(performance[j])
+
+        plt.tight_layout()
+        os.makedirs('fig/CFO-Performance/Deviation/', exist_ok=True)
+        plt.savefig('fig/CFO-Performance/Deviation/DeviationCFO_Performance_' + str(self.group_type) + '.pdf')
         plt.show()
 
     def deviation_performance_combine(self):

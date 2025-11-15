@@ -23,23 +23,23 @@ if __name__ == '__main__':
     npz = Npz.NPZ()
 
     dyad_npz_filename = [
-        # '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Circle_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Discrete_Random_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Lemniscate_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Random_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_RoseCurve_1_CFO.npz',
-        #
-        # '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Circle_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Discrete_Random_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Lemniscate_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Random_1_CFO.npz',
-        # '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_RoseCurve_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Circle_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_h.nakamura_k.tozuka_RoseCurve_1_CFO.npz',
 
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Circle_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Discrete_Random_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Lemniscate_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Random_1_CFO.npz',
-        '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_RoseCurve_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Circle_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Discrete_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Lemniscate_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_Random_1_CFO.npz',
+        '2024-03-02_AdABC_Dyad_s.tsuchiya_h.nakamura_RoseCurve_1_CFO.npz',
+
+        # '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Circle_1_CFO.npz',
+        # '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Discrete_Random_1_CFO.npz',
+        # '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Lemniscate_1_CFO.npz',
+        # '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_Random_1_CFO.npz',
+        # '2024-02-09_AdABC_Dyad_k.tozuka_k.kobayashi_RoseCurve_1_CFO.npz',
 
         # '2024-04-09_AdABC_Dyad_All_s.tsuchiya_h.kitaiwa_RoseCurve_1_CFO.npz',
         # '2024-04-10_AdABC_Dyad_All_i.kato_n.ito_RoseCurve_1_CFO.npz',
@@ -91,8 +91,8 @@ if __name__ == '__main__':
     comp_triad = CFO_analysis_compare.CFO_compare(triad_ind_npz, triad_shd_npz, 'triad', triad_npz_filename)
     comp_tetrad = CFO_analysis_compare.CFO_compare(tetrad_ind_npz, tetrad_shd_npz, 'tetrad', tetrad_npz_filename)
 
-    # trj = Trajectory_analysis.TrajectoryAnalysis(dyad_ind_npz, triad_ind_npz, tetrad_ind_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
-    trj = Trajectory_analysis.TrajectoryAnalysis(dyad_shd_npz, triad_shd_npz, tetrad_shd_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
+    trj = Trajectory_analysis.TrajectoryAnalysis(dyad_ind_npz, triad_ind_npz, tetrad_ind_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
+    # trj = Trajectory_analysis.TrajectoryAnalysis(dyad_shd_npz, triad_shd_npz, tetrad_shd_npz, dyad_npz_filename, triad_npz_filename, tetrad_npz_filename)
 
 
     ## indとshdの比較
@@ -130,7 +130,8 @@ if __name__ == '__main__':
     ##CFO確認
     # trj.com_circle.dyad_cfo.cfo_sub()
     # trj.com_lemniscate.dyad_cfo.cfo_sub()
-    # trj.com_rose_curve.dyad_cfo.cfo_sub()
+    # trj.com_rose_curve.dyad_cfo.pcfo_sub()
+    # trj.com_rose_curve.dyad_cfo.fcfo_sub()
     # trj.com_random.dyad_cfo.cfo_sub()
     # trj.com_discrete_random.dyad_cfo.cfo_sub()
     # trj.com_circle.triad_cfo.cfo_sub()
@@ -149,6 +150,8 @@ if __name__ == '__main__':
     # trj.com_rose_curve.dyad_cfo.cfo_all_sub()
     # trj.com_rose_curve.dyad_cfo.cfo_group()
     # trj.com_rose_curve.dyad_cfo.cfo_combine_all_sub(cutoff=2.0)
+    # trj.com_rose_curve.dyad_cfo.pcfo_group_sub()
+    # trj.com_rose_curve.dyad_cfo.fcfo_group_sub()
 
     # 時系列データすべて確認
     # com.dyad_cfo.plot_time_series('p')
@@ -287,59 +290,59 @@ if __name__ == '__main__':
 
     # trj.com_rose_curve.cross_correlation(size='Dyad')
 
-    # plt.rcParams['font.size'] = 6  # フォントの大きさ
-    # delay_array = np.linspace(0.0, 0.2, 3)
-    # # delay_array = np.linspace(0.0, 0.1, 11)
-    # # delay_array = [0.0]
-    # size = 'Dyad'
-    # model_names = [
-    #     # 'LRM',
-    #     # 'KernelRidge',
-    #     # 'RBF-LRM',
-    #     # 'RBF-Ridge',
-    #     # 'RBF-Lasso',
-    #     # 'RBF-ElasticNet',
-    #     # 'Lasso',
-    #     # 'RandomForest',
-    #     # 'NN',
-    #     # 'Polar-LRM',
-    #     # 'Polar-KernelRidge',
-    #     'Polar-NN',
-    # ]
-    # test = False
-    #
-    # for model_name in model_names:
-    #     print(f"{model_name=}")
-    #     for delay in delay_array:
-    #         print(f"{delay=}")
-    #         # trj.com_rose_curve.performance_learn_model_size(size=size, model_name=model_name, delay=delay, test=test)
-    #         trj.com_rose_curve.performance_learn_model_each(size=size, model_name=model_name, delay=delay, test=test)
-    #
-    #     # use_model = 'Dyad'
-    #     use_model = 'each'
-    #     obj = trj.com_rose_curve
-    #     figg, ax = plt.subplots(len(obj.dyad_cfo.cfo), len(delay_array), figsize=(len(delay_array) * 10, len(obj.dyad_cfo.cfo) * 5), dpi=100, sharex=True)
-    #
-    #     # axを常に2次元配列として扱う
-    #     if len(obj.dyad_cfo.cfo) == 1 or len(delay_array) == 1:
-    #         ax = ax.reshape(len(obj.dyad_cfo.cfo), len(delay_array))
-    #
-    #     for i, delay in enumerate(delay_array):
-    #         print(f"{delay=}")
-    #         time, pre, ovs = obj.performance_check_model_any(size=size, use_model=use_model, model_name=model_name, delay=delay, test=test)
-    #
-    #         for j in range(len(obj.dyad_cfo.cfo)):
-    #             ax[j, i].plot(time, pre[j], label='Predicted')
-    #             ax[j, i].plot(time, ovs[j], label='Observed')
-    #             ax[j, i].set_title('Group ' + str(j+1) + ' delay=' + f"{delay:.1f}")
-    #             ax[j, i].set_xlabel('time')
-    #             ax[j, i].set_ylabel('CP')
-    #             ax[j, i].legend()
-    #
-    #     if test:
-    #         figg.savefig('fig/' + model_name + '/' + obj.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_TEST_' + size + '_' + use_model + '.png')
-    #     else:
-    #         figg.savefig('fig/' + model_name + '/' + obj.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_' + size + '_' + use_model + '.png')
+    plt.rcParams['font.size'] = 6  # フォントの大きさ
+    delay_array = np.linspace(0.0, 0.2, 3)
+    # delay_array = np.linspace(0.0, 0.1, 11)
+    # delay_array = [0.0]
+    size = 'Dyad'
+    model_names = [
+        # 'LRM',
+        # 'KernelRidge',
+        # 'RBF-LRM',
+        # 'RBF-Ridge',
+        # 'RBF-Lasso',
+        # 'RBF-ElasticNet',
+        # 'Lasso',
+        # 'RandomForest',
+        # 'NN',
+        # 'Polar-LRM',
+        # 'Polar-KernelRidge',
+        'Polar-NN',
+    ]
+    test = False
+
+    for model_name in model_names:
+        print(f"{model_name=}")
+        for delay in delay_array:
+            print(f"{delay=}")
+            # trj.com_rose_curve.performance_learn_model_size(size=size, model_name=model_name, delay=delay, test=test)
+            trj.com_rose_curve.performance_learn_model_each(size=size, model_name=model_name, delay=delay, test=test)
+
+        # use_model = 'Dyad'
+        use_model = 'each'
+        obj = trj.com_rose_curve
+        figg, ax = plt.subplots(len(obj.dyad_cfo.cfo), len(delay_array), figsize=(len(delay_array) * 10, len(obj.dyad_cfo.cfo) * 5), dpi=100, sharex=True)
+
+        # axを常に2次元配列として扱う
+        if len(obj.dyad_cfo.cfo) == 1 or len(delay_array) == 1:
+            ax = ax.reshape(len(obj.dyad_cfo.cfo), len(delay_array))
+
+        for i, delay in enumerate(delay_array):
+            print(f"{delay=}")
+            time, pre, ovs = obj.performance_check_model_any(size=size, use_model=use_model, model_name=model_name, delay=delay, test=test)
+
+            for j in range(len(obj.dyad_cfo.cfo)):
+                ax[j, i].plot(time, pre[j], label='Predicted')
+                ax[j, i].plot(time, ovs[j], label='Observed')
+                ax[j, i].set_title('Group ' + str(j+1) + ' delay=' + f"{delay:.1f}")
+                ax[j, i].set_xlabel('time')
+                ax[j, i].set_ylabel('CP')
+                ax[j, i].legend()
+
+        if test:
+            figg.savefig('fig/' + model_name + '/' + obj.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_TEST_' + size + '_' + use_model + '.png')
+        else:
+            figg.savefig('fig/' + model_name + '/' + obj.trajectory_dir + 'Prediction/Prediction_CooperativeRMSE_' + size + '_' + use_model + '.png')
 
     # trj.com_circle.dyad_cfo.simulate_ball_angle()
     # trj.com_circle.dyad_cfo.relation_pcfo_and_rmse()
@@ -407,7 +410,18 @@ if __name__ == '__main__':
     # com.dyad_cfo.summation_performance('a_abs')
     # com.triad_cfo.summation_performance('a_abs')
     # com.tetrad_cfo.summation_performance('a_abs')
+    # trj.com_rose_curve.dyad_cfo.summation_performance('b_abs')
+    # trj.com_rose_curve.dyad_cfo.summation_performance('a_abs')
+    # trj.com_rose_curve.dyad_cfo.deviation_performance()
+
+    # trj.com_rose_curve.dyad_cfo.summation_performance_each_axis('b_abs')
+    # trj.com_rose_curve.dyad_cfo.summation_performance_each_axis('a_abs')
+
+
+    # trj.com_rose_curve.dyad_cfo.summation_performance_combine('b_abs')
     # trj.com_rose_curve.dyad_cfo.summation_performance_combine('a_abs')
+
+    # trj.com_rose_curve.dyad_cfo.tot_performance_combine()
 
     # CFOの偏差とパフォーマンスの確認
     # trj.com_rose_curve.dyad_cfo.deviation_performance_combine()
